@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useLang } from '../context/LanguageContext';
 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -210,11 +211,11 @@ const css = `
   }
 `;
 
-const Navigation = ({ lang = 'fr', onLangChange }) => {
+const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { lang, toggleLang, t } = useLang();
   const [scrolled, setScrolled] = useState(false);
-  const [activeLang, setActiveLang] = useState(lang);
   const [open, setOpen] = useState(false);
 
   const isHome = location.pathname === '/';
@@ -232,7 +233,6 @@ const Navigation = ({ lang = 'fr', onLangChange }) => {
     return () => { document.body.style.overflow = ''; };
   }, [open]);
 
-  const setLang = (l) => { setActiveLang(l); if (onLangChange) onLangChange(l); };
   const close = () => setOpen(false);
   const go = (path) => { close(); navigate(path); };
 
@@ -257,25 +257,25 @@ const Navigation = ({ lang = 'fr', onLangChange }) => {
           {isHome ? (
             <>
               <a href="#features" className="sidebar-link" onClick={close}>
-                <span className="sidebar-link-icon">🛠</span> Outils
+                <span className="sidebar-link-icon">🛠</span> {t('nav_tools')}
               </a>
               <a href="#how" className="sidebar-link" onClick={close}>
-                <span className="sidebar-link-icon">📖</span> Guide
+                <span className="sidebar-link-icon">📖</span> {t('nav_guide')}
               </a>
             </>
           ) : (
             <button className="sidebar-link" onClick={() => go('/')}>
-              <span className="sidebar-link-icon">←</span> Accueil
+              <span className="sidebar-link-icon">←</span> {t('nav_home')}
             </button>
           )}
 
           <div className="sidebar-sep" />
 
           <button className={`sidebar-link${location.pathname === '/generateur' ? ' active' : ''}`} onClick={() => go('/generateur')}>
-            <span className="sidebar-link-icon">⚡</span> Générateur EDI
+            <span className="sidebar-link-icon">⚡</span> {t('nav_generator_full')}
           </button>
           <button className={`sidebar-link${location.pathname === '/contact' ? ' active' : ''}`} onClick={() => go('/contact')}>
-            <span className="sidebar-link-icon">📞</span> Contact
+            <span className="sidebar-link-icon">📞</span> {t('nav_contact')}
           </button>
         </div>
 
@@ -284,11 +284,11 @@ const Navigation = ({ lang = 'fr', onLangChange }) => {
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
             </svg>
-            Connexion
+            {t('nav_login')}
           </button>
           <div className="sidebar-langs">
-            <button className={`sidebar-lang-btn${activeLang === 'fr' ? ' active' : ''}`} onClick={() => setLang('fr')}>FR</button>
-            <button className={`sidebar-lang-btn${activeLang === 'en' ? ' active' : ''}`} onClick={() => setLang('en')}>EN</button>
+            <button className={`sidebar-lang-btn${lang === 'FR' ? ' active' : ''}`} onClick={toggleLang}>FR</button>
+            <button className={`sidebar-lang-btn${lang === 'EN' ? ' active' : ''}`} onClick={toggleLang}>EN</button>
           </div>
         </div>
       </div>
@@ -303,33 +303,33 @@ const Navigation = ({ lang = 'fr', onLangChange }) => {
 
           {isHome && (
             <div className="nav-center">
-              <a href="#features" className="nav-link">Outils</a>
-              <a href="#how" className="nav-link">Guide</a>
+              <a href="#features" className="nav-link">{t('nav_tools')}</a>
+              <a href="#how" className="nav-link">{t('nav_guide')}</a>
             </div>
           )}
           
           {!isHome && (
             <div className="nav-center">
-              <button className={`nav-link${location.pathname === '/generateur' ? ' active' : ''}`} onClick={() => navigate('/generateur')} style={{ border: 'none' }}>Générateur</button>
-              <button className={`nav-link${location.pathname === '/contact' ? ' active' : ''}`} onClick={() => navigate('/contact')} style={{ border: 'none' }}>Contact</button>
+              <button className={`nav-link${location.pathname === '/generateur' ? ' active' : ''}`} onClick={() => navigate('/generateur')} style={{ border: 'none' }}>{t('nav_generator')}</button>
+              <button className={`nav-link${location.pathname === '/contact' ? ' active' : ''}`} onClick={() => navigate('/contact')} style={{ border: 'none' }}>{t('nav_contact')}</button>
             </div>
           )}
 
           <div className="nav-right">
             {!isHome && (
-              <button className="back-btn" onClick={() => navigate('/')}>← Accueil</button>
+              <button className="back-btn" onClick={() => navigate('/')}>← {t('nav_home')}</button>
             )}
             <div className="lang-wrap">
-              <button className={`lang-btn${activeLang === 'fr' ? ' active' : ''}`} onClick={() => setLang('fr')}>FR</button>
+              <button className={`lang-btn${lang === 'FR' ? ' active' : ''}`} onClick={toggleLang}>FR</button>
               <span className="lang-sep">|</span>
-              <button className={`lang-btn${activeLang === 'en' ? ' active' : ''}`} onClick={() => setLang('en')}>EN</button>
+              <button className={`lang-btn${lang === 'EN' ? ' active' : ''}`} onClick={toggleLang}>EN</button>
             </div>
             <div className="nav-divider" />
             <button className="conn-btn">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
               </svg>
-              Connexion
+              {t('nav_login')}
             </button>
             <button className="hbg" onClick={() => setOpen(true)} aria-label="Menu">
               <span className="hbg-bar" />

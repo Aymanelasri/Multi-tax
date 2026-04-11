@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import Navigation from '../components/Navigation';
 import Toast from '../components/ui/Toast';
+import { useLang } from '../context/LanguageContext';
 
 const ContactPage = () => {
+  const { t } = useLang();
   const [formData, setFormData] = useState({
     nom: '',
     email: '',
@@ -15,11 +17,11 @@ const ContactPage = () => {
   const [showToast, setShowToast] = useState(false);
 
   const subjects = [
-    { value: 'general', label: 'Question générale' },
-    { value: 'xml', label: 'Problème de génération XML' },
-    { value: 'dgi', label: 'Conformité DGI' },
-    { value: 'import', label: 'Import / Export modules' },
-    { value: 'autre', label: 'Autre' }
+    { value: 'general', label: t('subject_1') },
+    { value: 'xml', label: t('subject_2') },
+    { value: 'dgi', label: t('subject_3') },
+    { value: 'import', label: t('subject_4') },
+    { value: 'autre', label: t('subject_5') }
   ];
 
   const toast = (msg) => {
@@ -29,10 +31,10 @@ const ContactPage = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.nom.trim()) newErrors.nom = 'Le nom est requis';
-    if (!formData.email.trim()) newErrors.email = 'L\'email est requis';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Email invalide';
-    if (!formData.message.trim()) newErrors.message = 'Le message est requis';
+    if (!formData.nom.trim()) newErrors.nom = t('form_error_name');
+    if (!formData.email.trim()) newErrors.email = t('form_error_email');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = t('form_error_email_invalid');
+    if (!formData.message.trim()) newErrors.message = t('form_error_message');
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -46,10 +48,10 @@ const ContactPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
-      toast('✅ Message envoyé ! Nous vous répondrons sous 24h ouvrées.');
+      toast(t('toast_contact_success'));
       setFormData({ nom: '', email: '', sujet: 'general', message: '' });
     } else {
-      toast('⚠ Veuillez corriger les erreurs du formulaire');
+      toast(t('form_error_check'));
     }
   };
 
@@ -66,7 +68,7 @@ const ContactPage = () => {
           marginBottom: '12px',
           letterSpacing: '-0.5px'
         }}>
-          Contactez EDI-TVA Maroc
+          {t('contact_title')}
         </h1>
         <p style={{
           fontSize: '15px',
@@ -75,8 +77,8 @@ const ContactPage = () => {
           marginBottom: 0,
           maxWidth: '700px'
         }}>
-          Notre support est disponible pour vous aider sur la génération de fichiers EDI, les questions DGI et les points essentiels d'usage.<br />
-          Réponse rapide en jours ouvrés.
+          {t('contact_sub1')}<br />
+          {t('contact_sub2')}
         </p>
       </div>
 
@@ -112,7 +114,7 @@ const ContactPage = () => {
             marginBottom: '12px'
           }}>●</div>
           <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', marginBottom: '8px' }}>
-            Support email
+            {t('card1_title')}
           </h3>
           <p style={{
             fontSize: '14px',
@@ -120,10 +122,10 @@ const ContactPage = () => {
             color: '#00d4a0',
             marginBottom: '8px'
           }}>
-            support@editvamaroc.ma
+            {t('card1_email')}
           </p>
           <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>
-            Réponse sous 24h ouvrées.
+            {t('card1_text')}
           </p>
         </div>
 
@@ -151,7 +153,7 @@ const ContactPage = () => {
             marginBottom: '12px'
           }}>📄</div>
           <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', marginBottom: '12px' }}>
-            À propos du support
+            {t('card2_title')}
           </h3>
           <ul style={{
             listStyle: 'none',
@@ -161,10 +163,10 @@ const ContactPage = () => {
             color: '#94a3b8',
             lineHeight: '1.8'
           }}>
-            <li>Génération de fichiers EDI XML</li>
-            <li>Conformité DGI SIMPL-TVA</li>
-            <li>Import / Export de modules</li>
-            <li>Problèmes de validation XML</li>
+            <li>{t('card2_item1')}</li>
+            <li>{t('card2_item2')}</li>
+            <li>{t('card2_item3')}</li>
+            <li>{t('card2_item4')}</li>
           </ul>
           <p style={{
             fontSize: '12px',
@@ -172,7 +174,7 @@ const ContactPage = () => {
             fontStyle: 'italic',
             margin: 0
           }}>
-            Nous répondons avec des conseils clairs pour vous aider à avancer rapidement.
+            {t('card2_note')}
           </p>
         </div>
 
@@ -201,7 +203,7 @@ const ContactPage = () => {
             marginBottom: '12px'
           }}>MA</div>
           <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', marginBottom: '8px' }}>
-            Ciblage Maroc
+            {t('card3_title')}
           </h3>
           <p style={{
             fontSize: '13px',
@@ -209,7 +211,7 @@ const ContactPage = () => {
             lineHeight: '1.6',
             margin: 0
           }}>
-            Le service est pensé pour les comptables, experts-comptables et entreprises au Maroc. Support en français et arabe, avec des formats adaptés aux exigences DGI.
+            {t('card3_text1')} {t('card3_text2')}
           </p>
         </div>
       </div>
@@ -225,7 +227,7 @@ const ContactPage = () => {
           color: '#ffffff',
           marginBottom: '24px'
         }}>
-          Envoyer un message
+          {t('form_title')}
         </h2>
 
         <div style={{
@@ -246,14 +248,14 @@ const ContactPage = () => {
                 display: 'block',
                 marginBottom: '6px'
               }}>
-                Nom complet <span style={{ color: '#ef4444' }}>*</span>
+                {t('form_name')} <span style={{ color: '#ef4444' }}>*</span>
               </label>
               <input
                 type="text"
                 name="nom"
                 value={formData.nom}
                 onChange={handleChange}
-                placeholder="Votre nom"
+                placeholder={t('form_placeholder_name')}
                 style={{
                   width: '100%',
                   padding: '12px 16px',
@@ -292,14 +294,14 @@ const ContactPage = () => {
                 display: 'block',
                 marginBottom: '6px'
               }}>
-                Email professionnel <span style={{ color: '#ef4444' }}>*</span>
+                {t('form_email')} <span style={{ color: '#ef4444' }}>*</span>
               </label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="votre@email.com"
+                placeholder={t('form_placeholder_email')}
                 style={{
                   width: '100%',
                   padding: '12px 16px',
@@ -338,7 +340,7 @@ const ContactPage = () => {
                 display: 'block',
                 marginBottom: '6px'
               }}>
-                Sujet <span style={{ color: '#ef4444' }}>*</span>
+                {t('form_subject')} <span style={{ color: '#ef4444' }}>*</span>
               </label>
               <select
                 name="sujet"
@@ -382,14 +384,14 @@ const ContactPage = () => {
                 display: 'block',
                 marginBottom: '6px'
               }}>
-                Message <span style={{ color: '#ef4444' }}>*</span>
+                {t('form_message')} <span style={{ color: '#ef4444' }}>*</span>
               </label>
               <textarea
                 name="message"
                 value={formData.message}
                 onChange={handleChange}
                 rows="5"
-                placeholder="Décrivez votre problème ou question en détail..."
+                placeholder={t('form_placeholder_message')}
                 style={{
                   width: '100%',
                   padding: '12px 16px',
@@ -438,7 +440,7 @@ const ContactPage = () => {
               onMouseEnter={(e) => e.target.style.background = '#00c896'}
               onMouseLeave={(e) => e.target.style.background = '#00d4a0'}
             >
-              Envoyer le message →
+              {t('btn_send')}
             </button>
           </form>
         </div>
