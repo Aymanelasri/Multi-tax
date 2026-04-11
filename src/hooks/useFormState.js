@@ -27,14 +27,12 @@ const useFormState = () => {
     periode: '',
   });
   const [factures, setFactures] = useState([]);
-  const [factureCount, setFactureCount] = useState(0);
   const [history, setHistory] = useState([]);
 
   const addFacture = useCallback(() => {
-    setFactureCount((prev) => {
-      const newOrd = prev + 1;
-      setFactures((f) => [...f, EMPTY_FACTURE(newOrd)]);
-      return newOrd;
+    setFactures((prev) => {
+      const newOrd = prev.length + 1;
+      return [...prev, EMPTY_FACTURE(newOrd)];
     });
   }, []);
 
