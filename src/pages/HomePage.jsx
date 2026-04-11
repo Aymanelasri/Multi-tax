@@ -301,7 +301,7 @@ const HomePage = () => {
   const { lang } = useLang();
   const tr = T[lang.toLowerCase()];
   useReveal();
-  const W = { width: '100%', padding: '0 64px' };
+  // W removed — using .wrap-inner CSS class instead
 
   return (
     <>

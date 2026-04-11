@@ -487,9 +487,9 @@ const ContactPage = () => {
               Informations légales
             </div>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '13px' }}>
-              <li style={{ marginBottom: '8px' }}><a href="#" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#ffffff'} onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.6)'}>Mentions légales</a></li>
-              <li style={{ marginBottom: '8px' }}><a href="#" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#ffffff'} onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.6)'}>Confidentialité</a></li>
-              <li><a href="#" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#ffffff'} onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.6)'}>Conditions d'utilisation</a></li>
+              <li style={{ marginBottom: '8px' }}><button onClick={() => {}} style={{ color: 'rgba(255,255,255,0.6)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', padding: 0, transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#ffffff'} onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.6)'}>Mentions légales</button></li>
+              <li style={{ marginBottom: '8px' }}><button onClick={() => {}} style={{ color: 'rgba(255,255,255,0.6)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', padding: 0, transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#ffffff'} onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.6)'}>Confidentialité</button></li>
+              <li><button onClick={() => {}} style={{ color: 'rgba(255,255,255,0.6)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', padding: 0, transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#ffffff'} onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.6)'}>Conditions d'utilisation</button></li>
             </ul>
           </div>
         </div>
