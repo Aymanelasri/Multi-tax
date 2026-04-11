@@ -18,15 +18,15 @@ import { generateXML, highlightXML, validateFormData } from '../utils/xmlHelper'
 /* ── Totals bar ─────────────────────────────────────────────────────────── */
 const fmt = (n) => n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' MAD';
 
-const TotalsBar = ({ factures }) => {
+const TotalsBar = ({ factures, t }) => {
   const ht  = factures.reduce((s, f) => s + (parseFloat(f.mht) || 0), 0);
   const tva = factures.reduce((s, f) => s + (parseFloat(f.tva) || 0), 0);
   const ttc = factures.reduce((s, f) => s + (parseFloat(f.ttc) || 0), 0);
   if (!factures.length) return null;
   return (
     <div style={{ background: '#0f2744', borderRadius: 10, padding: '14px 20px', marginBottom: 14, display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'center', border: '1px solid #1e3a5f' }}>
-      <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginRight: 4 }}>Totaux</span>
-      {[['HT', ht, '#60A5FA'], ['TVA', tva, '#F59E0B'], ['TTC', ttc, '#34D399']].map(([label, val, color]) => (
+      <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginRight: 4 }}>{t('totals_label')}</span>
+      {[[t('label_ht'), ht, '#60A5FA'], [t('label_tva_short'), tva, '#F59E0B'], [t('label_ttc_short'), ttc, '#34D399']].map(([label, val, color]) => (
         <div key={label} style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
           <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>{label}</span>
           <span style={{ fontSize: '0.92rem', fontWeight: 700, color, fontFamily: 'var(--mono)' }}>{fmt(val)}</span>
@@ -164,22 +164,22 @@ const InvoiceGenerator = () => {
       <Navigation />
 
       {/* Page Header */}
-      <div style={{ paddingTop: '60px', paddingBottom: '40px' }}>
+      <div style={{ paddingTop: '40px', paddingBottom: '28px' }}>
         <h1 style={{
-          fontSize: 'clamp(40px, 5vw, 64px)',
-          fontWeight: 900,
+          fontSize: 'clamp(24px, 3vw, 36px)',
+          fontWeight: 800,
           color: '#ffffff',
-          marginBottom: '16px',
-          letterSpacing: '-0.8px'
+          marginBottom: '10px',
+          letterSpacing: '-0.5px'
         }}>
           {t('gen_page_title')} <span style={{ color: '#00d4a0' }}>SIMPL-TVA</span>
         </h1>
         <p style={{
-          fontSize: '16px',
+          fontSize: '14px',
           color: '#94a3b8',
           lineHeight: '1.6',
           marginBottom: 0,
-          maxWidth: '700px'
+          maxWidth: '600px'
         }}>
           {t('gen_page_subtitle')}
         </p>
@@ -208,7 +208,7 @@ const InvoiceGenerator = () => {
             onAddFacture={addFacture} onRemoveFacture={removeFacture}
             onPrev={() => handleStepChange(1)} onNext={() => handleStepChange(3)}
           />
-          <TotalsBar factures={factures} />
+          <TotalsBar factures={factures} t={t} />
           <ImportExportPanel factures={factures} identification={identification} onLoadModule={handleLoadModule} />
         </>
       )}
@@ -224,7 +224,7 @@ const InvoiceGenerator = () => {
                 {t('xml_gen_subtitle')}
               </p>
               <SummaryGrid factures={factures} identification={identification} regimes={REGIMES} />
-              <TotalsBar factures={factures} />
+              <TotalsBar factures={factures} t={t} />
               <ValidationErrors errors={xmlErrors} isVisible={xmlErrors.length > 0} />
               <Card title={t('gen_instructions_title')}>
                 <ol style={{ paddingLeft: 18, lineHeight: 2.1, color: '#94a3b8', fontSize: '14px' }}>

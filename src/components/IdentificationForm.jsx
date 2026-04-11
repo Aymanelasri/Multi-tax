@@ -2,22 +2,20 @@ import React from 'react';
 import Card from './ui/Card';
 import FormGroup from './ui/FormGroup';
 import Button from './ui/Button';
+import { useLang } from '../context/LanguageContext';
 import { REGIMES, REGIME_INFO } from '../utils/constants';
 
-const IdentificationForm = ({ data, onChange, onNext, lang = 'fr' }) => {
+const IdentificationForm = ({ data, onChange, onNext }) => {
+  const { t } = useLang();
   const regimeDef = REGIMES.find((r) => r.value === data.regime);
   const set = (field, value) => onChange({ ...data, [field]: value });
   const ifValid = !data.identifiantFiscal || /^\d{1,8}$/.test(data.identifiantFiscal.trim());
-  const t = {
-    fr: { title: 'Identification du Contribuable', sub: 'Entête de la déclaration — ces données constituent les balises racines du fichier XML EDI transmis à la DGI.', card: 'Informations fiscales', if: 'Identifiant Fiscal (IF)', year: 'Année', regime: 'Régime', period: 'Période', next: 'Suivant — Ajouter les factures →' },
-    en: { title: 'Taxpayer Identification', sub: 'Declaration header — this data forms the root tags of the EDI XML file submitted to DGI.', card: 'Tax Information', if: 'Fiscal ID (IF)', year: 'Year', regime: 'Regime', period: 'Period', next: 'Next — Add invoices →' },
-  }[lang] || {};
   return (
     <div className="panel active" id="panel1">
-      <div className="panel-title">
-        <span className="icon">🪪</span> {t.title}
+      <div className="panel-title" style={{ fontSize: 'clamp(20px, 2.5vw, 28px)', fontWeight: 800, marginBottom: 6 }}>
+        {t('section1_title')}
       </div>
-      <p className="panel-subtitle">{t.sub}</p>
+      <p className="panel-subtitle">{t('section1_sub')}</p>
 
       <Card>
         {/* Section header */}
@@ -34,11 +32,11 @@ const IdentificationForm = ({ data, onChange, onNext, lang = 'fr' }) => {
           alignItems: 'center',
           gap: '8px'
         }}>
-          | {t.card.toUpperCase()}
+          | {t('field_if').split('(')[0].trim().toUpperCase()}
         </div>
 
         <div className="form-grid cols3" style={{ marginBottom: 20 }}>
-          <FormGroup label={t.if} required help="1 à 8 chiffres">
+          <FormGroup label={t('field_if')} required help={t('hint_1_8_digits')}>
             <input
               type="text"
               placeholder="ex: 16685940"
@@ -47,11 +45,11 @@ const IdentificationForm = ({ data, onChange, onNext, lang = 'fr' }) => {
               className={data.identifiantFiscal && !ifValid ? 'invalid' : ''}
             />
             {data.identifiantFiscal && !ifValid && (
-              <span className="field-error">⚠ 1 à 8 chiffres requis</span>
+              <span className="field-error">{t('error_1_8_digits')}</span>
             )}
           </FormGroup>
 
-          <FormGroup label={t.year} required>
+          <FormGroup label={t('field_annee')} required>
             <div className="number-wrap">
               <input
                 type="number"
@@ -63,13 +61,13 @@ const IdentificationForm = ({ data, onChange, onNext, lang = 'fr' }) => {
             </div>
           </FormGroup>
 
-          <FormGroup label={t.regime} required>
+          <FormGroup label={t('field_regime')} required>
             <select
               value={data.regime || '1'}
               onChange={(e) => onChange({ ...data, regime: e.target.value, periode: '' })}
             >
               {REGIMES.map((r) => (
-                <option key={r.value} value={r.value}>{r.value} — {r.label}</option>
+                <option key={r.value} value={r.value}>{t(`regime_${r.value}`)}</option>
               ))}
             </select>
           </FormGroup>
@@ -78,7 +76,7 @@ const IdentificationForm = ({ data, onChange, onNext, lang = 'fr' }) => {
         <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '16px 0 20px' }} />
 
         <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 16, alignItems: 'start' }}>
-          <FormGroup label={t.period} required help={`1 à ${regimeDef?.maxPeriode || 12}`}>
+          <FormGroup label={t('field_periode')} required help={`1 à ${regimeDef?.maxPeriode || 12}`}>
             <div className="number-wrap">
               <input
                 type="number"
@@ -97,7 +95,7 @@ const IdentificationForm = ({ data, onChange, onNext, lang = 'fr' }) => {
               color: '#94a3b8',
               paddingTop: '8px'
             }}>
-              <span style={{ fontWeight: 700, color: '#00d4a0' }}>{regimeDef.label}:</span> {regimeDef.desc || ''}
+              <span style={{ fontWeight: 700, color: '#00d4a0' }}>{t(`regime_${regimeDef.value}`).split('—')[1]?.trim()}:</span> {regimeDef.desc || ''}
             </div>
           )}
         </div>
@@ -110,7 +108,7 @@ const IdentificationForm = ({ data, onChange, onNext, lang = 'fr' }) => {
       </Card>
 
       <div className="actions-row">
-        <Button variant="primary" onClick={onNext}>{t.next}</Button>
+        <Button variant="primary" onClick={onNext}>{t('btn_next_step1')}</Button>
       </div>
     </div>
   );

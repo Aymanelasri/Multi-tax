@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { useLang } from '../context/LanguageContext';
 
 const LS_KEY = 'simpl_tva_modules';
 const loadModules = () => { try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch { return []; } };
@@ -22,6 +23,7 @@ const Tab = ({ label, shortLabel, active, onClick }) => (
 );
 
 const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
+  const { t } = useLang();
   const [tab, setTab] = useState('import');
   const [modules, setModules] = useState(loadModules);
   const [moduleName, setModuleName] = useState('');
@@ -29,21 +31,24 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
   const [toast, setToast] = useState('');
   const fileRef = useRef();
 
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(''), 3000);
+  };
 
   const processFile = useCallback((file) => {
-    if (!file || !file.name.endsWith('.json')) { showToast('Fichier JSON requis'); return; }
+    if (!file || !file.name.endsWith('.json')) { showToast(t('jsonRequired')); return; }
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
         const data = JSON.parse(e.target.result);
         if (!data.type || !data.entries) throw new Error();
         onLoadModule(data);
-        showToast(`Module "${data.name || file.name}" charge`);
-      } catch { showToast('Format de module invalide'); }
+        showToast(t('loaded', { name: data.name || file.name }));
+      } catch { showToast(t('invalidFormat')); }
     };
     reader.readAsText(file);
-  }, [onLoadModule]);
+  }, [onLoadModule, t]);
 
   const handleExport = (type) => {
     const name = moduleName.trim() || `module_${Date.now()}`;
@@ -56,7 +61,7 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
     URL.revokeObjectURL(url);
     const updated = [{ name, type, entries, savedAt: data.savedAt, count: entries.length }, ...modules];
     setModules(updated); saveModules(updated);
-    showToast(`Module "${name}" exporte`);
+    showToast(t('exported', { name }));
     setModuleName('');
   };
 
@@ -65,7 +70,7 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
     setModules(updated); saveModules(updated);
   };
 
-  const handleLoad = (mod) => { onLoadModule(mod); showToast(`Module "${mod.name}" charge`); };
+  const handleLoad = (mod) => { onLoadModule(mod); showToast(t('loaded', { name: mod.name })); };
 
   return (
     <>
@@ -77,21 +82,18 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
         }
       `}</style>
       <div className="card" style={{ marginBottom: 20 }}>
-        <div className="card-title">Modules Import / Export</div>
+        <div className="card-title">{t('title')}</div>
 
         {/* Tabs */}
         <div className="ie-panel-tabs" style={{ display: 'flex', borderBottom: '1px solid var(--border)', marginBottom: 18, overflowX: 'auto' }}>
-          <Tab label="📥 Importer"  shortLabel="📥" active={tab === 'import'} onClick={() => setTab('import')} />
-          <Tab label="📤 Exporter"  shortLabel="📤" active={tab === 'export'} onClick={() => setTab('export')} />
-          <Tab label={`📚 Sauvegardes (${modules.length})`} shortLabel={`📚 ${modules.length}`} active={tab === 'saved'} onClick={() => setTab('saved')} />
+          <Tab label={`📥 ${t('import')}`}  shortLabel="📥" active={tab === 'import'} onClick={() => setTab('import')} />
+          <Tab label={`📤 ${t('export')}`}  shortLabel="📤" active={tab === 'export'} onClick={() => setTab('export')} />
+          <Tab label={`📚 ${t('saved')} (${modules.length})`} shortLabel={`📚 ${modules.length}`} active={tab === 'saved'} onClick={() => setTab('saved')} />
         </div>
 
         {/* Import */}
         {tab === 'import' && (
           <div>
-            <p style={{ fontSize: '0.81rem', color: 'var(--text-2)', marginBottom: 14, lineHeight: 1.6 }}>
-              Importez un fichier <code style={{ color: 'var(--blue-h)', fontFamily: 'var(--mono)', fontSize: '0.78rem' }}>.json</code> pour pre-remplir les fournisseurs ou factures.
-            </p>
             <div
               onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
               onDragLeave={() => setDragOver(false)}
@@ -104,11 +106,9 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
                 background: dragOver ? 'var(--blue-tint)' : 'transparent',
               }}
             >
-              <div style={{ fontSize: '1.8rem', marginBottom: 8 }}>📂</div>
-              <div style={{ fontSize: '0.84rem', color: 'var(--text-2)', marginBottom: 4 }}>
-                Glissez-deposez votre <strong style={{ color: 'var(--text)' }}>.json</strong> ici
-              </div>
-              <div style={{ fontSize: '0.74rem', color: 'var(--text-3)' }}>ou cliquez pour selectionner</div>
+              <div style={{ fontSize: '1.8rem', marginBottom: 12 }}>📂</div>
+              <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#00d4a0', marginBottom: 8 }}>.json</div>
+              <div style={{ fontSize: '0.82rem', color: 'var(--text)' }}>{t('upload')}</div>
             </div>
             <input ref={fileRef} type="file" accept=".json" style={{ display: 'none' }} onChange={(e) => processFile(e.target.files[0])} />
           </div>
@@ -117,21 +117,18 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
         {/* Export */}
         {tab === 'export' && (
           <div>
-            <p style={{ fontSize: '0.81rem', color: 'var(--text-2)', marginBottom: 16, lineHeight: 1.6 }}>
-              Exportez les donnees actuelles en fichier <code style={{ color: 'var(--blue-h)', fontFamily: 'var(--mono)', fontSize: '0.78rem' }}>.json</code> reutilisable.
-            </p>
             <div style={{ marginBottom: 14 }}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-3)', letterSpacing: '0.07em', textTransform: 'uppercase', display: 'block', marginBottom: 5 }}>
-                Nom du module
+                {t('module')}
               </label>
-              <input value={moduleName} onChange={(e) => setModuleName(e.target.value)} placeholder="ex: fournisseurs-2024" />
+              <input value={moduleName} onChange={(e) => setModuleName(e.target.value)} placeholder={t('placeholder')} />
             </div>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <button className="btn btn-primary" onClick={() => handleExport('factures')} disabled={factures.length === 0} style={{ opacity: factures.length === 0 ? 0.4 : 1 }}>
-                Factures ({factures.length})
+                {t('factures')} ({factures.length})
               </button>
               <button className="btn btn-blue" onClick={() => handleExport('identification')}>
-                Identification
+                {t('identification')}
               </button>
             </div>
           </div>
@@ -142,7 +139,7 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
           <div>
             {modules.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '28px 0', color: 'var(--text-3)', fontSize: '0.81rem' }}>
-                Aucun module sauvegarde.
+                {t('empty')}
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -155,15 +152,15 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text)', marginBottom: 2 }}>{mod.name}</div>
                       <div style={{ fontSize: '0.72rem', color: 'var(--text-3)' }}>
-                        {mod.type === 'factures' ? 'Factures' : 'Identification'} · {mod.count} entree{mod.count > 1 ? 's' : ''} · {new Date(mod.savedAt).toLocaleDateString('fr-MA')}
+                        {mod.type === 'factures' ? t('factures') : t('identification')} · {mod.count} {mod.count > 1 ? t('entries') : t('entry')} · {new Date(mod.savedAt).toLocaleDateString('fr-MA')}
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: 7, flexShrink: 0 }}>
                       <button className="btn btn-blue" style={{ padding: '5px 12px', fontSize: '0.75rem' }} onClick={() => handleLoad(mod)}>
-                        Charger
+                        {t('load')}
                       </button>
                       <button className="btn-remove" onClick={() => handleDelete(i)}>
-                        Supprimer
+                        {t('delete')}
                       </button>
                     </div>
                   </div>

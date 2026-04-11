@@ -254,26 +254,21 @@ const Navigation = () => {
         </div>
 
         <div className="sidebar-body">
-          {isHome ? (
-            <>
-              <a href="#features" className="sidebar-link" onClick={close}>
-                <span className="sidebar-link-icon">🛠</span> {t('nav_tools')}
-              </a>
-              <a href="#how" className="sidebar-link" onClick={close}>
-                <span className="sidebar-link-icon">📖</span> {t('nav_guide')}
-              </a>
-            </>
-          ) : (
-            <button className="sidebar-link" onClick={() => go('/')}>
-              <span className="sidebar-link-icon">←</span> {t('nav_home')}
-            </button>
-          )}
-
-          <div className="sidebar-sep" />
-
+          <button className={`sidebar-link${location.pathname === '/' ? ' active' : ''}`} onClick={() => go('/')}>
+            <span className="sidebar-link-icon">🏠</span> {t('nav_home')}
+          </button>
           <button className={`sidebar-link${location.pathname === '/generateur' ? ' active' : ''}`} onClick={() => go('/generateur')}>
             <span className="sidebar-link-icon">⚡</span> {t('nav_generator_full')}
           </button>
+          <button className="sidebar-link" onClick={() => { close(); navigate('/'); setTimeout(() => { document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' }); }, 100); }}>
+            <span className="sidebar-link-icon">🛠</span> {t('nav_tools')}
+          </button>
+          <button className="sidebar-link" onClick={() => { close(); navigate('/'); setTimeout(() => { document.getElementById('how')?.scrollIntoView({ behavior: 'smooth' }); }, 100); }}>
+            <span className="sidebar-link-icon">📖</span> {t('nav_guide')}
+          </button>
+
+          <div className="sidebar-sep" />
+
           <button className={`sidebar-link${location.pathname === '/contact' ? ' active' : ''}`} onClick={() => go('/contact')}>
             <span className="sidebar-link-icon">📞</span> {t('nav_contact')}
           </button>
@@ -303,13 +298,16 @@ const Navigation = () => {
 
           {isHome && (
             <div className="nav-center">
+              <button className={`nav-link${location.pathname === '/' ? ' active' : ''}`} onClick={() => navigate('/')}>{t('nav_home')}</button>
               <a href="#features" className="nav-link">{t('nav_tools')}</a>
               <a href="#how" className="nav-link">{t('nav_guide')}</a>
+              <button className={`nav-link${location.pathname === '/contact' ? ' active' : ''}`} onClick={() => navigate('/contact')}>{t('nav_contact')}</button>
             </div>
           )}
           
           {!isHome && (
             <div className="nav-center">
+              <button className={`nav-link${location.pathname === '/' ? ' active' : ''}`} onClick={() => navigate('/')}>{t('nav_home')}</button>
               <button className={`nav-link${location.pathname === '/generateur' ? ' active' : ''}`} onClick={() => navigate('/generateur')} style={{ border: 'none' }}>{t('nav_generator')}</button>
               <button className={`nav-link${location.pathname === '/contact' ? ' active' : ''}`} onClick={() => navigate('/contact')} style={{ border: 'none' }}>{t('nav_contact')}</button>
             </div>
@@ -317,7 +315,7 @@ const Navigation = () => {
 
           <div className="nav-right">
             {!isHome && (
-              <button className="back-btn" onClick={() => navigate('/')}>← {t('nav_home')}</button>
+              <button className="back-btn" style={{ display: 'none' }} onClick={() => navigate('/')}>← {t('nav_home')}</button>
             )}
             <div className="lang-wrap">
               <button className={`lang-btn${lang === 'FR' ? ' active' : ''}`} onClick={toggleLang}>FR</button>

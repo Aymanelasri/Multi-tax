@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLang } from '../context/LanguageContext';
 import Navigation from '../components/Navigation';
 import NewsTicker from '../components/NewsTicker';
 
@@ -37,6 +38,13 @@ const T = {
       { num: '03', title: 'Export ZIP', desc: 'Validez, prévisualisez le XML et téléchargez votre archive ZIP prête pour SIMPL-TVA.' },
     ],
     howCta: 'Essayer maintenant →',
+    testimonialsLabel: 'TÉMOIGNAGES',
+    testimonialsTitle: 'Ce qu\'ils en pensent',
+    testimonials: [
+      { name: 'Karim B.', role: 'Expert-comptable, Casablanca', text: '"Enfin un outil simple et fiable pour générer les fichiers EDI. Je gagne un temps fou chaque trimestre."' },
+      { name: 'Salma R.', role: 'Directrice financière, Rabat', text: '"100% local, aucune donnée envoyée — c\'est exactement ce dont on avait besoin pour rester conformes."' },
+      { name: 'Youssef M.', role: 'Gérant PME, Marrakech', text: '"Interface claire, génération en 2 clics. Je recommande à tous mes collègues comptables."' },
+    ],
     footerTagline: 'Solution EDI pour la déclaration TVA conforme à la DGI Maroc. 100% local et sécurisé.',
     footerNav: 'Navigation',
     footerLinks: ['Accueil', 'Générateur', 'Contact'],
@@ -69,6 +77,13 @@ const T = {
       { num: '03', title: 'ZIP export', desc: 'Validate, preview the XML and download your ZIP archive ready for SIMPL-TVA.' },
     ],
     howCta: 'Try it now →',
+    testimonialsLabel: 'TESTIMONIALS',
+    testimonialsTitle: 'What they think',
+    testimonials: [
+      { name: 'Karim B.', role: 'Accountant, Casablanca', text: '"Finally a simple and reliable tool to generate EDI files. I save so much time every quarter."' },
+      { name: 'Salma R.', role: 'CFO, Rabat', text: '"100% local, no data sent — exactly what we needed to stay compliant."' },
+      { name: 'Youssef M.', role: 'SME Manager, Marrakech', text: '"Clear interface, generation in 2 clicks. I recommend it to all my accounting colleagues."' },
+    ],
     footerTagline: 'EDI solution for VAT declaration compliant with DGI Morocco. 100% local and secure.',
     footerNav: 'Navigation',
     footerLinks: ['Home', 'Generator', 'Contact'],
@@ -115,7 +130,7 @@ const css = `
   /* premium feature cards */
   .bento {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 12px;
   }
   
@@ -132,52 +147,6 @@ const css = `
   
   .feat-card:hover {
     border-color: rgba(0, 212, 160, 0.3);
-  }
-  
-  .feat-card.featured {
-    border: 1px solid rgba(255, 255, 255, 0.08);
-  }
-  
-  .feat-card.featured:hover {
-    border-color: rgba(0, 212, 160, 0.3);
-  }
-  
-  /* Card 1: 4 columns (65%) */
-  .bento > .feat-card:nth-child(1) {
-    grid-column: 1 / 5;
-    grid-row: 1;
-  }
-  
-  /* Card 2: 2 columns (35%) */
-  .bento > .feat-card:nth-child(2) {
-    grid-column: 5 / 7;
-    grid-row: 1;
-  }
-  
-  /* Cards 3, 4, 5: 2 columns each (33% each) */
-  .bento > .feat-card:nth-child(3) {
-    grid-column: 1 / 3;
-    grid-row: 2;
-  }
-  
-  .bento > .feat-card:nth-child(4) {
-    grid-column: 3 / 5;
-    grid-row: 2;
-  }
-  
-  .bento > .feat-card:nth-child(5) {
-    grid-column: 5 / 7;
-    grid-row: 2;
-  }
-  
-  /* Card 6: 4 columns (65%) */
-  .bento > .feat-card:nth-child(6) {
-    grid-column: 1 / 5;
-    grid-row: 3;
-  }
-  
-  .feat-card-wide {
-    grid-column: auto;
   }
   
   .feat-card-icon {
@@ -225,70 +194,24 @@ const css = `
     .hero-grid{gap:60px}
     .hero-h1{font-size:3.6rem}
   }
-  @media(max-width:1024px){
-    .bento {
-      grid-template-columns: repeat(4, 1fr);
-    }
-    .bento > .feat-card:nth-child(1) { grid-column: 1 / 3; }
-    .bento > .feat-card:nth-child(2) { grid-column: 3 / 5; }
-    .bento > .feat-card:nth-child(3) { grid-column: 1 / 2; }
-    .bento > .feat-card:nth-child(4) { grid-column: 2 / 3; }
-    .bento > .feat-card:nth-child(5) { grid-column: 3 / 5; }
-    .bento > .feat-card:nth-child(6) { grid-column: 1 / 3; }
-  }
-  @media(max-width:900px){
-    .hero-grid{grid-template-columns:1fr!important;gap:48px!important}
+  .wrap-inner { padding: 0 64px; }
+  @media(max-width:768px){
+    .wrap-inner { padding: 0 18px; }
+    .hero-grid{grid-template-columns:1fr!important;gap:32px!important}
     .mockup-col{display:none!important}
-    .hero-h1{font-size:2.8rem!important;letter-spacing:-2px!important}
-    .bento {
-      grid-template-columns: 1fr;
-    }
-    .bento > .feat-card:nth-child(1),
-    .bento > .feat-card:nth-child(2),
-    .bento > .feat-card:nth-child(3),
-    .bento > .feat-card:nth-child(4),
-    .bento > .feat-card:nth-child(5),
-    .bento > .feat-card:nth-child(6) {
-      grid-column: 1;
-    }
-    .feat-card-wide{grid-column:1!important}
+    .hero-h1{font-size:2.2rem!important;letter-spacing:-1.5px!important}
+    .bento{grid-template-columns:1fr!important}
+    .testimonials-grid{grid-template-columns:1fr!important}
     .timeline{grid-template-columns:1fr!important}
     .timeline::before{display:none}
     .tl-dot::after{display:none}
-  }
-  @media(max-width:640px){
-    .bento {
-      gap: 10px;
-    }
-    .feat-card {
-      padding: 20px;
-      border-radius: 12px;
-    }
-    .feat-card-icon {
-      font-size: 28px;
-      margin-bottom: 12px;
-    }
-    .feat-card-title {
-      font-size: 14px;
-    }
-    .feat-card-desc {
-      font-size: 12px;
-    }
-  }
-  @media(max-width:600px){
-    .hero-h1{font-size:2.2rem!important;letter-spacing:-1.2px!important}
-    .stats-row{flex-direction:column!important;gap:32px!important}
+    .stats-row{flex-direction:column!important;gap:28px!important}
     .stats-sep{display:none!important}
-    .feat-card{padding:18px!important;border-radius:12px!important}
-    .feat-card-icon{font-size:24px!important;margin-bottom:10px!important}
-    .btn-p,.btn-o{padding:11px 20px!important;font-size:.86rem!important;width:100%!important;justify-content:center!important}
-    .tl-item{padding:0 8px!important}
-    .tl-dot{width:48px!important;height:48px!important;font-size:.7rem!important}
-    .tl-item-title{font-size:.9rem!important}
-    .tl-item-desc{font-size:.8rem!important}
+    .feat-card{padding:20px!important}
+    .btn-p,.btn-o{width:100%!important;justify-content:center!important}
   }
   @media(max-width:480px){
-    .hero-h1{font-size:1.9rem!important;letter-spacing:-1px!important}
+    .hero-h1{font-size:1.8rem!important;letter-spacing:-1px!important}
     .hero-p{font-size:.9rem!important}
   }
 `;
@@ -375,8 +298,8 @@ const TVACard = ({ t }) => (
 // ── main ──────────────────────────────────────────────────────────────────────
 const HomePage = () => {
   const navigate = useNavigate();
-  const [lang, setLang] = useState('fr');
-  const tr = T[lang];
+  const { lang } = useLang();
+  const tr = T[lang.toLowerCase()];
   useReveal();
   const W = { width: '100%', padding: '0 64px' };
 
@@ -386,11 +309,10 @@ const HomePage = () => {
       <div className="grid-bg" />
       <div className="wrap" style={{ background: C.bg, minHeight: '100vh', color: C.text }}>
 
-        <Navigation lang={lang} onLangChange={setLang} />
-        <NewsTicker />
+        <Navigation />
 
         {/* ── Hero ── */}
-        <div style={{ ...W, padding: '130px 64px 100px' }}>
+        <div className="wrap-inner" style={{ paddingTop: 104, paddingBottom: 0 }}>
           <div className="hero-grid">
             <div>
               <h1 className="reveal hero-h1" style={{ marginBottom: 28 }}>
@@ -407,64 +329,102 @@ const HomePage = () => {
                   <button className="btn-o">{tr.heroCta2}</button>
                 </a>
               </div>
-              {/* Stats */}
-              <div className="reveal d3 stats-row" style={{ display: 'flex', alignItems: 'stretch', marginTop: 64, gap: 0 }}>
-                <StatItem target={20} suffix="K+" label={tr.statLabels[0]} duration={1600} />
-                <div className="stats-sep" style={{ width: 1, height: 80, background: 'linear-gradient(180deg, transparent, rgba(74,222,128,0.2), transparent)', margin: '0 56px' }} />
-                <StatItem target={100} suffix="K+" label={tr.statLabels[1]} duration={2000} />
-                <div className="stats-sep" style={{ width: 1, height: 80, background: 'linear-gradient(180deg, transparent, rgba(74,222,128,0.2), transparent)', margin: '0 56px' }} />
-                <StatItem target={100} suffix="%" label={tr.statLabels[2]} duration={1400} />
-              </div>
             </div>
             <div className="mockup-col reveal d3">
-              <TVACard t={lang} />
+              <TVACard t={lang.toLowerCase()} />
             </div>
           </div>
         </div>
 
-        {/* ── Features — Bento Grid ── */}
-        <div id="features" style={{ ...W, padding: '120px 64px' }}>
+        {/* ── Stats ── */}
+        <div className="wrap-inner" style={{ paddingTop: 64, paddingBottom: 80 }}>
+          <div className="reveal d3 stats-row" style={{ display: 'flex', alignItems: 'stretch', gap: 0 }}>
+            <StatItem target={10} suffix="K+" label={tr.statLabels[0]} duration={1600} />
+            <div className="stats-sep" style={{ width: 1, height: 80, background: 'linear-gradient(180deg, transparent, rgba(74,222,128,0.2), transparent)', margin: '0 56px' }} />
+            <StatItem target={30} suffix="K+" label={tr.statLabels[1]} duration={2000} />
+            <div className="stats-sep" style={{ width: 1, height: 80, background: 'linear-gradient(180deg, transparent, rgba(74,222,128,0.2), transparent)', margin: '0 56px' }} />
+            <StatItem target={100} suffix="%" label={tr.statLabels[2]} duration={1400} />
+          </div>
+        </div>
+
+        <NewsTicker />
+
+        {/* ── Features ── */}
+        <div id="features" className="wrap-inner" style={{ paddingTop: 120, paddingBottom: 120 }}>
           <div className="reveal" style={{ marginBottom: 40 }}>
             <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', color: '#00d4a0', textTransform: 'uppercase', marginBottom: 12 }}>{tr.featLabel}</p>
             <h2 style={{ fontSize: 'clamp(32px, 4vw, 52px)', fontWeight: 900, letterSpacing: '-1px', lineHeight: 1.15, marginBottom: 8, color: '#ffffff' }}>{tr.featTitle}</h2>
             <p style={{ fontSize: '15px', color: '#94a3b8', maxWidth: 700, lineHeight: 1.7, letterSpacing: '-0.02em' }}>{tr.featSub}</p>
           </div>
           <div className="bento">
-            {/* Card 0: Featured - 2 columns wide */}
             <div className={`feat-card featured reveal d0 feat-card-wide`}>
-              <span className="feat-card-icon">{tr.features[0].icon}</span>
               <div className="feat-card-title">{tr.features[0].title}</div>
               <p className="feat-card-desc">{tr.features[0].desc}</p>
             </div>
 
-            {/* Card 1: Normal card */}
             <div className={`feat-card reveal d1`}>
-              <span className="feat-card-icon">{tr.features[1].icon}</span>
               <div className="feat-card-title">{tr.features[1].title}</div>
               <p className="feat-card-desc">{tr.features[1].desc}</p>
             </div>
 
-            {/* Cards 2-4: Middle row (3 cards, 1 column each) */}
             {tr.features.slice(2, 5).map((f, i) => (
               <div key={i + 2} className={`feat-card reveal d${i + 2}`}>
-                <span className="feat-card-icon">{f.icon}</span>
                 <div className="feat-card-title">{f.title}</div>
                 <p className="feat-card-desc">{f.desc}</p>
               </div>
             ))}
 
-            {/* Card 5: Bottom left - 2 columns wide */}
             <div className={`feat-card reveal d5 feat-card-wide`}>
-              <span className="feat-card-icon">{tr.features[5].icon}</span>
               <div className="feat-card-title">{tr.features[5].title}</div>
               <p className="feat-card-desc">{tr.features[5].desc}</p>
             </div>
           </div>
         </div>
 
+        {/* ── Testimonials ── */}
+        <div className="wrap-inner" style={{ paddingTop: 0, paddingBottom: 120 }}>
+          <div className="reveal" style={{ marginBottom: 48 }}>
+            <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', color: '#00d4a0', textTransform: 'uppercase', marginBottom: 12 }}>{tr.testimonialsLabel}</p>
+            <h2 style={{ fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: 900, letterSpacing: '-1px', lineHeight: 1.15, color: '#ffffff' }}>{tr.testimonialsTitle}</h2>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }} className="testimonials-grid">
+            {tr.testimonials.map((r, i) => (
+              <div key={i} className="reveal" style={{ position: 'relative', background: 'linear-gradient(145deg, #0f1a2e, #111d30)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 20, padding: '32px 28px 28px', transition: 'all 0.25s ease', overflow: 'hidden' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(16,185,129,0.35)'; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.3)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+              >
+                {/* quote mark */}
+                <div style={{ position: 'absolute', top: 20, right: 24, fontSize: 64, lineHeight: 1, color: 'rgba(16,185,129,0.08)', fontFamily: 'Georgia, serif', fontWeight: 900, userSelect: 'none' }}>&ldquo;</div>
+
+                {/* stars */}
+                <div style={{ display: 'flex', gap: 3, marginBottom: 20 }}>
+                  {[...Array(5)].map((_, s) => (
+                    <svg key={s} width="14" height="14" viewBox="0 0 24 24" fill="#10b981"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                  ))}
+                </div>
+
+                {/* text */}
+                <p style={{ fontSize: '0.88rem', color: '#cbd5e1', lineHeight: 1.8, marginBottom: 28, position: 'relative', zIndex: 1 }}>{r.text}</p>
+
+                {/* divider */}
+                <div style={{ height: 1, background: 'linear-gradient(90deg, rgba(16,185,129,0.3), transparent)', marginBottom: 20 }} />
+
+                {/* author */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #10b981, #34d399)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, color: '#000', flexShrink: 0, boxShadow: '0 4px 12px rgba(16,185,129,0.3)' }}>{r.name[0]}</div>
+                  <div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#f0f4f8', letterSpacing: '-0.2px' }}>{r.name}</div>
+                    <div style={{ fontSize: '0.72rem', color: '#10b981', marginTop: 2, fontWeight: 500 }}>{r.role}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* ── How it works — Timeline ── */}
         <div id="how" style={{ borderTop: `1px solid rgba(74,222,128,0.12)`, borderBottom: `1px solid rgba(74,222,128,0.12)`, background: 'linear-gradient(135deg, rgba(16,185,129,0.06), rgba(16,185,129,0.02))' }}>
-          <div style={{ ...W, padding: '120px 64px' }}>
+          <div className="wrap-inner" style={{ paddingTop: 120, paddingBottom: 120 }}>
             <div className="reveal" style={{ marginBottom: 72, maxWidth: 620 }}>
               <p style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.16em', color: C.accent, textTransform: 'uppercase', marginBottom: 12, background: 'linear-gradient(135deg, #10b981, #34d399)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{tr.howLabel}</p>
               <h2 style={{ fontSize: '3.2rem', fontWeight: 900, letterSpacing: '-2.2px', lineHeight: 1.15, marginBottom: 18, background: 'linear-gradient(135deg, #f0f4f8, #c0c7d4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{tr.howTitle}</h2>
@@ -479,9 +439,8 @@ const HomePage = () => {
                 </div>
               ))}
             </div>
-            <div className="reveal" style={{ marginTop: 68, display: 'flex', gap: 16 }}>
+            <div className="reveal" style={{ marginTop: 68 }}>
               <button className="btn-p" onClick={() => navigate('/generateur')}>{tr.howCta}</button>
-              <button className="btn-o">En savoir plus →</button>
             </div>
           </div>
         </div>
@@ -509,7 +468,7 @@ const HomePage = () => {
             zIndex: 0
           }} />
 
-          <div style={{ ...W, padding: '64px 64px 48px', position: 'relative', zIndex: 1 }}>
+          <div className="wrap-inner" style={{ paddingTop: 64, paddingBottom: 48, position: 'relative', zIndex: 1 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 60, marginBottom: 48 }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
