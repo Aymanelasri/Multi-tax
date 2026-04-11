@@ -54,15 +54,15 @@ const ContactPage = () => {
   };
 
   return (
-    <div style={{ background: '#f8fafc', minHeight: '100vh' }}>
+    <div style={{ background: '#0a0f1a', minHeight: '100vh' }}>
       <Navigation />
 
       {/* Page Header */}
       <div style={{ padding: '60px 48px 32px', maxWidth: 'none' }}>
         <h1 style={{
           fontSize: 'clamp(28px, 4vw, 42px)',
-          fontWeight: 800,
-          color: '#0f2744',
+          fontWeight: 900,
+          color: '#ffffff',
           marginBottom: '12px',
           letterSpacing: '-0.5px'
         }}>
@@ -70,7 +70,7 @@ const ContactPage = () => {
         </h1>
         <p style={{
           fontSize: '15px',
-          color: '#64748b',
+          color: '#94a3b8',
           lineHeight: '1.6',
           marginBottom: 0,
           maxWidth: '700px'
@@ -90,14 +90,14 @@ const ContactPage = () => {
       }}>
         {/* Card 1 */}
         <div style={{
-          background: '#ffffff',
-          border: '1px solid #e2e8f0',
-          borderRadius: '12px',
+          background: '#141d2e',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: '14px',
           padding: '24px',
           transition: 'all 0.2s ease'
         }}
-          onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'}
-          onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(0,212,160,0.2)'}
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
         >
           <div style={{
             width: '32px',
@@ -111,32 +111,32 @@ const ContactPage = () => {
             fontWeight: 'bold',
             marginBottom: '12px'
           }}>●</div>
-          <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0f2744', marginBottom: '8px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', marginBottom: '8px' }}>
             Support email
           </h3>
           <p style={{
             fontSize: '14px',
             fontWeight: 600,
-            color: '#059669',
+            color: '#00d4a0',
             marginBottom: '8px'
           }}>
             support@editvamaroc.ma
           </p>
-          <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+          <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>
             Réponse sous 24h ouvrées.
           </p>
         </div>
 
         {/* Card 2 */}
         <div style={{
-          background: '#ffffff',
-          border: '1px solid #e2e8f0',
-          borderRadius: '12px',
+          background: '#141d2e',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: '14px',
           padding: '24px',
           transition: 'all 0.2s ease'
         }}
-          onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'}
-          onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(0,212,160,0.2)'}
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
         >
           <div style={{
             width: '32px',
@@ -150,7 +150,7 @@ const ContactPage = () => {
             fontSize: '18px',
             marginBottom: '12px'
           }}>📄</div>
-          <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0f2744', marginBottom: '12px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', marginBottom: '12px' }}>
             À propos du support
           </h3>
           <ul style={{
@@ -158,7 +158,7 @@ const ContactPage = () => {
             padding: 0,
             margin: '0 0 12px 0',
             fontSize: '13px',
-            color: '#475569',
+            color: '#94a3b8',
             lineHeight: '1.8'
           }}>
             <li>Génération de fichiers EDI XML</li>
@@ -178,14 +178,14 @@ const ContactPage = () => {
 
         {/* Card 3 */}
         <div style={{
-          background: '#ffffff',
-          border: '1px solid #e2e8f0',
-          borderRadius: '12px',
+          background: '#141d2e',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: '14px',
           padding: '24px',
           transition: 'all 0.2s ease'
         }}
-          onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'}
-          onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(0,212,160,0.2)'}
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
         >
           <div style={{
             width: '32px',
@@ -200,12 +200,12 @@ const ContactPage = () => {
             fontWeight: 'bold',
             marginBottom: '12px'
           }}>MA</div>
-          <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0f2744', marginBottom: '8px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', marginBottom: '8px' }}>
             Ciblage Maroc
           </h3>
           <p style={{
             fontSize: '13px',
-            color: '#475569',
+            color: '#94a3b8',
             lineHeight: '1.6',
             margin: 0
           }}>
@@ -221,16 +221,16 @@ const ContactPage = () => {
       }}>
         <h2 style={{
           fontSize: '22px',
-          fontWeight: 700,
-          color: '#0f2744',
+          fontWeight: 800,
+          color: '#ffffff',
           marginBottom: '24px'
         }}>
           Envoyer un message
         </h2>
 
         <div style={{
-          background: '#ffffff',
-          border: '1px solid #e2e8f0',
+          background: '#141d2e',
+          border: '1px solid rgba(255,255,255,0.08)',
           borderRadius: '16px',
           padding: '32px'
         }}>
@@ -238,11 +238,11 @@ const ContactPage = () => {
             {/* Nom */}
             <div>
               <label style={{
-                fontSize: '12px',
+                fontSize: '11px',
                 fontWeight: 700,
-                color: '#475569',
+                color: '#64748b',
                 textTransform: 'uppercase',
-                letterSpacing: '0.05em',
+                letterSpacing: '0.08em',
                 display: 'block',
                 marginBottom: '6px'
               }}>
@@ -256,13 +256,26 @@ const ContactPage = () => {
                 placeholder="Votre nom"
                 style={{
                   width: '100%',
-                  padding: '10px 12px',
+                  padding: '12px 16px',
                   fontSize: '14px',
-                  border: `1px solid ${errors.nom ? '#ef4444' : '#e2e8f0'}`,
+                  border: `1px solid ${errors.nom ? '#ef4444' : 'rgba(255,255,255,0.12)'}`,
                   borderRadius: '8px',
-                  background: '#ffffff',
-                  color: '#0f2744',
-                  transition: 'border-color 0.2s'
+                  background: '#0d1728',
+                  color: '#ffffff',
+                  transition: 'all 0.2s ease',
+                  height: '44px'
+                }}
+                onFocus={(e) => {
+                  if (!errors.nom) {
+                    e.target.style.borderColor = '#00d4a0';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(0,212,160,0.15)';
+                  }
+                }}
+                onBlur={(e) => {
+                  if (!errors.nom) {
+                    e.target.style.borderColor = 'rgba(255,255,255,0.12)';
+                    e.target.style.boxShadow = 'none';
+                  }
                 }}
               />
               {errors.nom && <span style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px', display: 'block' }}>{errors.nom}</span>}
@@ -271,11 +284,11 @@ const ContactPage = () => {
             {/* Email */}
             <div>
               <label style={{
-                fontSize: '12px',
+                fontSize: '11px',
                 fontWeight: 700,
-                color: '#475569',
+                color: '#64748b',
                 textTransform: 'uppercase',
-                letterSpacing: '0.05em',
+                letterSpacing: '0.08em',
                 display: 'block',
                 marginBottom: '6px'
               }}>
@@ -289,13 +302,26 @@ const ContactPage = () => {
                 placeholder="votre@email.com"
                 style={{
                   width: '100%',
-                  padding: '10px 12px',
+                  padding: '12px 16px',
                   fontSize: '14px',
-                  border: `1px solid ${errors.email ? '#ef4444' : '#e2e8f0'}`,
+                  border: `1px solid ${errors.email ? '#ef4444' : 'rgba(255,255,255,0.12)'}`,
                   borderRadius: '8px',
-                  background: '#ffffff',
-                  color: '#0f2744',
-                  transition: 'border-color 0.2s'
+                  background: '#0d1728',
+                  color: '#ffffff',
+                  transition: 'all 0.2s ease',
+                  height: '44px'
+                }}
+                onFocus={(e) => {
+                  if (!errors.email) {
+                    e.target.style.borderColor = '#00d4a0';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(0,212,160,0.15)';
+                  }
+                }}
+                onBlur={(e) => {
+                  if (!errors.email) {
+                    e.target.style.borderColor = 'rgba(255,255,255,0.12)';
+                    e.target.style.boxShadow = 'none';
+                  }
                 }}
               />
               {errors.email && <span style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px', display: 'block' }}>{errors.email}</span>}
@@ -304,11 +330,11 @@ const ContactPage = () => {
             {/* Sujet */}
             <div>
               <label style={{
-                fontSize: '12px',
+                fontSize: '11px',
                 fontWeight: 700,
-                color: '#475569',
+                color: '#64748b',
                 textTransform: 'uppercase',
-                letterSpacing: '0.05em',
+                letterSpacing: '0.08em',
                 display: 'block',
                 marginBottom: '6px'
               }}>
@@ -320,17 +346,27 @@ const ContactPage = () => {
                 onChange={handleChange}
                 style={{
                   width: '100%',
-                  padding: '10px 12px',
+                  padding: '12px 16px',
                   fontSize: '14px',
-                  border: '1px solid #e2e8f0',
+                  border: '1px solid rgba(255,255,255,0.12)',
                   borderRadius: '8px',
-                  background: '#ffffff',
-                  color: '#0f2744',
-                  cursor: 'pointer'
+                  background: '#0d1728',
+                  color: '#ffffff',
+                  cursor: 'pointer',
+                  height: '44px',
+                  transition: 'all 0.2s ease'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#00d4a0';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(0,212,160,0.15)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = 'rgba(255,255,255,0.12)';
+                  e.target.style.boxShadow = 'none';
                 }}
               >
                 {subjects.map(s => (
-                  <option key={s.value} value={s.value}>{s.label}</option>
+                  <option key={s.value} value={s.value} style={{ background: '#0d1728', color: '#ffffff' }}>{s.label}</option>
                 ))}
               </select>
             </div>
@@ -338,11 +374,11 @@ const ContactPage = () => {
             {/* Message */}
             <div>
               <label style={{
-                fontSize: '12px',
+                fontSize: '11px',
                 fontWeight: 700,
-                color: '#475569',
+                color: '#64748b',
                 textTransform: 'uppercase',
-                letterSpacing: '0.05em',
+                letterSpacing: '0.08em',
                 display: 'block',
                 marginBottom: '6px'
               }}>
@@ -356,15 +392,27 @@ const ContactPage = () => {
                 placeholder="Décrivez votre problème ou question en détail..."
                 style={{
                   width: '100%',
-                  padding: '10px 12px',
+                  padding: '12px 16px',
                   fontSize: '14px',
-                  border: `1px solid ${errors.message ? '#ef4444' : '#e2e8f0'}`,
+                  border: `1px solid ${errors.message ? '#ef4444' : 'rgba(255,255,255,0.12)'}`,
                   borderRadius: '8px',
-                  background: '#ffffff',
-                  color: '#0f2744',
+                  background: '#0d1728',
+                  color: '#ffffff',
                   fontFamily: 'inherit',
                   resize: 'vertical',
-                  transition: 'border-color 0.2s'
+                  transition: 'all 0.2s ease'
+                }}
+                onFocus={(e) => {
+                  if (!errors.message) {
+                    e.target.style.borderColor = '#00d4a0';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(0,212,160,0.15)';
+                  }
+                }}
+                onBlur={(e) => {
+                  if (!errors.message) {
+                    e.target.style.borderColor = 'rgba(255,255,255,0.12)';
+                    e.target.style.boxShadow = 'none';
+                  }
                 }}
               />
               {errors.message && <span style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px', display: 'block' }}>{errors.message}</span>}
@@ -377,8 +425,8 @@ const ContactPage = () => {
                 width: '100%',
                 padding: '12px 24px',
                 height: '48px',
-                background: '#22c55e',
-                color: '#ffffff',
+                background: '#00d4a0',
+                color: '#0a0f1a',
                 border: 'none',
                 borderRadius: '10px',
                 fontSize: '14px',
@@ -387,8 +435,8 @@ const ContactPage = () => {
                 transition: 'all 0.2s ease',
                 marginTop: '8px'
               }}
-              onMouseEnter={(e) => e.target.style.background = '#16a34a'}
-              onMouseLeave={(e) => e.target.style.background = '#22c55e'}
+              onMouseEnter={(e) => e.target.style.background = '#00c896'}
+              onMouseLeave={(e) => e.target.style.background = '#00d4a0'}
             >
               Envoyer le message →
             </button>
@@ -398,10 +446,10 @@ const ContactPage = () => {
 
       {/* Footer */}
       <footer style={{
-        background: '#0f2744',
-        borderTop: '1px solid rgba(255,255,255,0.1)',
+        background: '#060d18',
+        borderTop: '1px solid rgba(255,255,255,0.08)',
         padding: '48px',
-        color: '#ffffff'
+        color: 'rgba(255,255,255,0.6)'
       }}>
         <div style={{
           display: 'grid',
@@ -411,42 +459,42 @@ const ContactPage = () => {
         }}>
           {/* Column 1 */}
           <div>
-            <div style={{ fontSize: '16px', fontWeight: 700, marginBottom: '8px' }}>
+            <div style={{ fontSize: '16px', fontWeight: 700, marginBottom: '8px', color: '#ffffff' }}>
               EDI-TVA Maroc
             </div>
-            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', margin: 0 }}>
+            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', margin: 0 }}>
               Générateur EDI SIMPL-TVA conforme aux standards DGI Maroc.
             </p>
           </div>
 
           {/* Column 2 */}
           <div>
-            <div style={{ fontSize: '14px', fontWeight: 700, marginBottom: '12px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, marginBottom: '12px', color: '#ffffff' }}>
               Navigation
             </div>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '13px' }}>
-              <li style={{ marginBottom: '8px' }}><a href="/" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>Accueil</a></li>
-              <li style={{ marginBottom: '8px' }}><a href="/generateur" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>Générateur</a></li>
-              <li><a href="/contact" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>Contact</a></li>
+              <li style={{ marginBottom: '8px' }}><a href="/" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#ffffff'} onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.6)'}>Accueil</a></li>
+              <li style={{ marginBottom: '8px' }}><a href="/generateur" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#ffffff'} onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.6)'}>Générateur</a></li>
+              <li><a href="/contact" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#ffffff'} onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.6)'}>Contact</a></li>
             </ul>
           </div>
 
           {/* Column 3 */}
           <div>
-            <div style={{ fontSize: '14px', fontWeight: 700, marginBottom: '12px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, marginBottom: '12px', color: '#ffffff' }}>
               Informations légales
             </div>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '13px' }}>
-              <li style={{ marginBottom: '8px' }}><a href="#" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>Mentions légales</a></li>
-              <li style={{ marginBottom: '8px' }}><a href="#" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>Confidentialité</a></li>
-              <li><a href="#" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>Conditions d'utilisation</a></li>
+              <li style={{ marginBottom: '8px' }}><a href="#" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#ffffff'} onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.6)'}>Mentions légales</a></li>
+              <li style={{ marginBottom: '8px' }}><a href="#" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#ffffff'} onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.6)'}>Confidentialité</a></li>
+              <li><a href="#" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#ffffff'} onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.6)'}>Conditions d'utilisation</a></li>
             </ul>
           </div>
         </div>
 
         {/* Bottom Bar */}
         <div style={{
-          borderTop: '1px solid rgba(255,255,255,0.1)',
+          borderTop: '1px solid rgba(255,255,255,0.08)',
           paddingTop: '20px',
           display: 'flex',
           justifyContent: 'space-between',
@@ -454,7 +502,7 @@ const ContactPage = () => {
           flexWrap: 'wrap',
           gap: '12px',
           fontSize: '12px',
-          color: 'rgba(255,255,255,0.6)'
+          color: 'rgba(255,255,255,0.4)'
         }}>
           <div>© 2025 EDI-TVA Maroc — Générateur EDI SIMPL-TVA conforme DGI Maroc.</div>
           <div>100% local · Gratuit · Conforme DGI</div>
