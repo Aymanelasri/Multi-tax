@@ -113,20 +113,98 @@ const css = `
   .glass{background:rgba(17,26,46,0.5);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(74,222,128,0.12)}
 
   /* premium feature cards */
-  .bento{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;grid-auto-rows:auto}
+  .bento {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+  }
   
-  .feat-card{border-radius:16px;padding:28px 32px;transition:all .35s cubic-bezier(0.34,1.56,0.64,1);cursor:default;position:relative;overflow:hidden}
-  .feat-card{background:linear-gradient(135deg,rgba(16,185,129,0.05),rgba(16,185,129,0.01));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(74,222,128,0.12);box-shadow:0 4px 24px rgba(0,0,0,0.25)}
-  .feat-card:hover{border-color:rgba(74,222,128,0.3);transform:translateY(-4px);background:linear-gradient(135deg,rgba(16,185,129,0.09),rgba(16,185,129,0.03));box-shadow:0 16px 40px rgba(16,185,129,0.15)}
+  .feat-card {
+    border-radius: 16px;
+    padding: 28px;
+    transition: all 0.2s ease;
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+    background: #141d2e;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
   
-  .feat-card.featured{border:1.5px solid rgba(74,222,128,0.25);background:linear-gradient(135deg,rgba(16,185,129,0.1),rgba(16,185,129,0.04));box-shadow:0 8px 32px rgba(16,185,129,0.12)}
-  .feat-card.featured:hover{box-shadow:0 20px 48px rgba(16,185,129,0.22);border-color:rgba(74,222,128,0.4)}
+  .feat-card:hover {
+    border-color: rgba(0, 212, 160, 0.3);
+  }
   
-  .feat-card-wide{grid-column:span 2}
-  .feat-card-icon{font-size:2rem;margin-bottom:16px;display:block;transition:transform .35s cubic-bezier(0.34,1.56,0.64,1)}
-  .feat-card:hover .feat-card-icon{transform:scale(1.12) rotate(4deg)}
-  .feat-card-title{font-size:1rem;font-weight:700;color:${C.text};margin-bottom:10px;letter-spacing:-.3px}
-  .feat-card-desc{font-size:0.85rem;color:${C.muted};line-height:1.75;letter-spacing:-.01em}
+  .feat-card.featured {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  
+  .feat-card.featured:hover {
+    border-color: rgba(0, 212, 160, 0.3);
+  }
+  
+  /* Card 1: 4 columns (65%) */
+  .bento > .feat-card:nth-child(1) {
+    grid-column: 1 / 5;
+    grid-row: 1;
+  }
+  
+  /* Card 2: 2 columns (35%) */
+  .bento > .feat-card:nth-child(2) {
+    grid-column: 5 / 7;
+    grid-row: 1;
+  }
+  
+  /* Cards 3, 4, 5: 2 columns each (33% each) */
+  .bento > .feat-card:nth-child(3) {
+    grid-column: 1 / 3;
+    grid-row: 2;
+  }
+  
+  .bento > .feat-card:nth-child(4) {
+    grid-column: 3 / 5;
+    grid-row: 2;
+  }
+  
+  .bento > .feat-card:nth-child(5) {
+    grid-column: 5 / 7;
+    grid-row: 2;
+  }
+  
+  /* Card 6: 4 columns (65%) */
+  .bento > .feat-card:nth-child(6) {
+    grid-column: 1 / 5;
+    grid-row: 3;
+  }
+  
+  .feat-card-wide {
+    grid-column: auto;
+  }
+  
+  .feat-card-icon {
+    font-size: 32px;
+    margin-bottom: 16px;
+    display: block;
+    transition: transform 0.2s ease;
+  }
+  
+  .feat-card:hover .feat-card-icon {
+    transform: scale(1.08);
+  }
+  
+  .feat-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 8px;
+    letter-spacing: -0.3px;
+  }
+  
+  .feat-card-desc {
+    font-size: 13px;
+    color: #94a3b8;
+    line-height: 1.7;
+    letter-spacing: -0.01em;
+  }
 
   /* timeline */
   .timeline{display:grid;grid-template-columns:repeat(3,1fr);gap:0;position:relative}
@@ -147,22 +225,62 @@ const css = `
     .hero-grid{gap:60px}
     .hero-h1{font-size:3.6rem}
   }
+  @media(max-width:1024px){
+    .bento {
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .bento > .feat-card:nth-child(1) { grid-column: 1 / 3; }
+    .bento > .feat-card:nth-child(2) { grid-column: 3 / 5; }
+    .bento > .feat-card:nth-child(3) { grid-column: 1 / 2; }
+    .bento > .feat-card:nth-child(4) { grid-column: 2 / 3; }
+    .bento > .feat-card:nth-child(5) { grid-column: 3 / 5; }
+    .bento > .feat-card:nth-child(6) { grid-column: 1 / 3; }
+  }
   @media(max-width:900px){
     .hero-grid{grid-template-columns:1fr!important;gap:48px!important}
     .mockup-col{display:none!important}
     .hero-h1{font-size:2.8rem!important;letter-spacing:-2px!important}
-    .bento{grid-template-columns:1fr!important}
+    .bento {
+      grid-template-columns: 1fr;
+    }
+    .bento > .feat-card:nth-child(1),
+    .bento > .feat-card:nth-child(2),
+    .bento > .feat-card:nth-child(3),
+    .bento > .feat-card:nth-child(4),
+    .bento > .feat-card:nth-child(5),
+    .bento > .feat-card:nth-child(6) {
+      grid-column: 1;
+    }
     .feat-card-wide{grid-column:1!important}
     .timeline{grid-template-columns:1fr!important}
     .timeline::before{display:none}
     .tl-dot::after{display:none}
   }
+  @media(max-width:640px){
+    .bento {
+      gap: 10px;
+    }
+    .feat-card {
+      padding: 20px;
+      border-radius: 12px;
+    }
+    .feat-card-icon {
+      font-size: 28px;
+      margin-bottom: 12px;
+    }
+    .feat-card-title {
+      font-size: 14px;
+    }
+    .feat-card-desc {
+      font-size: 12px;
+    }
+  }
   @media(max-width:600px){
     .hero-h1{font-size:2.2rem!important;letter-spacing:-1.2px!important}
     .stats-row{flex-direction:column!important;gap:32px!important}
     .stats-sep{display:none!important}
-    .feat-card{padding:22px!important;border-radius:12px!important}
-    .feat-card-icon{font-size:1.8rem!important;margin-bottom:12px!important}
+    .feat-card{padding:18px!important;border-radius:12px!important}
+    .feat-card-icon{font-size:24px!important;margin-bottom:10px!important}
     .btn-p,.btn-o{padding:11px 20px!important;font-size:.86rem!important;width:100%!important;justify-content:center!important}
     .tl-item{padding:0 8px!important}
     .tl-dot{width:48px!important;height:48px!important;font-size:.7rem!important}
@@ -306,10 +424,10 @@ const HomePage = () => {
 
         {/* ── Features — Bento Grid ── */}
         <div id="features" style={{ ...W, padding: '120px 64px' }}>
-          <div className="reveal" style={{ marginBottom: 64 }}>
-            <p style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.16em', color: C.accent, textTransform: 'uppercase', marginBottom: 12, background: 'linear-gradient(135deg, #10b981, #34d399)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{tr.featLabel}</p>
-            <h2 style={{ fontSize: '3.2rem', fontWeight: 900, letterSpacing: '-2.2px', lineHeight: 1.15, marginBottom: 18, background: 'linear-gradient(135deg, #f0f4f8, #c0c7d4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{tr.featTitle}</h2>
-            <p style={{ fontSize: '1rem', color: C.muted, maxWidth: 520, lineHeight: 1.75, letterSpacing: '-0.02em' }}>{tr.featSub}</p>
+          <div className="reveal" style={{ marginBottom: 40 }}>
+            <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', color: '#00d4a0', textTransform: 'uppercase', marginBottom: 12 }}>{tr.featLabel}</p>
+            <h2 style={{ fontSize: 'clamp(32px, 4vw, 52px)', fontWeight: 900, letterSpacing: '-1px', lineHeight: 1.15, marginBottom: 8, color: '#ffffff' }}>{tr.featTitle}</h2>
+            <p style={{ fontSize: '15px', color: '#94a3b8', maxWidth: 700, lineHeight: 1.7, letterSpacing: '-0.02em' }}>{tr.featSub}</p>
           </div>
           <div className="bento">
             {/* Card 0: Featured - 2 columns wide */}
