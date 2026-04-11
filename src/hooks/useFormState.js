@@ -1,21 +1,12 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+
+const LS_KEY = 'edi_autosave';
 
 const EMPTY_FACTURE = (ord) => ({
-  id: ord,
-  ord: String(ord),
-  num: '',
-  des: '',
-  mht: '',
-  tva: '',
-  ttc: '',
-  if: '',
-  nom: '',
-  ice: '',
-  tx: '20.00',
-  prorata: '100',
-  mp: '1',
-  dpai: '',
-  dfac: '',
+  id: ord, ord: String(ord),
+  num: '', des: '', mht: '', tva: '', ttc: '',
+  if: '', nom: '', ice: '',
+  tx: '20.00', prorata: '100', mp: '1', dpai: '', dfac: '',
 });
 
 const useFormState = () => {
@@ -28,24 +19,73 @@ const useFormState = () => {
   });
   const [factures, setFactures] = useState([]);
   const [history, setHistory] = useState([]);
+  const [autosaveBadge, setAutosaveBadge] = useState(false);
+  const [restoreBanner, setRestoreBanner] = useState(false);
+  const savedDraft = useRef(null);
+
+  // Check for existing autosave on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (raw) {
+        const draft = JSON.parse(raw);
+        if (draft?.identification || draft?.factures?.length) {
+          savedDraft.current = draft;
+          setRestoreBanner(true);
+        }
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  // Auto-save every 30s
+  useEffect(() => {
+    const id = setInterval(() => {
+      try {
+        localStorage.setItem(LS_KEY, JSON.stringify({ identification, factures }));
+        setAutosaveBadge(true);
+        setTimeout(() => setAutosaveBadge(false), 2000);
+      } catch { /* ignore */ }
+    }, 30000);
+    return () => clearInterval(id);
+  }, [identification, factures]);
+
+  const restoreDraft = useCallback(() => {
+    if (!savedDraft.current) return;
+    if (savedDraft.current.identification) setIdentification(savedDraft.current.identification);
+    if (savedDraft.current.factures?.length) setFactures(savedDraft.current.factures);
+    setRestoreBanner(false);
+  }, []);
+
+  const dismissRestore = useCallback(() => {
+    setRestoreBanner(false);
+    localStorage.removeItem(LS_KEY);
+  }, []);
+
+  const clearAutosave = useCallback(() => {
+    localStorage.removeItem(LS_KEY);
+  }, []);
 
   const addFacture = useCallback(() => {
+    setFactures((prev) => [...prev, EMPTY_FACTURE(prev.length + 1)]);
+  }, []);
+
+  const duplicateLastFacture = useCallback(() => {
     setFactures((prev) => {
+      if (!prev.length) return [...prev, EMPTY_FACTURE(1)];
+      const last = { ...prev[prev.length - 1] };
       const newOrd = prev.length + 1;
-      return [...prev, EMPTY_FACTURE(newOrd)];
+      return [...prev, { ...last, id: newOrd, ord: String(newOrd) }];
     });
   }, []);
 
   const removeFacture = useCallback((id) => {
     setFactures((prev) => {
       const filtered = prev.filter((f) => f.id !== id);
-      // Re-assign ord sequentially after removal
       return filtered.map((f, i) => ({ ...f, ord: String(i + 1) }));
     });
   }, []);
 
   const updateFactures = useCallback((newFactures) => setFactures(newFactures), []);
-
   const updateIdentification = useCallback((newData) => setIdentification(newData), []);
 
   const addToHistory = useCallback((ident, facts) => {
@@ -63,8 +103,9 @@ const useFormState = () => {
   return {
     currentStep, setCurrentStep,
     identification, updateIdentification,
-    factures, addFacture, removeFacture, updateFactures,
-    history, addToHistory,
+    factures, addFacture, duplicateLastFacture, removeFacture, updateFactures,
+    history, addToHistory, clearAutosave,
+    autosaveBadge, restoreBanner, restoreDraft, dismissRestore,
   };
 };
 

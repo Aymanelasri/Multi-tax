@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '../components/Navigation';
+import NewsTicker from '../components/NewsTicker';
 
 const C = {
   bg: '#0a0e27', nav: '#0f1426', card: '#111a2e', card2: '#0d1220',
@@ -104,8 +105,8 @@ const css = `
   /* animations */
   .reveal{opacity:0;transform:translateY(25px);transition:opacity .6s cubic-bezier(0.2,0.6,0.3,1),transform .6s cubic-bezier(0.2,0.6,0.3,1)}
   .reveal.visible{opacity:1;transform:translateY(0)}
-  .d1{transition-delay:.08s}.d2{transition-delay:.16s}.d3{transition-delay:.24s}
-  .d4{transition-delay:.32s}.d5{transition-delay:.4s}
+  .d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}
+  .d4{transition-delay:.4s}.d5{transition-delay:.5s}
 
   /* text effects */
   .neon{background:linear-gradient(135deg,${C.accent},${C.accentBright});-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-shadow:0 0 30px rgba(16,185,129,0.2);filter:drop-shadow(0 0 20px rgba(16,185,129,0.3))}
@@ -175,7 +176,7 @@ const css = `
 `;
 
 // ── useCountUp ────────────────────────────────────────────────────────────────
-const useCountUp = (target, duration = 1800) => {
+const useCountUp = (target, duration = 2500) => {
   const [count, setCount] = useState(0);
   const [started, setStarted] = useState(false);
   const ref = useRef(null);
@@ -187,10 +188,11 @@ const useCountUp = (target, duration = 1800) => {
   useEffect(() => {
     if (!started) return;
     let t0 = null;
+    const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
     const step = (ts) => {
       if (!t0) t0 = ts;
       const p = Math.min((ts - t0) / duration, 1);
-      setCount(Math.floor((1 - Math.pow(1 - p, 3)) * target));
+      setCount(Math.floor(easeOutCubic(p) * target));
       if (p < 1) requestAnimationFrame(step); else setCount(target);
     };
     requestAnimationFrame(step);
@@ -198,7 +200,7 @@ const useCountUp = (target, duration = 1800) => {
   return { count, ref };
 };
 
-const StatItem = ({ target, suffix, label, duration }) => {
+const StatItem = ({ target, suffix, label, duration = 2500 }) => {
   const { count, ref } = useCountUp(target, duration);
   return (
     <div ref={ref} style={{ textAlign: 'center' }}>
@@ -267,6 +269,7 @@ const HomePage = () => {
       <div className="wrap" style={{ background: C.bg, minHeight: '100vh', color: C.text }}>
 
         <Navigation lang={lang} onLangChange={setLang} />
+        <NewsTicker />
 
         {/* ── Hero ── */}
         <div style={{ ...W, padding: '130px 64px 100px' }}>

@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import '../styles/App.css';
 import HomePage from './HomePage';
 import InvoiceGenerator from './InvoiceGenerator';
+import ContactPage from './ContactPage';
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/generateur" element={<InvoiceGenerator />} />
+        <Route path="/contact" element={<ContactPage />} />
       </Routes>
     </Router>
   );

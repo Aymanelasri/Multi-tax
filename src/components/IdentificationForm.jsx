@@ -15,11 +15,28 @@ const IdentificationForm = ({ data, onChange, onNext, lang = 'fr' }) => {
   return (
     <div className="panel active" id="panel1">
       <div className="panel-title">
-        <span className="icon">🏢</span> {t.title}
+        <span className="icon">🪪</span> {t.title}
       </div>
       <p className="panel-subtitle">{t.sub}</p>
 
-      <Card title={t.card}>
+      <Card>
+        {/* Section header */}
+        <div style={{
+          fontSize: '11px',
+          fontWeight: 700,
+          color: '#94a3b8',
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          marginBottom: '20px',
+          paddingLeft: '14px',
+          borderLeft: '3px solid #00d4a0',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          | {t.card.toUpperCase()}
+        </div>
+
         <div className="form-grid cols3" style={{ marginBottom: 20 }}>
           <FormGroup label={t.if} required help="1 à 8 chiffres">
             <input
@@ -58,10 +75,10 @@ const IdentificationForm = ({ data, onChange, onNext, lang = 'fr' }) => {
           </FormGroup>
         </div>
 
-        <div style={{ height: 1, background: 'var(--border)', margin: '4px 0 18px' }} />
+        <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '16px 0 20px' }} />
 
         <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 16, alignItems: 'start' }}>
-          <FormGroup label={t.period} required help={`1 à ${regimeDef?.maxPeriode || 12} — ${regimeDef?.label || ''}`}>
+          <FormGroup label={t.period} required help={`1 à ${regimeDef?.maxPeriode || 12}`}>
             <div className="number-wrap">
               <input
                 type="number"
@@ -74,7 +91,15 @@ const IdentificationForm = ({ data, onChange, onNext, lang = 'fr' }) => {
             </div>
           </FormGroup>
 
-          <div />
+          {regimeDef?.label && (
+            <div style={{
+              fontSize: '12px',
+              color: '#94a3b8',
+              paddingTop: '8px'
+            }}>
+              <span style={{ fontWeight: 700, color: '#00d4a0' }}>{regimeDef.label}:</span> {regimeDef.desc || ''}
+            </div>
+          )}
         </div>
 
         {REGIME_INFO[data.regime] && (
