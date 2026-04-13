@@ -39,7 +39,7 @@ const Tab = ({ label, active, onClick }) => (
 );
 
 const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
-  const { t, lang } = useLang();
+  const { lang } = useLang();
   const isFR = lang === 'FR';
   const [tab, setTab] = useState('import');
   const [modules, setModules] = useState(loadModules);
