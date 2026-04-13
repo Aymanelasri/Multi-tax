@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import JSZip from 'jszip';
 import Navigation from '../components/Navigation';
 import StepsNav from '../components/StepsNav';
@@ -50,10 +51,12 @@ const RestoreBanner = ({ onRestore, onDismiss, t }) => (
 /* ── Main ───────────────────────────────────────────────────────────────── */
 const InvoiceGenerator = () => {
   const { t } = useLang();
+  const location = useLocation();
+  const navigate = useNavigate();
   const {
     currentStep, setCurrentStep,
     identification, updateIdentification,
-    factures, addFacture, duplicateLastFacture, removeFacture, updateFactures,
+    factures, addFacture, duplicateFacture, duplicateLastFacture, removeFacture, updateFactures,
     history, addToHistory, clearAutosave,
     autosaveBadge, restoreBanner, restoreDraft, dismissRestore,
   } = useFormState();
@@ -64,8 +67,45 @@ const InvoiceGenerator = () => {
   const [toastMsg, setToastMsg] = useState('');
   const [showToast, setShowToast] = useState(false);
   const xmlPanelRef = useRef(null);
+  const prefillProcessedRef = useRef(false);
 
   const toast = useCallback((msg) => { setToastMsg(msg); setShowToast(true); }, []);
+
+  // Handle prefill from location state (from Societes page "Utiliser" button)
+  useEffect(() => {
+    if (location.state && !prefillProcessedRef.current) {
+      prefillProcessedRef.current = true;
+      const { identification: prefillIdent, prefillFournisseur, skipToStep2 } = location.state;
+      
+      // Pre-fill identification if provided
+      if (prefillIdent) {
+        updateIdentification(prefillIdent);
+      }
+      
+      // Add pre-filled fournisseur as first invoice if provided
+      if (prefillFournisseur) {
+        const newFacture = {
+          id: 1, ord: '1',
+          num: '', des: '', mht: '', tva: '', ttc: '',
+          if: prefillFournisseur.if || '', nom: prefillFournisseur.nom || '', ice: prefillFournisseur.ice || '',
+          tx: '20.00', prorata: '100', mp: '1', dpai: '', dfac: '',
+        };
+        // Only add if no factures exist
+        if (factures.length === 0) {
+          addFacture();
+          // Update the first facture with prefilled supplier data
+          setTimeout(() => {
+            updateFactures([(f) => ({ ...f, ...newFacture })]);
+          }, 100);
+        }
+      }
+      
+      // Skip to step 2 if requested
+      if (skipToStep2) {
+        setTimeout(() => setCurrentStep(2), 150);
+      }
+    }
+  }, [location.state, updateIdentification, addFacture, updateFactures, factures.length, setCurrentStep]);
 
   // Live XML preview
   useEffect(() => {
@@ -198,7 +238,43 @@ const InvoiceGenerator = () => {
       <StepsNav currentStep={currentStep} onStepChange={handleStepChange} />
 
       {currentStep === 1 && (
-        <IdentificationForm data={identification} onChange={updateIdentification} onNext={() => handleStepChange(2)} />
+        <>
+          {/* Info boxes for Step 1 */}
+          {(() => {
+            try {
+              const societes = JSON.parse(localStorage.getItem('edi_societes') || '[]');
+              if (societes.length > 0) {
+                return (
+                  <div style={{ background: 'rgba(0,212,160,0.08)', border: '1px solid rgba(0,212,160,0.25)', borderRadius: 12, padding: '16px 20px', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 16 }}>
+                    <div style={{ fontSize: '24px', flexShrink: 0 }}>💡</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '12px', color: '#94a3b8' }}>
+                        {t('gen_step1_companies_info').replace('{{count}}', societes.length)}
+                      </div>
+                    </div>
+                  </div>
+                );
+              } else {
+                return (
+                  <div style={{ background: 'rgba(0,212,160,0.08)', border: '1px solid rgba(0,212,160,0.25)', borderRadius: 12, padding: '16px 20px', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 16 }}>
+                    <div style={{ fontSize: '24px', flexShrink: 0 }}>💡</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '12px', color: '#94a3b8' }}>
+                        {t('gen_step1_no_companies') + ' '}
+                        <button onClick={() => navigate('/societes')} style={{ background: 'transparent', border: 'none', color: '#00d4a0', cursor: 'pointer', fontWeight: 600, padding: 0, textDecoration: 'underline' }}>
+                          {t('gen_step1_add_companies_link')}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+            } catch {
+              return null;
+            }
+          })()}
+          <IdentificationForm data={identification} onChange={updateIdentification} onNext={() => handleStepChange(2)} />
+        </>
       )}
 
       {currentStep === 2 && (
@@ -206,6 +282,7 @@ const InvoiceGenerator = () => {
           <FactureList
             factures={factures} onChange={updateFactures}
             onAddFacture={addFacture} onRemoveFacture={removeFacture}
+            onDuplicateFacture={duplicateFacture}
             onPrev={() => handleStepChange(1)} onNext={() => handleStepChange(3)}
           />
           <TotalsBar factures={factures} t={t} />

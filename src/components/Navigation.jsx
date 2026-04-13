@@ -200,6 +200,28 @@ const css = `
   .sidebar-lang-btn.active { background: rgba(0,212,160,0.15); color: #00d4a0; border-color: rgba(0,212,160,0.3); }
   .sidebar-lang-btn:hover:not(.active) { border-color: rgba(255,255,255,0.25); color: #e2e8f0; }
 
+  /* Generator tooltip */
+  .gen-tooltip-wrap {
+    position: relative;
+    display: inline-block;
+  }
+  .gen-tooltip {
+    position: absolute; top: 100%; left: 50%; transform: translateX(-50%); 
+    margin-top: 8px; min-width: 200px;
+    background: #141d2e; border: 1px solid rgba(0,212,160,0.3);
+    border-radius: 8px; padding: 12px 14px;
+    font-size: 0.78rem; color: #e2e8f0; white-space: nowrap;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    z-index: 1000; pointer-events: none;
+  }
+  .gen-tooltip-link {
+    color: #00d4a0; text-decoration: none; cursor: pointer;
+    font-weight: 600; display: block; margin-top: 6px;
+    background: transparent; border: none; font-size: 0.78rem;
+    padding: 0; font-family: inherit;
+  }
+  .gen-tooltip-link:hover { text-decoration: underline; }
+
   @media(max-width: 768px) {
     .nav-inner { padding: 0 16px; }
     .nav-center,
@@ -217,8 +239,19 @@ const Navigation = () => {
   const { lang, toggleLang, t } = useLang();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [showGeneratorTooltip, setShowGeneratorTooltip] = useState(false);
 
   const isHome = location.pathname === '/';
+
+  // Check if no companies exist
+  const hasNoCompanies = () => {
+    try {
+      const societes = JSON.parse(localStorage.getItem('edi_societes') || '[]');
+      return societes.length === 0;
+    } catch {
+      return true;
+    }
+  };
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 10);
@@ -256,6 +289,9 @@ const Navigation = () => {
         <div className="sidebar-body">
           <button className={`sidebar-link${location.pathname === '/' ? ' active' : ''}`} onClick={() => go('/')}>
             <span className="sidebar-link-icon">🏠</span> {t('nav_home')}
+          </button>
+          <button className={`sidebar-link${location.pathname === '/societes' ? ' active' : ''}`} onClick={() => go('/societes')}>
+            <span className="sidebar-link-icon">🏢</span> {t('nav_societes')}
           </button>
           <button className={`sidebar-link${location.pathname === '/generateur' ? ' active' : ''}`} onClick={() => go('/generateur')}>
             <span className="sidebar-link-icon">⚡</span> {t('nav_generator_full')}
@@ -308,7 +344,20 @@ const Navigation = () => {
           {!isHome && (
             <div className="nav-center">
               <button className={`nav-link${location.pathname === '/' ? ' active' : ''}`} onClick={() => navigate('/')}>{t('nav_home')}</button>
-              <button className={`nav-link${location.pathname === '/generateur' ? ' active' : ''}`} onClick={() => navigate('/generateur')} style={{ border: 'none' }}>{t('nav_generator')}</button>
+              <button className={`nav-link${location.pathname === '/societes' ? ' active' : ''}`} onClick={() => navigate('/societes')} style={{ border: 'none' }}>{t('nav_societes')}</button>
+              <div className="gen-tooltip-wrap" style={{ display: 'inline-block', border: 'none' }}>
+                <button className={`nav-link${location.pathname === '/generateur' ? ' active' : ''}`} onClick={() => navigate('/generateur')} style={{ border: 'none' }} onMouseEnter={() => hasNoCompanies() && setShowGeneratorTooltip(true)} onMouseLeave={() => setShowGeneratorTooltip(false)}>
+                  {t('nav_generator')}
+                </button>
+                {showGeneratorTooltip && hasNoCompanies() && (
+                  <div className="gen-tooltip">
+                    💡 {t('nav_generator_tooltip')}
+                    <button onClick={() => { navigate('/societes'); setShowGeneratorTooltip(false); }} className="gen-tooltip-link">
+                      {t('nav_generator_tooltip_link')}
+                    </button>
+                  </div>
+                )}
+              </div>
               <button className={`nav-link${location.pathname === '/contact' ? ' active' : ''}`} onClick={() => navigate('/contact')} style={{ border: 'none' }}>{t('nav_contact')}</button>
             </div>
           )}

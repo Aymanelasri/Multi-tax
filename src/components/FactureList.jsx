@@ -3,7 +3,7 @@ import FactureItem from './FactureItem';
 import Button from './ui/Button';
 import { useLang } from '../context/LanguageContext';
 
-const FactureList = ({ factures, onChange, onAddFacture, onRemoveFacture, onPrev, onNext }) => {
+const FactureList = ({ factures, onChange, onAddFacture, onRemoveFacture, onDuplicateFacture, onPrev, onNext }) => {
   const { t } = useLang();
   const handleChange = (id, newData) =>
     onChange(factures.map((f) => (f.id === id ? { ...f, ...newData } : f)));
@@ -24,7 +24,7 @@ const FactureList = ({ factures, onChange, onAddFacture, onRemoveFacture, onPrev
       ) : (
         <div className="facture-list">
           {factures.map((f) => (
-            <FactureItem key={f.id} id={f.id} data={f} onChange={(newData) => handleChange(f.id, newData)} onRemove={onRemoveFacture} />
+            <FactureItem key={f.id} id={f.id} data={f} onChange={(newData) => handleChange(f.id, newData)} onRemove={onRemoveFacture} onDuplicate={onDuplicateFacture} />
           ))}
         </div>
       )}

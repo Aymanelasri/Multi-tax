@@ -69,6 +69,18 @@ const useFormState = () => {
     setFactures((prev) => [...prev, EMPTY_FACTURE(prev.length + 1)]);
   }, []);
 
+  const duplicateFacture = useCallback((id) => {
+    setFactures((prev) => {
+      const idx = prev.findIndex(f => f.id === id);
+      if (idx === -1) return prev;
+      const copy = { ...prev[idx] };
+      const newOrd = prev.length + 1;
+      const newFacture = { ...copy, id: newOrd, ord: String(newOrd) };
+      const next = [...prev.slice(0, idx + 1), newFacture, ...prev.slice(idx + 1)];
+      return next.map((f, i) => ({ ...f, ord: String(i + 1) }));
+    });
+  }, []);
+
   const duplicateLastFacture = useCallback(() => {
     setFactures((prev) => {
       if (!prev.length) return [...prev, EMPTY_FACTURE(1)];
@@ -103,7 +115,7 @@ const useFormState = () => {
   return {
     currentStep, setCurrentStep,
     identification, updateIdentification,
-    factures, addFacture, duplicateLastFacture, removeFacture, updateFactures,
+    factures, addFacture, duplicateFacture, duplicateLastFacture, removeFacture, updateFactures,
     history, addToHistory, clearAutosave,
     autosaveBadge, restoreBanner, restoreDraft, dismissRestore,
   };

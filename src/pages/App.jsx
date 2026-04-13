@@ -4,6 +4,7 @@ import '../styles/App.css';
 import HomePage from './HomePage';
 import InvoiceGenerator from './InvoiceGenerator';
 import ContactPage from './ContactPage';
+import SocietesPage from './SocietesPage';
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/generateur" element={<InvoiceGenerator />} />
+        <Route path="/societes" element={<SocietesPage />} />
         <Route path="/contact" element={<ContactPage />} />
       </Routes>
     </Router>

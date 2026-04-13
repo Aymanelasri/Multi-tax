@@ -324,10 +324,13 @@ const HomePage = () => {
                 {tr.heroSub}
               </p>
               <div className="reveal d2" style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                <button className="btn-p" onClick={() => navigate('/generateur')}>{tr.heroCta1}</button>
+                <button className="btn-p" onClick={() => navigate('/societes')}>{tr.heroCta1}</button>
                 <a href="https://www.tax.gov.ma" target="_blank" rel="noreferrer" style={{ display: 'flex' }}>
                   <button className="btn-o">{tr.heroCta2}</button>
                 </a>
+              </div>
+              <div className="reveal d3" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '12px', textAlign: 'left' }}>
+                💡 {lang === 'FR' ? 'Commencez par enregistrer vos fournisseurs, puis générez vos déclarations en 1 clic.' : 'Start by registering your suppliers, then generate your declarations in 1 click.'}
               </div>
             </div>
             <div className="mockup-col reveal d3">

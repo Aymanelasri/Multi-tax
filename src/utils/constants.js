@@ -12,7 +12,7 @@ export const REGIME_INFO = {
   '4': '<strong>Cession/Cessation TVA :</strong> Mettre 1 comme période.',
 };
 
-export const TVA_RATES = ['7.00', '10.00', '14.00', '20.00'];
+export const TVA_RATES = ['10.00', '14.00', '18.00', '20.00'];
 
 export const PAYMENT_MODES = [
   { value: '1', label: 'Espèces' },
