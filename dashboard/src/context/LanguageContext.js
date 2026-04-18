@@ -1,0 +1,195 @@
+import React, { createContext, useContext, useState } from 'react'
+
+const translations = {
+  FR: {
+    // ADMIN DASHBOARD
+    admin_dashboard: "Tableau de bord",
+    admin_overview: "Vue d'ensemble",
+    admin_users: "Utilisateurs",
+    admin_pending: "En attente",
+    admin_companies: "Sociétés",
+    admin_declarations: "Déclarations",
+    admin_settings: "Paramètres",
+    admin_approve: "Approuver",
+    admin_reject: "Rejeter",
+    admin_delete: "Supprimer",
+    admin_confirm: "Confirmer ?",
+    admin_yes: "Oui",
+    admin_no: "Non",
+    admin_total_users: "UTILISATEURS TOTAL",
+    admin_pending_label: "EN ATTENTE",
+    admin_action_required: "Action requise",
+    admin_approved: "Approuvé",
+    admin_rejected: "Rejeté",
+    admin_search_users: "Rechercher par nom, email...",
+    admin_all: "Tous",
+    admin_back_site: "← Retour au site",
+    admin_dashboard_subtitle: "Vue d'ensemble de la plateforme",
+    admin_last_update: "Dernière mise à jour: il y a {{minutes}} min",
+    admin_refresh: "↻",
+    admin_vs_last_month: "vs mois dernier",
+    admin_no_pending: "Aucun utilisateur en attente",
+    admin_no_pending_sub: "Tous les comptes ont été traités.",
+    admin_recent_activity: "Activité récente",
+    admin_user_distribution: "Répartition utilisateurs",
+    admin_pending_approval: "en attente d'approbation",
+    admin_search_placeholder: "Rechercher par nom, email...",
+    admin_sort_recent: "Plus récent",
+    admin_sort_az: "A-Z",
+    admin_sort_active: "Plus actif",
+    admin_user: "UTILISATEUR",
+    admin_email: "EMAIL",
+    admin_status: "STATUT",
+    admin_companies_count: "SOCIÉTÉS",
+    admin_declarations_count: "DÉCLARATIONS",
+    admin_registered: "INSCRIPTION",
+    admin_actions: "ACTIONS",
+    admin_view: "Afficher",
+    admin_display_of: "Affichage de {{start}} à {{end}} sur {{total}} utilisateurs",
+    admin_reference: "RÉFÉRENCE",
+    admin_year: "ANNÉE",
+    admin_period: "PÉRIODE",
+    admin_regime: "RÉGIME",
+    admin_invoices: "FACTURES",
+    admin_total_ttc: "TOTAL TTC",
+    admin_generated: "GÉNÉRÉE LE",
+    admin_owner: "PROPRIÉTAIRE",
+    admin_created: "CRÉÉE LE",
+    admin_usage: "UTILISATIONS",
+    admin_first_name: "Prénom",
+    admin_last_name: "Nom",
+    admin_phone: "Téléphone",
+    admin_company: "Société",
+    admin_email_verified: "Email vérifié",
+    admin_registration_date: "Date inscription",
+    admin_last_login: "Dernière connexion",
+    admin_role: "Rôle",
+    admin_user_info: "INFORMATIONS",
+    admin_activity: "ACTIVITÉ",
+    admin_total_logins: "Total connexions",
+    admin_files_generated: "Fichiers générés",
+    admin_account_created: "Compte créé le",
+    admin_avg_companies: "Moyenne sociétés par utilisateur",
+    admin_avg_declarations: "Moyenne déclarations par utilisateur",
+    admin_most_active_user: "Utilisateur le plus actif",
+    admin_if: "IF",
+    admin_ice: "ICE",
+    admin_city: "VILLE",
+    admin_declarations_details: "Affichage des déclarations",
+    admin_status_generated: "Générée",
+    admin_status_draft: "Brouillon",
+    admin_settings_title: "Paramètres",
+    admin_settings_coming: "Les paramètres seront disponibles bientôt.",
+    admin_toggle_lang: "Langue",
+  },
+
+  EN: {
+    // ADMIN DASHBOARD
+    admin_dashboard: "Dashboard",
+    admin_overview: "Overview",
+    admin_users: "Users",
+    admin_pending: "Pending",
+    admin_companies: "Companies",
+    admin_declarations: "Declarations",
+    admin_settings: "Settings",
+    admin_approve: "Approve",
+    admin_reject: "Reject",
+    admin_delete: "Delete",
+    admin_confirm: "Confirm?",
+    admin_yes: "Yes",
+    admin_no: "No",
+    admin_total_users: "TOTAL USERS",
+    admin_pending_label: "PENDING",
+    admin_action_required: "Action required",
+    admin_approved: "Approved",
+    admin_rejected: "Rejected",
+    admin_search_users: "Search by name, email...",
+    admin_all: "All",
+    admin_back_site: "← Back to site",
+    admin_dashboard_subtitle: "Platform overview",
+    admin_last_update: "Last updated: {{minutes}} min ago",
+    admin_refresh: "↻",
+    admin_vs_last_month: "vs last month",
+    admin_no_pending: "No pending users",
+    admin_no_pending_sub: "All accounts have been processed.",
+    admin_recent_activity: "Recent activity",
+    admin_user_distribution: "User distribution",
+    admin_pending_approval: "pending approval",
+    admin_search_placeholder: "Search by name, email...",
+    admin_sort_recent: "Most recent",
+    admin_sort_az: "A-Z",
+    admin_sort_active: "Most active",
+    admin_user: "USER",
+    admin_email: "EMAIL",
+    admin_status: "STATUS",
+    admin_companies_count: "COMPANIES",
+    admin_declarations_count: "DECLARATIONS",
+    admin_registered: "REGISTERED",
+    admin_actions: "ACTIONS",
+    admin_view: "View",
+    admin_display_of: "Displaying {{start}} to {{end}} of {{total}} users",
+    admin_reference: "REFERENCE",
+    admin_year: "YEAR",
+    admin_period: "PERIOD",
+    admin_regime: "REGIME",
+    admin_invoices: "INVOICES",
+    admin_total_ttc: "TOTAL TTC",
+    admin_generated: "GENERATED",
+    admin_owner: "OWNER",
+    admin_created: "CREATED",
+    admin_usage: "USAGE",
+    admin_first_name: "First name",
+    admin_last_name: "Last name",
+    admin_phone: "Phone",
+    admin_company: "Company",
+    admin_email_verified: "Email verified",
+    admin_registration_date: "Registration date",
+    admin_last_login: "Last login",
+    admin_role: "Role",
+    admin_user_info: "INFORMATION",
+    admin_activity: "ACTIVITY",
+    admin_total_logins: "Total logins",
+    admin_files_generated: "Files generated",
+    admin_account_created: "Account created",
+    admin_avg_companies: "Avg companies per user",
+    admin_avg_declarations: "Avg declarations per user",
+    admin_most_active_user: "Most active user",
+    admin_if: "IF",
+    admin_ice: "ICE",
+    admin_city: "CITY",
+    admin_declarations_details: "Declarations displayed",
+    admin_status_generated: "Generated",
+    admin_status_draft: "Draft",
+    admin_settings_title: "Settings",
+    admin_settings_coming: "Settings will be available soon.",
+    admin_toggle_lang: "Language",
+  }
+}
+
+const LanguageContext = createContext()
+
+export function LanguageProvider({ children }) {
+  const [language, setLanguage] = useState(() => {
+    return localStorage.getItem('adminLanguage') || 'FR'
+  })
+
+  const t = (key) => {
+    return translations[language]?.[key] || translations['FR'][key] || key
+  }
+
+  const toggleLanguage = () => {
+    const newLang = language === 'FR' ? 'EN' : 'FR'
+    setLanguage(newLang)
+    localStorage.setItem('adminLanguage', newLang)
+  }
+
+  return (
+    <LanguageContext.Provider value={{ language, t, toggleLanguage }}>
+      {children}
+    </LanguageContext.Provider>
+  )
+}
+
+export function useLanguage() {
+  return useContext(LanguageContext)
+}

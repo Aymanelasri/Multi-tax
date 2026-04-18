@@ -1,0 +1,1 @@
+@echo off\necho Starting Laravel Backend...\necho.\necho Make sure you have:\necho - PHP installed\necho - Composer installed\necho - MySQL running\necho - Database 'tax' created\necho.\npause\n\necho Installing dependencies...\ncomposer install\n\necho Running migrations...\nphp artisan migrate\n\necho Starting Laravel server...\nphp artisan serve --host=0.0.0.0 --port=8000

@@ -1,0 +1,33 @@
+<svg 
+  viewBox="0 0 240 60" 
+  xmlns="http://www.w3.org/2000/svg" 
+  preserveAspectRatio="xMidYMid meet"
+>
+  <!-- Icon: Geometric Upward Arrow -->
+  <g id="icon">
+    <!-- Arrow shaft -->
+    <rect x="16" y="26" width="8" height="20" fill="#00d4a0" rx="2" />
+    
+    <!-- Arrow head - top triangle -->
+    <polygon points="20,14 12,26 28,26" fill="#00d4a0" />
+    
+    <!-- Accent dot -->
+    <circle cx="20" cy="38" r="2" fill="white" opacity="0.6" />
+  </g>
+
+  <!-- Text: SimpleTax -->
+  <text 
+    x="40" 
+    y="43" 
+    font-family="'Inter', 'Segoe UI', '-apple-system', sans-serif" 
+    font-size="32" 
+    font-weight="700" 
+    letter-spacing="-0.5"
+    fill="white"
+  >
+    SimpleTax
+  </text>
+
+  <!-- Accent line (optional subtle separator) -->
+  <line x1="32" y1="18" x2="32" y2="48" stroke="#00d4a0" stroke-width="1.5" opacity="0.4" />
+</svg>
