@@ -11,8 +11,12 @@ return [
         'http://127.0.0.1:3001',
         'http://localhost:5173',
         'http://127.0.0.1:5173',
+        'https://simptva.netlify.app',
+        'https://adminsim.netlify.app',
     ],
-    'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => [
+        '#^https://.*\\.netlify\\.app$#',  // All Netlify preview deployments
+    ],
     'allowed_headers' => ['*'],
     'exposed_headers' => [],
     'max_age' => 0,
