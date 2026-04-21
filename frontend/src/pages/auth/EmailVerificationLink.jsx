@@ -15,7 +15,7 @@ export default function EmailVerificationLink() {
       try {
         // Call the backend API to verify the email
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/email/verify/${id}/${hash}`,
+          `${process.env.REACT_APP_API_URL}/email/verify/${id}/${hash}`,
           {
             method: 'GET',
             credentials: 'include',

@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }) => {
         // SOLUTION 2: If user is admin, redirect to dashboard with token and user data
         if (userData.role === 'admin') {
           const encodedUser = encodeURIComponent(JSON.stringify(userData))
-          window.location.href = `${import.meta.env.VITE_DASHBOARD_URL || '/admin'}?token=${newToken}&user=${encodedUser}`
+          window.location.href = `${process.env.REACT_APP_DASHBOARD_URL || '/admin'}?token=${newToken}&user=${encodedUser}`
           return { success: true, user: userData, redirected: true }
         }
         
