@@ -1,6 +1,6 @@
 import { getToken } from './auth'
 
-// Fixed base URL for API - Do NOT change
+// Use environment variable for API URL (supports both Create React App and Vite)
 const BASE_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000/api'
 
 // Prevent infinite redirect loops on 401
@@ -32,7 +32,8 @@ const api = {
 
     const options = {
       method,
-      headers
+      headers,
+      credentials: 'include' // Include cookies for Sanctum
     }
 
     if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
@@ -53,7 +54,11 @@ const api = {
           console.warn('🔐 Unauthorized (401) - Token invalid, redirecting to frontend login')
           // Redirect to FRONTEND login page (not dashboard /login which doesn't exist)
           setTimeout(() => {
-            window.location.href = 'http://localhost:3000/login'
+            // In production, redirect to frontend domain
+            const frontendUrl = window.location.hostname.includes('netlify')
+              ? 'https://simptva.netlify.app/login'
+              : 'http://localhost:3000/login'
+            window.location.href = frontendUrl
           }, 100)
         }
         return null
