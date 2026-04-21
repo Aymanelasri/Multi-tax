@@ -1,5 +1,5 @@
-// Fixed base URL for API - Do NOT change
-const API_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000/api'
+// Use Vite environment variable for API URL
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'
 
 // Extract CSRF token from cookies
 const getCookie = (name) => {
@@ -41,7 +41,7 @@ const request = async (method, url, body = null, authToken = null) => {
   const options = {
     method,
     headers,
-    credentials: 'include', // Send/receive cookies
+    credentials: 'include', // Send/receive cookies for Sanctum
   }
 
   if (body) {
@@ -55,7 +55,7 @@ const request = async (method, url, body = null, authToken = null) => {
   const response = await fetch(`${API_URL}${url}`, options)
   console.log(`📥 ${response.status} ${url}`, response)
 
-  // 6. Handle response
+  // 7. Handle response
   if (!response.ok) {
     let error
     try {
