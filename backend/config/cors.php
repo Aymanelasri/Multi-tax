@@ -5,14 +5,14 @@ return [
     'allowed_methods' => ['*'],
     // Allow all localhost origins during development
     'allowed_origins' => [
+        'https://adminsim.netlify.app',
+        'https://simptva.netlify.app',
         'http://localhost:3000',      // Frontend
         'http://localhost:3001',      // Admin Dashboard
         'http://127.0.0.1:3000',
         'http://127.0.0.1:3001',
         'http://localhost:5173',
         'http://127.0.0.1:5173',
-        'https://simptva.netlify.app',
-        'https://adminsim.netlify.app',
     ],
     'allowed_origins_patterns' => [
         '#^https://.*\\.netlify\\.app$#',  // All Netlify preview deployments
