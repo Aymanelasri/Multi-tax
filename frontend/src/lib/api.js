@@ -1,5 +1,5 @@
 // Use Vite environment variable for API URL
-const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'
+const API_URL = import.meta.env.VITE_API_URL
 
 // Extract CSRF token from cookies
 const getCookie = (name) => {

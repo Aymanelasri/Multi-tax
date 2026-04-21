@@ -27,7 +27,7 @@ function App() {
     }
 
     // Log API URL for debugging
-    console.log('📡 API URL:', process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000/api')
+    console.log('📡 API URL:', import.meta.env.VITE_API_URL)
   }, [])
 
   return (

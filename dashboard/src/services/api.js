@@ -1,7 +1,7 @@
 import { getToken } from './auth'
 
-// Use environment variable for API URL (supports both Create React App and Vite)
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000/api'
+// Use environment variable for API URL (Vite)
+const BASE_URL = import.meta.env.VITE_API_URL
 
 // Prevent infinite redirect loops on 401
 let isRedirecting = false
@@ -57,7 +57,7 @@ const api = {
             // In production, redirect to frontend domain
             const frontendUrl = window.location.hostname.includes('netlify')
               ? 'https://simptva.netlify.app/login'
-              : 'http://localhost:3000/login'
+              : '/login'
             window.location.href = frontendUrl
           }, 100)
         }
