@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-
-const LS_KEY = 'edi_autosave';
+import { useAuth } from '../context/AuthContext';
 
 const EMPTY_FACTURE = (ord) => ({
   id: ord, ord: String(ord),
@@ -10,6 +9,14 @@ const EMPTY_FACTURE = (ord) => ({
 });
 
 const useFormState = () => {
+  const { user } = useAuth();
+  
+  // Build user-specific localStorage key
+  const getStorageKey = () => {
+    if (!user?.id) return null;
+    return `edi_autosave_user_${user.id}`;
+  };
+
   const [currentStep, setCurrentStep] = useState(1);
   const [identification, setIdentification] = useState({
     identifiantFiscal: '',
@@ -23,10 +30,13 @@ const useFormState = () => {
   const [restoreBanner, setRestoreBanner] = useState(false);
   const savedDraft = useRef(null);
 
-  // Check for existing autosave on mount
+  // Check for existing autosave on mount (only if user is logged in)
   useEffect(() => {
+    if (!user?.id) return;
+
     try {
-      const raw = localStorage.getItem(LS_KEY);
+      const storageKey = getStorageKey();
+      const raw = localStorage.getItem(storageKey);
       if (raw) {
         const draft = JSON.parse(raw);
         if (draft?.identification || draft?.factures?.length) {
@@ -35,19 +45,22 @@ const useFormState = () => {
         }
       }
     } catch { /* ignore */ }
-  }, []);
+  }, [user?.id]);
 
-  // Auto-save every 30s
+  // Auto-save every 30s (only if user is logged in)
   useEffect(() => {
+    if (!user?.id) return;
+
     const id = setInterval(() => {
       try {
-        localStorage.setItem(LS_KEY, JSON.stringify({ identification, factures }));
+        const storageKey = getStorageKey();
+        localStorage.setItem(storageKey, JSON.stringify({ identification, factures }));
         setAutosaveBadge(true);
         setTimeout(() => setAutosaveBadge(false), 2000);
       } catch { /* ignore */ }
     }, 30000);
     return () => clearInterval(id);
-  }, [identification, factures]);
+  }, [identification, factures, user?.id]);
 
   const restoreDraft = useCallback(() => {
     if (!savedDraft.current) return;
@@ -58,12 +71,18 @@ const useFormState = () => {
 
   const dismissRestore = useCallback(() => {
     setRestoreBanner(false);
-    localStorage.removeItem(LS_KEY);
-  }, []);
+    if (user?.id) {
+      const storageKey = getStorageKey();
+      localStorage.removeItem(storageKey);
+    }
+  }, [user?.id]);
 
   const clearAutosave = useCallback(() => {
-    localStorage.removeItem(LS_KEY);
-  }, []);
+    if (user?.id) {
+      const storageKey = getStorageKey();
+      localStorage.removeItem(storageKey);
+    }
+  }, [user?.id]);
 
   const addFacture = useCallback(() => {
     setFactures((prev) => [...prev, EMPTY_FACTURE(prev.length + 1)]);

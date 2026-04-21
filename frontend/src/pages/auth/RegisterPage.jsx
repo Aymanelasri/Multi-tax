@@ -121,7 +121,7 @@ export default function RegisterPage() {
     if (!formData.email.trim()) {
       newErrors.email = lang === 'FR' ? 'L\'email est requis' : 'Email is required'
     }
-    if (!formData.phone.trim()) {
+     if (!formData.phone.trim()) {
       newErrors.phone = lang === 'FR' ? 'Le numéro de téléphone est requis' : 'Phone number is required'
     }
     if (!formData.password) {
@@ -183,7 +183,6 @@ export default function RegisterPage() {
     return formData.firstname.trim() && 
            formData.lastname.trim() && 
            formData.email.trim() && 
-           formData.phone.trim() &&
            formData.password && 
            formData.password === formData.password_confirmation && 
            formData.terms
@@ -199,7 +198,7 @@ export default function RegisterPage() {
         {/* Left Column - Image Only */}
         <div className="auth-left">
           <img 
-            src="https://images.unsplash.com/photo-1554224154-26032fced8bd?w=1600&h=1200&q=90&fit=crop" 
+            src="/images/image3.jpg" 
             alt="Tax registration background"
             className="panel-image"
           />
@@ -231,7 +230,7 @@ export default function RegisterPage() {
                     id="firstname"
                     name="firstname"
                     type="text"
-                    placeholder={lang === 'FR' ? 'Mohammed' : 'John'}
+                    placeholder={lang === 'FR' ? ' votre prénom' : 'your first name'}
                     value={formData.firstname}
                     onChange={handleChange}
                     className={errors.firstname ? 'error' : ''}
@@ -246,7 +245,7 @@ export default function RegisterPage() {
                     id="lastname"
                     name="lastname"
                     type="text"
-                    placeholder={lang === 'FR' ? 'Benali' : 'Smith'}
+                    placeholder={lang === 'FR' ? ' votre nom' : 'your last name'}
                     value={formData.lastname}
                     onChange={handleChange}
                     className={errors.lastname ? 'error' : ''}
@@ -282,10 +281,7 @@ export default function RegisterPage() {
                   placeholder="+212 6XX XXX XXX"
                   value={formData.phone}
                   onChange={handleChange}
-                  className={errors.phone ? 'error' : ''}
-                  required
                 />
-                {errors.phone && <span className="error-text">{errors.phone}</span>}
               </div>
 
               {/* Password */}
@@ -420,7 +416,7 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        <style jsx={true}>{`
+        <style jsx>{`
           .auth-layout {
             display: flex;
             min-height: 100vh;
@@ -440,7 +436,7 @@ export default function RegisterPage() {
             flex: 0 0 40%;
             position: relative;
             overflow: hidden;
-            border-radius: 0 8px 8px 0; 
+            border-radius: 0 3px 3px 
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
           }
 

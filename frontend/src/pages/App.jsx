@@ -61,27 +61,7 @@ function App() {
         } />
         <Route path="/contact" element={<ContactPage />} />
 
-        {/* Admin Portal Redirect */}
-        <Route path="/admin" element={
-          <AdminRoute>
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: '100vh',
-              background: 'linear-gradient(135deg, #0a0f1a 0%, #1a1f2e 100%)',
-              color: '#ffffff',
-              textAlign: 'center'
-            }}>
-              <h1 style={{ marginBottom: '20px' }}>Redirecting to Admin Dashboard...</h1>
-              <p style={{ color: '#888' }}>Please wait while we redirect you.</p>
-              {typeof window !== 'undefined' && setTimeout(() => {
-                window.location.href = 'http://localhost:3001/admin'
-              }, 500)}
-            </div>
-          </AdminRoute>
-        } />
+        {/* Admin users are automatically redirected to dashboard during login */}
       </Routes>
     </Router>
   );

@@ -5,7 +5,7 @@ import Button from './ui/Button';
 import { useLang } from '../context/LanguageContext';
 import { REGIMES, REGIME_INFO } from '../utils/constants';
 
-const IdentificationForm = ({ data, onChange, onNext }) => {
+const IdentificationForm = ({ data, onChange, onNext, onOpenSocietesModal }) => {
   const { t } = useLang();
   const regimeDef = REGIMES.find((r) => r.value === data.regime);
   const set = (field, value) => onChange({ ...data, [field]: value });
@@ -37,13 +37,17 @@ const IdentificationForm = ({ data, onChange, onNext }) => {
 
         <div className="form-grid cols3" style={{ marginBottom: 20 }}>
           <FormGroup label={t('field_if')} required help={t('hint_1_8_digits')}>
-            <input
-              type="text"
-              placeholder="ex: 16685940"
-              value={data.identifiantFiscal || ''}
-              onChange={(e) => set('identifiantFiscal', e.target.value)}
-              className={data.identifiantFiscal && !ifValid ? 'invalid' : ''}
-            />
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                type="text"
+                placeholder="ex: 16685940"
+                value={data.identifiantFiscal || ''}
+                onChange={(e) => set('identifiantFiscal', e.target.value)}
+                className={data.identifiantFiscal && !ifValid ? 'invalid' : ''}
+                style={{ flex: 1 }}
+              />
+            
+            </div>
             {data.identifiantFiscal && !ifValid && (
               <span className="field-error">{t('error_1_8_digits')}</span>
             )}

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navigation from '../components/Navigation';
 import Toast from '../components/ui/Toast';
 import { useLang } from '../context/LanguageContext';
+import api from '../lib/api';
 
 const ContactPage = () => {
   const { t } = useLang();
@@ -17,6 +18,7 @@ const ContactPage = () => {
   const [errors, setErrors] = useState({});
   const [toastMsg, setToastMsg] = useState('');
   const [showToast, setShowToast] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const subjects = [
     { value: 'general', label: t('subject_1') },
@@ -37,6 +39,7 @@ const ContactPage = () => {
     if (!formData.email.trim()) newErrors.email = t('form_error_email');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = t('form_error_email_invalid');
     if (!formData.message.trim()) newErrors.message = t('form_error_message');
+    if (formData.message.trim().length < 10) newErrors.message = 'Le message doit contenir au moins 10 caractères';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -47,13 +50,28 @@ const ContactPage = () => {
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
+    if (!validateForm()) {
+      toast(t('form_error_check'));
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await api.submitContact(
+        formData.nom,
+        formData.email,
+        formData.sujet,
+        formData.message
+      );
       toast(t('toast_contact_success'));
       setFormData({ nom: '', email: '', sujet: 'general', message: '' });
-    } else {
-      toast(t('form_error_check'));
+    } catch (error) {
+      console.error('Contact form error:', error);
+      toast(error.message || 'Une erreur est survenue');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -425,24 +443,26 @@ const ContactPage = () => {
             {/* Submit Button */}
             <button
               type="submit"
+              disabled={isLoading}
               style={{
                 width: '100%',
                 padding: '12px 24px',
                 height: '48px',
-                background: '#00d4a0',
+                background: isLoading ? '#888888' : '#00d4a0',
                 color: '#0a0f1a',
                 border: 'none',
                 borderRadius: '10px',
                 fontSize: '14px',
                 fontWeight: 700,
-                cursor: 'pointer',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s ease',
-                marginTop: '8px'
+                marginTop: '8px',
+                opacity: isLoading ? 0.7 : 1
               }}
-              onMouseEnter={(e) => e.target.style.background = '#00c896'}
-              onMouseLeave={(e) => e.target.style.background = '#00d4a0'}
+              onMouseEnter={(e) => !isLoading && (e.target.style.background = '#00c896')}
+              onMouseLeave={(e) => !isLoading && (e.target.style.background = '#00d4a0')}
             >
-              {t('btn_send')}
+              {isLoading ? '⏳ ' + t('form_sending') : t('btn_send')}
             </button>
           </form>
         </div>

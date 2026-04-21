@@ -6,17 +6,59 @@ use App\Http\Controllers\Controller;
 use App\Models\Societe;
 use App\Models\Historique;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class SocieteController extends Controller
 {
     // ✅ STRICT DATA ISOLATION: Always filter by auth()->id()
     public function index(Request $request)
     {
-        $societes = Societe::where('user_id', auth()->id())
+        $authId = auth()->id();
+        $user = auth()->user();
+        
+        \Log::info('SocieteController@index - Authentication Debug', [
+            'auth_id' => $authId,
+            'user_id' => $user?->id,
+            'user_email' => $user?->email,
+            'token_user' => $request->user()?->id,
+        ]);
+        
+        $societes = Societe::where('user_id', $authId)
             ->orderBy('last_used', 'desc')
             ->get();
 
+        \Log::info('Societes Query Result', [
+            'user_id' => $authId,
+            'count' => $societes->count(),
+            'societes' => $societes->pluck('id', 'user_id'),
+        ]);
+
         return response()->json(['data' => $societes]);
+    }
+
+    // ✅ NEW: Explicit endpoint for modal - guaranteed to return only current user's societes
+    public function myCompanies(Request $request)
+    {
+        $authId = auth()->id();
+        
+        \Log::info('SocieteController@myCompanies - Fetching user societes', [
+            'auth_id' => $authId,
+        ]);
+        
+        $societes = Societe::where('user_id', $authId)
+            ->select('id', 'user_id', 'nom', 'if', 'ice', 'rc', 'adresse', 'ville')
+            ->orderBy('nom', 'asc')
+            ->get();
+
+        \Log::info('myCompanies Result', [
+            'auth_id' => $authId,
+            'count' => $societes->count(),
+        ]);
+
+        return response()->json([
+            'data' => $societes,
+            'user_id' => $authId,
+        ]);
     }
 
     public function store(Request $request)

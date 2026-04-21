@@ -1,25 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import FormGroup from './ui/FormGroup';
 import { useLang } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
+import { useSocietes } from '../hooks/useSocietes';
 import { TVA_RATES, PAYMENT_MODES } from '../utils/constants';
-import { BiEdit, BiCopy, BiTrash } from 'react-icons/bi';
+import { Copy, Pencil, Trash2 } from 'lucide-react';
 
-const LS_SOC = 'edi_societes';
-const loadSocietes = () => { try { return JSON.parse(localStorage.getItem(LS_SOC) || '[]'); } catch { return []; } };
-const saveSocietes = (d) => localStorage.setItem(LS_SOC, JSON.stringify(d));
+const getSocietesKey = (userId) => userId ? `edi_societes_user_${userId}` : 'edi_societes';
+const loadSocietes = (userId) => { try { return JSON.parse(localStorage.getItem(getSocietesKey(userId)) || '[]'); } catch { return []; } };
+const saveSocietes = (d, userId) => localStorage.setItem(getSocietesKey(userId), JSON.stringify(d));
 
 const ActionBtn = ({ onClick, title, color = '#94a3b8', children }) => (
   <button
     onClick={onClick}
     title={title}
     style={{
-      width: 28, height: 28, borderRadius: 6, border: 'none',
-      background: 'rgba(255,255,255,0.05)', color,
+      width: 32, height: 32, borderRadius: 6, border: 'none',
+      background: 'rgba(255,255,255,0.06)', color,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: 13, cursor: 'pointer', flexShrink: 0, transition: 'background 0.15s',
+      cursor: 'pointer', flexShrink: 0, transition: 'all 0.2s ease',
+      padding: 0,
     }}
-    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-    onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+    onMouseEnter={e => {
+      e.currentTarget.style.background = 'rgba(255,255,255,0.12)';
+      e.currentTarget.style.transform = 'scale(1.05)';
+    }}
+    onMouseLeave={e => {
+      e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
+      e.currentTarget.style.transform = 'scale(1)';
+    }}
   >
     {children}
   </button>
@@ -27,6 +36,8 @@ const ActionBtn = ({ onClick, title, color = '#94a3b8', children }) => (
 
 const FactureItem = ({ id, data, onChange, onRemove, onDuplicate }) => {
   const { t, lang } = useLang();
+  const { user } = useAuth();
+  const { societes: apiSocietes, loading: loadingSocietes } = useSocietes();
   const [open, setOpen] = useState(!data.num);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showSocPicker, setShowSocPicker] = useState(false);
@@ -110,13 +121,13 @@ const FactureItem = ({ id, data, onChange, onRemove, onDuplicate }) => {
           ) : (
             <>
               <ActionBtn onClick={() => setOpen(o => !o)} title={lang === 'FR' ? 'Modifier' : 'Edit'}>
-                <BiEdit size={14} />
+                <Pencil size={16} strokeWidth={2} />
               </ActionBtn>
               <ActionBtn onClick={() => onDuplicate(id)} title={lang === 'FR' ? 'Dupliquer' : 'Duplicate'}>
-                <BiCopy size={14} />
+                <Copy size={16} strokeWidth={2} />
               </ActionBtn>
               <ActionBtn onClick={() => setConfirmDelete(true)} title={lang === 'FR' ? 'Supprimer' : 'Delete'} color="#ef4444">
-                <BiTrash size={14} />
+                <Trash2 size={16} strokeWidth={2} />
               </ActionBtn>
             </>
           )}
@@ -163,30 +174,49 @@ const FactureItem = ({ id, data, onChange, onRemove, onDuplicate }) => {
           {/* Section: Fournisseur */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <div style={sectionLabel}><span style={sectionBar}/>{t('block_fournisseur_label')}</div>
-            {societes.length > 0 && (
+            {(apiSocietes.length > 0 || societes.length > 0) && (
               <div style={{ position: 'relative' }}>
                 <button
                   onClick={() => setShowSocPicker(p => !p)}
                   style={{ padding: '5px 12px', fontSize: '0.72rem', background: 'transparent', border: '1px solid rgba(0,212,160,0.3)', color: '#00d4a0', borderRadius: 6, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
                 >
-                  {t('societes_choose')}
+                  {loadingSocietes ? '⏳' : '🏢'} {t('societes_choose')}
                 </button>
                 {showSocPicker && (
                   <div style={{ position: 'absolute', right: 0, top: '110%', zIndex: 50, background: '#141d2e', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, minWidth: 240, maxHeight: 220, overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
-                    {societes.map(s => (
-                      <button key={s.id} onClick={() => {
-                        onChange({ ...data, if: s.if || '', nom: s.nom || '', ice: s.ice || '' });
-                        const updated = societes.map(x => x.id === s.id ? { ...x, usageCount: (x.usageCount || 0) + 1, lastUsed: Date.now() } : x);
-                        saveSocietes(updated);
-                        setShowSocPicker(false);
-                      }} style={{ display: 'block', width: '100%', padding: '10px 14px', background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.06)', color: '#f0f4f8', textAlign: 'left', cursor: 'pointer', fontSize: '0.82rem', fontFamily: 'inherit', transition: 'background 0.15s' }}
-                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,212,160,0.08)'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                      >
-                        <div style={{ fontWeight: 600 }}>{s.nom}</div>
-                        {s.if && <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: 2 }}>IF: {s.if}</div>}
-                      </button>
-                    ))}
+                    {loadingSocietes ? (
+                      <div style={{ padding: '20px 14px', textAlign: 'center', color: '#64748b', fontSize: '0.82rem' }}>Chargement...</div>
+                    ) : apiSocietes.length > 0 ? (
+                      apiSocietes.map(s => (
+                        <button key={s.id} onClick={() => {
+                          onChange({ ...data, if: s.if || '', nom: s.nom || '', ice: s.ice || '' });
+                          setShowSocPicker(false);
+                        }} style={{ display: 'block', width: '100%', padding: '10px 14px', background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.06)', color: '#f0f4f8', textAlign: 'left', cursor: 'pointer', fontSize: '0.82rem', fontFamily: 'inherit', transition: 'background 0.15s' }}
+                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,212,160,0.08)'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                          <div style={{ fontWeight: 600 }}>{s.nom}</div>
+                          {s.if && <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: 2 }}>IF: {s.if}</div>}
+                        </button>
+                      ))
+                    ) : societes.length > 0 ? (
+                      societes.map(s => (
+                        <button key={s.id} onClick={() => {
+                          onChange({ ...data, if: s.if || '', nom: s.nom || '', ice: s.ice || '' });
+                          const updated = societes.map(x => x.id === s.id ? { ...x, usageCount: (x.usageCount || 0) + 1, lastUsed: Date.now() } : x);
+                          saveSocietes(updated);
+                          setShowSocPicker(false);
+                        }} style={{ display: 'block', width: '100%', padding: '10px 14px', background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.06)', color: '#f0f4f8', textAlign: 'left', cursor: 'pointer', fontSize: '0.82rem', fontFamily: 'inherit', transition: 'background 0.15s' }}
+                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,212,160,0.08)'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                          <div style={{ fontWeight: 600 }}>{s.nom}</div>
+                          {s.if && <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: 2 }}>IF: {s.if}</div>}
+                        </button>
+                      ))
+                    ) : (
+                      <div style={{ padding: '20px 14px', textAlign: 'center', color: '#64748b', fontSize: '0.82rem' }}>Aucune société</div>
+                    )}
                   </div>
                 )}
               </div>
@@ -194,14 +224,14 @@ const FactureItem = ({ id, data, onChange, onRemove, onDuplicate }) => {
           </div>
           <div className="form-grid cols3" style={{ marginBottom: 16 }}>
             <FormGroup label={t('field_if_fournisseur')} required help={t('hint_1_8_digits')}>
-              <input type="text" value={data.if || ''} onChange={e => set('if', e.target.value)} placeholder="ex: 33006240" className={data.if && !ifValid ? 'invalid' : ''} />
+              <input type="text" value={data.if || ''} onChange={e => set('if', e.target.value)} placeholder="ex: 12345678" className={data.if && !ifValid ? 'invalid' : ''} />
               {data.if && !ifValid && <span className="field-error">{t('error_1_8_digits')}</span>}
             </FormGroup>
             <FormGroup label={t('field_nom_rs')} required>
-              <input type="text" value={data.nom || ''} onChange={e => set('nom', e.target.value)} placeholder="ex: ONEE" />
+              <input type="text" value={data.nom || ''} onChange={e => set('nom', e.target.value)} placeholder="ex: Société ABC" />
             </FormGroup>
             <FormGroup label="ICE" help={t('hint_ice')}>
-              <input type="text" value={data.ice || ''} onChange={e => set('ice', e.target.value)} placeholder="001234567890123" className={data.ice && !iceValid ? 'invalid' : ''} />
+              <input type="text" value={data.ice || ''} onChange={e => set('ice', e.target.value)} placeholder="000123456789013" className={data.ice && !iceValid ? 'invalid' : ''} />
               {data.ice && !iceValid && <span className="field-error">15 {lang === 'FR' ? 'chiffres requis' : 'digits required'}</span>}
             </FormGroup>
           </div>

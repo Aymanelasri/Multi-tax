@@ -60,10 +60,7 @@ export default function LoginPage() {
       const result = await login(formData.email, formData.password, formData.remember)
       
       if (result.success) {
-        // Redirect admin users to admin dashboard
-        if (result.user.role === 'admin') {
-          navigate('/admin', { replace: true })
-        } else if (result.user.status === 'approved') {
+        if (result.user.status === 'approved') {
           navigate(redirectPath, { replace: true })
         } else if (result.user.status === 'pending') {
           navigate('/pending', { state: { user: result.user }, replace: true })

@@ -59,11 +59,15 @@ export const AuthProvider = ({ children }) => {
           localStorage.removeItem('token')
         }
         
-        // Always store user object in localStorage for dashboard access
-        localStorage.setItem('user', JSON.stringify(userData))
-        
         setToken(newToken)
         setUser(userData)
+        
+        // SOLUTION 2: If user is admin, redirect to dashboard with token and user data
+        if (userData.role === 'admin') {
+          const encodedUser = encodeURIComponent(JSON.stringify(userData))
+          window.location.href = `http://localhost:3001/admin?token=${newToken}&user=${encodedUser}`
+          return { success: true, user: userData, redirected: true }
+        }
         
         return { success: true, user: userData }
       }
@@ -119,7 +123,6 @@ export const AuthProvider = ({ children }) => {
   const clearAuth = () => {
     localStorage.removeItem('token')
     sessionStorage.removeItem('token')
-    localStorage.removeItem('user')
     setToken(null)
     setUser(null)
   }

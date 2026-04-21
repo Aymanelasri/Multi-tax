@@ -1,10 +1,12 @@
 import React, { useState, useRef, useCallback } from 'react';
 import * as XLSX from 'xlsx';
 import { useLang } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
+import { Upload, Download, Copy as LucideCopy, FolderOpen } from 'lucide-react';
 
-const LS_KEY = 'simpl_tva_modules';
-const loadModules = () => { try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch { return []; } };
-const saveModules = (m) => localStorage.setItem(LS_KEY, JSON.stringify(m));
+const getModulesKey = (userId) => userId ? `simpl_tva_modules_user_${userId}` : 'simpl_tva_modules';
+const loadModules = (userId) => { try { return JSON.parse(localStorage.getItem(getModulesKey(userId)) || '[]'); } catch { return []; } };
+const saveModules = (m, userId) => localStorage.setItem(getModulesKey(userId), JSON.stringify(m));
 
 const COLS = ['num','des','mht','tva','fIf','fNom','fIce','tx','prorata','mpId','dpai','dfac'];
 
@@ -25,24 +27,40 @@ const rowToFacture = (row, idx) => ({
   dfac:    String(row.dfac    || ''),
 });
 
-const Tab = ({ label, active, onClick }) => (
+const Tab = ({ label, icon: Icon, active, onClick }) => (
   <button onClick={onClick} style={{
-    padding: '9px 18px', border: 'none', cursor: 'pointer',
-    background: active ? 'var(--surface2)' : 'transparent',
-    color: active ? 'var(--blue-h)' : 'var(--text-3)',
-    borderBottom: active ? '2px solid var(--blue)' : '2px solid transparent',
-    fontSize: '0.82rem', fontWeight: active ? 600 : 400,
-    fontFamily: 'var(--sans)', transition: 'all .15s', whiteSpace: 'nowrap',
-  }}>
-    {label}
+    padding: '12px 16px', border: 'none', cursor: 'pointer',
+    background: active ? 'rgba(0, 212, 160, 0.05)' : 'transparent',
+    color: active ? '#00d4a0' : '#94a3b8',
+    borderBottom: active ? '3px solid #2dd4bf' : '3px solid transparent',
+    fontSize: '0.9rem', fontWeight: active ? 700 : 500,
+    fontFamily: 'inherit', transition: 'all .15s ease', whiteSpace: 'nowrap',
+    display: 'flex', alignItems: 'center', gap: 8, position: 'relative', zIndex: 1,
+  }}
+  onMouseEnter={(e) => {
+    if (!active) {
+      e.currentTarget.style.color = '#cbd5e1';
+      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+    }
+  }}
+  onMouseLeave={(e) => {
+    if (!active) {
+      e.currentTarget.style.color = '#94a3b8';
+      e.currentTarget.style.background = 'transparent';
+    }
+  }}
+  >
+    {Icon && <Icon size={16} strokeWidth={2.5} style={{ flexShrink: 0, display: 'block' }} />}
+    <span style={{ display: 'block' }}>{label}</span>
   </button>
 );
 
 const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
   const { lang } = useLang();
+  const { user } = useAuth();
   const isFR = lang === 'FR';
   const [tab, setTab] = useState('import');
-  const [modules, setModules] = useState(loadModules);
+  const [modules, setModules] = useState(() => loadModules(user?.id));
   const [moduleName, setModuleName] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const [toast, setToast] = useState('');
@@ -71,9 +89,9 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
     try {
       const lines = text.trim().split('\n').filter(l => l.trim());
       if (lines.length < 2) throw new Error();
-      const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+      const headers = lines[0].split(',').map(h => h.trim().replace(/^\"|\"$/g, ''));
       const rows = lines.slice(1).map(line => {
-        const vals = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+        const vals = line.split(',').map(v => v.trim().replace(/^\"|\"$/g, ''));
         const obj = {};
         headers.forEach((h, i) => { obj[h] = vals[i] || ''; });
         return obj;
@@ -139,14 +157,14 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
     XLSX.writeFile(wb, `${name}.xlsx`);
 
     const updated = [{ name, type, entries, savedAt: new Date().toISOString(), count: entries.length }, ...modules];
-    setModules(updated); saveModules(updated);
+    setModules(updated); saveModules(updated, user?.id);
     showToast(isFR ? `"${name}.xlsx" exporté` : `"${name}.xlsx" exported`);
     setModuleName('');
   };
 
   const handleDelete = (idx) => {
     const updated = modules.filter((_, i) => i !== idx);
-    setModules(updated); saveModules(updated);
+    setModules(updated); saveModules(updated, user?.id);
   };
 
   const handleLoad = (mod) => {
@@ -156,12 +174,12 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
 
   return (
     <div className="card" style={{ marginBottom: 20 }}>
-      <div className="card-title">📊 {isFR ? 'Import / Export' : 'Import / Export'}</div>
+      <div className="card-title" style={{ fontSize: '1rem', fontWeight: 700, color: '#f0f4f8', marginBottom: 20 }}>📊 {isFR ? 'Import / Export' : 'Import / Export'}</div>
 
-      <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', marginBottom: 18 }}>
-        <Tab label={`📥 ${isFR ? 'Importer' : 'Import'}`} active={tab === 'import'} onClick={() => setTab('import')} />
-        <Tab label={`📤 ${isFR ? 'Exporter' : 'Export'}`} active={tab === 'export'} onClick={() => setTab('export')} />
-        <Tab label={`📚 ${isFR ? 'Sauvegardés' : 'Saved'} (${modules.length})`} active={tab === 'saved'} onClick={() => setTab('saved')} />
+      <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: 18, gap: 0 }}>
+        <Tab label={isFR ? 'Importer' : 'Import'} icon={Upload} active={tab === 'import'} onClick={() => setTab('import')} />
+        <Tab label={isFR ? 'Exporter CSV' : 'Export CSV'} icon={Download} active={tab === 'export'} onClick={() => setTab('export')} />
+        <Tab label={`${isFR ? 'Copier' : 'Copy'} (${modules.length})`} icon={LucideCopy} active={tab === 'saved'} onClick={() => setTab('saved')} />
       </div>
 
       {/* ── Import ── */}
@@ -173,18 +191,20 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
             onDrop={(e) => { e.preventDefault(); setDragOver(false); processFile(e.dataTransfer.files[0]); }}
             onClick={() => fileRef.current.click()}
             style={{
-              border: `1.5px dashed ${dragOver ? 'var(--blue)' : 'rgba(74,222,128,0.2)'}`,
-              borderRadius: 12, padding: '32px 20px', textAlign: 'center',
-              cursor: 'pointer', transition: 'border-color .2s, background .2s',
-              background: dragOver ? 'var(--blue-tint)' : 'transparent',
+              border: `2px dashed ${dragOver ? '#2dd4bf' : 'rgba(45,212,191,0.3)'}`,
+              borderRadius: 12, padding: '40px 24px', textAlign: 'center',
+              cursor: 'pointer', transition: 'all .2s ease',
+              background: dragOver ? 'rgba(45, 212, 191, 0.08)' : 'rgba(45, 212, 191, 0.02)',
             }}
           >
-            <div style={{ fontSize: '1.8rem', marginBottom: 12 }}>📂</div>
-            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#00d4a0', marginBottom: 8, letterSpacing: '0.06em' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+              <FolderOpen size={40} color="#2dd4bf" strokeWidth={1.5} style={{ display: 'block' }} />
+            </div>
+            <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#2dd4bf', marginBottom: 8, letterSpacing: '0.05em' }}>
               .xlsx · .xls · .csv
             </div>
-            <div style={{ fontSize: '0.82rem', color: 'var(--text-2)' }}>
-              {isFR ? 'Glisser-déposer ou cliquer pour sélectionner' : 'Drag & drop or click to select'}
+            <div style={{ fontSize: '0.85rem', color: '#94a3b8', lineHeight: 1.6 }}>
+              {isFR ? 'Glisser-déposer vos fichiers ou cliquer pour sélectionner' : 'Drag and drop your files or click to select'}
             </div>
           </div>
           <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" style={{ display: 'none' }} onChange={(e) => { processFile(e.target.files[0]); e.target.value = ''; }} />
@@ -192,13 +212,21 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
           <button
             onClick={downloadTemplate}
             style={{
-              marginTop: 12, padding: '6px 14px', fontSize: '0.75rem',
-              background: 'transparent', border: '1px solid rgba(0,212,160,0.3)',
-              color: '#00d4a0', borderRadius: 7, cursor: 'pointer',
-              fontFamily: 'var(--sans)', transition: 'background 0.15s',
+              marginTop: 20, padding: '11px 20px', fontSize: '0.85rem',
+              background: 'transparent', border: '1.5px solid rgba(45,212,191,0.4)',
+              color: '#2dd4bf', borderRadius: 8, cursor: 'pointer',
+              fontFamily: 'inherit', transition: 'all 0.2s ease', fontWeight: 600,
             }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,212,160,0.06)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'rgba(45,212,191,0.1)';
+              e.currentTarget.style.borderColor = 'rgba(45,212,191,0.6)';
+              e.currentTarget.style.color = '#ffffff';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.borderColor = 'rgba(45,212,191,0.4)';
+              e.currentTarget.style.color = '#2dd4bf';
+            }}
           >
             ⬇ {isFR ? 'Télécharger le modèle Excel' : 'Download Excel template'}
           </button>
@@ -209,44 +237,119 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
       {tab === 'export' && (
         <div>
           <div style={{ marginBottom: 14 }}>
-            <label style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-3)', letterSpacing: '0.07em', textTransform: 'uppercase', display: 'block', marginBottom: 5 }}>
+            <label style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b', letterSpacing: '0.07em', textTransform: 'uppercase', display: 'block', marginBottom: 5 }}>
               {isFR ? 'Nom du fichier' : 'File name'}
             </label>
-            <input value={moduleName} onChange={(e) => setModuleName(e.target.value)} placeholder={isFR ? 'ex: fournisseurs-2024' : 'e.g. suppliers-2024'} />
+            <input 
+              value={moduleName} 
+              onChange={(e) => setModuleName(e.target.value)} 
+              placeholder={isFR ? 'ex: fournisseurs-2024' : 'e.g. suppliers-2024'}
+              style={{
+                background: '#0d1728', border: '1px solid rgba(255,255,255,0.12)',
+                color: '#f0f4f8', borderRadius: 8, height: 44, padding: '0 14px',
+                fontSize: '0.87rem', width: '100%', outline: 'none', fontFamily: 'inherit',
+                transition: 'border-color 0.2s',
+              }}
+              onFocus={e => e.target.style.borderColor = '#2dd4bf'}
+              onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'}
+            />
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <button className="btn btn-primary" onClick={() => exportToExcel('factures')} disabled={factures.length === 0} style={{ opacity: factures.length === 0 ? 0.4 : 1 }}>
+            <button 
+              onClick={() => exportToExcel('factures')} 
+              disabled={factures.length === 0} 
+              style={{
+                padding: '11px 18px', borderRadius: 8, fontSize: '0.85rem', fontWeight: 600,
+                background: factures.length === 0 ? 'rgba(45,212,191,0.1)' : 'linear-gradient(135deg,#10b981,#34d399)',
+                border: 'none', color: factures.length === 0 ? '#64748b' : '#000',
+                cursor: factures.length === 0 ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
+                transition: 'all 0.2s ease', opacity: factures.length === 0 ? 0.5 : 1,
+              }}
+              onMouseEnter={e => {
+                if (factures.length > 0) {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 8px 20px rgba(16,185,129,0.3)';
+                }
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
               📄 {isFR ? `Exporter factures (${factures.length})` : `Export invoices (${factures.length})`}
             </button>
-            <button className="btn btn-blue" onClick={() => exportToExcel('identification')}>
+            <button 
+              onClick={() => exportToExcel('identification')}
+              style={{
+                padding: '11px 18px', borderRadius: 8, fontSize: '0.85rem', fontWeight: 600,
+                background: 'rgba(45,212,191,0.1)', border: '1px solid rgba(45,212,191,0.3)',
+                color: '#2dd4bf', cursor: 'pointer', fontFamily: 'inherit',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = 'rgba(45,212,191,0.2)';
+                e.currentTarget.style.borderColor = 'rgba(45,212,191,0.5)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'rgba(45,212,191,0.1)';
+                e.currentTarget.style.borderColor = 'rgba(45,212,191,0.3)';
+              }}
+            >
               🏢 {isFR ? "Exporter l'identification" : 'Export identification'}
             </button>
           </div>
         </div>
       )}
 
-      {/* ── Saved ── */}
+      {/* ── Saved (Copier) ── */}
       {tab === 'saved' && (
         <div>
           {modules.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '28px 0', color: 'var(--text-3)', fontSize: '0.81rem' }}>
+            <div style={{ textAlign: 'center', padding: '28px 0', color: '#94a3b8', fontSize: '0.81rem' }}>
               {isFR ? 'Aucun export sauvegardé' : 'No saved exports'}
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {modules.map((mod, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 8, padding: '11px 14px', gap: 10, flexWrap: 'wrap' }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#1a1f2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '12px 14px', gap: 10, flexWrap: 'wrap', transition: 'all 0.2s ease' }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#202530';
+                    e.currentTarget.style.borderColor = 'rgba(45,212,191,0.3)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#1a1f2e';
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+                  }}
+                >
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text)', marginBottom: 2 }}>{mod.name}</div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-3)' }}>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#e2e8f0', marginBottom: 4 }}>{mod.name}</div>
+                    <div style={{ fontSize: '0.73rem', color: '#94a3b8', lineHeight: 1.4 }}>
                       {mod.type === 'factures' ? (isFR ? 'Factures' : 'Invoices') : (isFR ? 'Identification' : 'Identification')} · {mod.count} {isFR ? (mod.count > 1 ? 'entrées' : 'entrée') : (mod.count > 1 ? 'entries' : 'entry')} · {new Date(mod.savedAt).toLocaleDateString('fr-MA')}
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 7, flexShrink: 0 }}>
-                    <button className="btn btn-blue" style={{ padding: '5px 12px', fontSize: '0.75rem' }} onClick={() => handleLoad(mod)}>
+                    <button style={{ padding: '6px 12px', fontSize: '0.75rem', background: 'rgba(45,212,191,0.15)', border: '1px solid rgba(45,212,191,0.3)', color: '#2dd4bf', borderRadius: 6, cursor: 'pointer', fontWeight: 600, fontFamily: 'inherit', transition: 'all 0.2s ease' }} onClick={() => handleLoad(mod)}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(45,212,191,0.25)';
+                        e.currentTarget.style.borderColor = 'rgba(45,212,191,0.5)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(45,212,191,0.15)';
+                        e.currentTarget.style.borderColor = 'rgba(45,212,191,0.3)';
+                      }}
+                    >
                       {isFR ? 'Charger' : 'Load'}
                     </button>
-                    <button className="btn-remove" onClick={() => handleDelete(i)}>
+                    <button style={{ padding: '6px 10px', fontSize: '0.75rem', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444', borderRadius: 6, cursor: 'pointer', fontWeight: 600, fontFamily: 'inherit', transition: 'all 0.2s ease' }} onClick={() => handleDelete(i)}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(239,68,68,0.2)';
+                        e.currentTarget.style.borderColor = 'rgba(239,68,68,0.4)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(239,68,68,0.1)';
+                        e.currentTarget.style.borderColor = 'rgba(239,68,68,0.2)';
+                      }}
+                    >
                       {isFR ? 'Supprimer' : 'Delete'}
                     </button>
                   </div>
@@ -258,8 +361,8 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
       )}
 
       {toast && (
-        <div style={{ marginTop: 14, padding: '9px 14px', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.25)', borderRadius: 7, fontSize: '0.79rem', color: 'var(--blue-h)' }}>
-          {toast}
+        <div style={{ marginTop: 14, padding: '11px 14px', background: 'rgba(45,212,191,0.08)', border: '1px solid rgba(45,212,191,0.25)', borderRadius: 8, fontSize: '0.8rem', color: '#2dd4bf', fontWeight: 500 }}>
+          ✓ {toast}
         </div>
       )}
     </div>

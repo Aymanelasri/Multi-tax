@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\DeclarationController;
 use App\Http\Controllers\Api\ModuleController;
 use App\Http\Controllers\Api\HistoriqueController;
 use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\ContactController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,6 +35,9 @@ Route::get('/email/verify/{id}/{hash}', VerifyEmailController::class)
 // Email Resend Route (public - for frontend compatibility)
 Route::post('/email/resend-verification', [EmailVerificationNotificationController::class, 'store']);
 
+// Contact Form Route (public)
+Route::post('/contact', [ContactController::class, 'store']);
+
 // Email Resend Route (requires authentication - legacy)
 Route::middleware('auth:sanctum')->post('/email/resend', [EmailVerificationNotificationController::class, 'store'])
     ->name('verification.resend');
@@ -47,6 +51,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Societes endpoints (require approval)
     Route::middleware('is-approved')->apiResource('societes', SocieteController::class);
+    Route::middleware('is-approved')->get('/societes/my-companies', [SocieteController::class, 'myCompanies']);
 
     // Declarations endpoints (require approval)
     Route::middleware('is-approved')->apiResource('declarations', DeclarationController::class);
@@ -65,8 +70,11 @@ Route::middleware('auth:sanctum')->group(function () {
         // User management
         Route::get('/admin/users', [AdminController::class, 'users']);
         Route::get('/admin/users/pending', [AdminController::class, 'pendingUsers']);
+        Route::get('/admin/users-with-societes', [AdminController::class, 'usersWithSocietes']);
+        Route::get('/admin/users/{user}/societes', [AdminController::class, 'userSocietes']);
         Route::put('/admin/users/{user}/approve', [AdminController::class, 'approve']);
         Route::put('/admin/users/{user}/reject', [AdminController::class, 'reject']);
+        Route::put('/admin/users/{user}', [AdminController::class, 'updateUser']);
         Route::delete('/admin/users/{user}', [AdminController::class, 'deleteUser']);
 
         // Companies list
@@ -74,6 +82,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Declarations list
         Route::get('/admin/declarations', [AdminController::class, 'declarations']);
+
+        // Admin profile management
+        Route::put('/admin/profile', [AdminController::class, 'updateProfile']);
+        Route::put('/admin/password', [AdminController::class, 'updatePassword']);
+
+        // Messages management
+        Route::get('/admin/messages', [AdminController::class, 'messages']);
+        Route::put('/admin/messages/{contact}/read', [AdminController::class, 'markMessageAsRead']);
     });
 });
-

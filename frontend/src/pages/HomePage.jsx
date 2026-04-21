@@ -49,7 +49,7 @@ const T = {
     footerTagline: 'Solution EDI pour la déclaration TVA conforme à la DGI Maroc. 100% local et sécurisé.',
     footerNav: 'Navigation',
     footerLinks: ['Accueil', 'Générateur', 'Contact'],
-    footerCopy: 'Conforme DGI Maroc — 2024-2026',
+    footerCopy: 'Conforme DGI Maroc — 2025-2026',
     footerPrivacy: 'Confidentialité',
   },
   en: {
@@ -522,129 +522,151 @@ const HomePage = () => {
         </div>
 
         {/* ── Footer ── */}
-        <footer style={{ 
-          background: `linear-gradient(180deg, ${C.nav} 0%, ${C.card} 100%)`,
-          borderTop: `1px solid ${C.border}`,
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
-          {/* Premium background glow effect */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '600px',
-            height: '200px',
-            background: `radial-gradient(ellipse at center, ${C.accent}20 0%, transparent 70%)`,
-            filter: 'blur(50px)',
-            pointerEvents: 'none',
-            zIndex: 0
-          }} />
+<footer style={{ 
+  background: `linear-gradient(180deg, ${C.nav} 0%, ${C.card} 100%)`,
+  borderTop: `1px solid ${C.border}`,
+  backdropFilter: 'blur(10px)',
+  WebkitBackdropFilter: 'blur(10px)',
+  position: 'relative',
+  overflow: 'hidden'
+}}>
+  {/* Premium background glow effect */}
+  <div style={{
+    position: 'absolute',
+    top: 0,
+    left: '50%',
+    transform: 'translateX(-50%)',
+    width: '600px',
+    height: '200px',
+    background: `radial-gradient(ellipse at center, ${C.accent}20 0%, transparent 70%)`,
+    filter: 'blur(50px)',
+    pointerEvents: 'none',
+    zIndex: 0
+  }} />
 
-          <div style={{ padding: '64px 64px 48px 64px', position: 'relative', zIndex: 1 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 60, marginBottom: 48 }}>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-                  <div style={{ 
-                    width: 36, 
-                    height: 36, 
-                    background: `linear-gradient(135deg, ${C.accent}, ${C.accentBright})`,
-                    borderRadius: 8, 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    fontSize: '0.7rem', 
-                    fontWeight: 900, 
-                    color: '#fff',
-                    boxShadow: `0 8px 24px ${C.accent}40`
-                  }}>ST</div>
-                  <span style={{ fontSize: '0.95rem', fontWeight: 800, letterSpacing: '.02em' }}>
-                    SIMPL-<span style={{ background: `linear-gradient(135deg, ${C.accent}, ${C.accentBright})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>TVA</span>
-                  </span>
-                </div>
-                <p style={{ fontSize: '0.84rem', color: C.muted, lineHeight: 1.8, maxWidth: 380 }}>{tr.footerTagline}</p>
-              </div>
-              <div>
-                <div style={{ 
-                  fontSize: '0.7rem', 
-                  fontWeight: 700, 
-                  background: `linear-gradient(135deg, ${C.accent}, ${C.accentBright})`,
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  letterSpacing: '.12em', 
-                  textTransform: 'uppercase', 
-                  marginBottom: 18 
-                }}>{tr.footerNav}</div>
-                {tr.footerLinks.map((l) => (
-                  <div key={l} style={{ 
-                    fontSize: '0.84rem', 
-                    color: C.muted, 
-                    marginBottom: 11, 
-                    cursor: 'pointer', 
-                    transition: 'all .25s cubic-bezier(.4, 0, .2, 1)',
-                    borderLeft: `2px solid transparent`,
-                    paddingLeft: 10
-                  }}
-                    onMouseEnter={(e) => {
-                      e.target.style.color = C.accent;
-                      e.target.style.borderLeftColor = C.accent;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.color = C.muted;
-                      e.target.style.borderLeftColor = 'transparent';
-                    }}>{l}</div>
-                ))}
-              </div>
-            </div>
-            <div style={{ 
-              borderTop: `1px solid ${C.border}`, 
-              paddingTop: 28, 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center', 
-              flexWrap: 'wrap', 
-              gap: 24 
-            }}>
-              <span style={{ fontSize: '0.76rem', color: C.muted, fontWeight: 500 }}>{tr.footerCopy}</span>
-              <div style={{ display: 'flex', gap: 24, fontSize: '0.76rem', color: C.muted, alignItems: 'center' }}>
-                <span style={{ 
-                  cursor: 'pointer',
-                  transition: 'all .25s cubic-bezier(.4, 0, .2, 1)',
-                  paddingBottom: 2,
-                  borderBottom: '1px solid transparent'
-                }}
-                  onMouseEnter={(e) => {
-                    e.target.style.color = C.accent;
-                    e.target.style.borderBottomColor = C.accent;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.color = C.muted;
-                    e.target.style.borderBottomColor = 'transparent';
-                  }}>{tr.footerPrivacy}</span>
-                <span style={{ color: C.border, opacity: 0.3 }}>|</span>
-                <a href="https://www.tax.gov.ma" target="_blank" rel="noreferrer" style={{ 
-                  color: C.muted,
-                  textDecoration: 'none',
-                  transition: 'all .25s cubic-bezier(.4, 0, .2, 1)',
-                  paddingBottom: 2,
-                  borderBottom: '1px solid transparent',
-                  cursor: 'pointer'
-                }}
-                  onMouseEnter={(e) => {
-                    e.target.style.color = C.accent;
-                    e.target.style.borderBottomColor = C.accent;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.color = C.muted;
-                    e.target.style.borderBottomColor = 'transparent';
-                  }}>tax.gov.ma</a>
-              </div>
-            </div>
-          </div>
-        </footer>
+  <div style={{ padding: '64px 64px 48px 64px', position: 'relative', zIndex: 1 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 60, marginBottom: 48 }}>
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+          <div style={{ 
+            width: 36, 
+            height: 36, 
+            background: `linear-gradient(135deg, ${C.accent}, ${C.accentBright})`,
+            borderRadius: 8, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            fontSize: '0.7rem', 
+            fontWeight: 900, 
+            color: '#fff',
+            boxShadow: `0 8px 24px ${C.accent}40`
+          }}>ST</div>
+          <span style={{ fontSize: '0.95rem', fontWeight: 800, letterSpacing: '.02em' }}>
+            SIMPL-<span style={{ background: `linear-gradient(135deg, ${C.accent}, ${C.accentBright})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>TVA</span>
+          </span>
+        </div>
+        <p style={{ fontSize: '0.84rem', color: C.muted, lineHeight: 1.8, maxWidth: 380 }}>{tr.footerTagline}</p>
+      </div>
+      <div>
+        <div style={{ 
+          fontSize: '0.7rem', 
+          fontWeight: 700, 
+          background: `linear-gradient(135deg, ${C.accent}, ${C.accentBright})`,
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          letterSpacing: '.12em', 
+          textTransform: 'uppercase', 
+          marginBottom: 18 
+        }}>{tr.footerNav}</div>
+        {tr.footerLinks.map((l) => {
+  const getPath = (link) => {
+    if (link === 'Accueil' || link === 'Home') return '/';
+    if (link === 'Générateur' || link === 'Generator') return '/generateur';
+    if (link === 'Contact') return '/contact';
+    return '/';
+  };
+  return (
+    <div 
+      key={l} 
+      onClick={() => navigate(getPath(l))} 
+      style={{ 
+        fontSize: '0.84rem', 
+        color: C.muted, 
+        marginBottom: 11, 
+        cursor: 'pointer', 
+        transition: 'all .25s cubic-bezier(.4, 0, .2, 1)',
+        borderLeft: `2px solid transparent`,
+        paddingLeft: 10
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.color = C.accent;
+        e.currentTarget.style.borderLeftColor = C.accent;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.color = C.muted;
+        e.currentTarget.style.borderLeftColor = 'transparent';
+      }}
+    >
+      {l}
+    </div>
+  );
+})}
+      </div>
+    </div>
+    <div style={{ 
+      borderTop: `1px solid ${C.border}`, 
+      paddingTop: 28, 
+      display: 'flex', 
+      justifyContent: 'space-between', 
+      alignItems: 'center', 
+      flexWrap: 'wrap', 
+      gap: 24 
+    }}>
+      <span style={{ fontSize: '0.76rem', color: C.muted, fontWeight: 500 }}>{tr.footerCopy}</span>
+      <div style={{ display: 'flex', gap: 12, fontSize: '0.76rem', color: C.muted, alignItems: 'center' }}>
+        
+        
+        <span style={{ color: C.border, opacity: 0.3 }}>|</span>
+        
+        <span style={{ 
+          cursor: 'pointer',
+          transition: 'all .25s cubic-bezier(.4, 0, .2, 1)',
+          paddingBottom: 2,
+          borderBottom: '1px solid transparent'
+        }}
+          onClick={() => window.location.href = '/legal#confidentialite'}
+          onMouseEnter={(e) => {
+            e.target.style.color = C.accent;
+            e.target.style.borderBottomColor = C.accent;
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.color = C.muted;
+            e.target.style.borderBottomColor = 'transparent';
+          }}>{tr.footerPrivacy}</span>
+        
+        <span style={{ color: C.border, opacity: 0.3 }}>|</span>
+        
+        <a href="https://www.tax.gov.ma" target="_blank" rel="noreferrer" style={{ 
+          color: C.muted,
+          textDecoration: 'none',
+          transition: 'all .25s cubic-bezier(.4, 0, .2, 1)',
+          paddingBottom: 2,
+          borderBottom: '1px solid transparent',
+          cursor: 'pointer'
+        }}
+          onMouseEnter={(e) => {
+            e.target.style.color = C.accent;
+            e.target.style.borderBottomColor = C.accent;
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.color = C.muted;
+            e.target.style.borderBottomColor = 'transparent';
+          }}>tax.gov.ma</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
 
       </div>
     </>

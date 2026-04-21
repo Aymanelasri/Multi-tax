@@ -58,6 +58,7 @@ export function AdminRoute({ children }) {
   if (user.role !== 'admin') {
     return <Navigate to="/generateur" replace />
   }
+  
 
   return children
 }

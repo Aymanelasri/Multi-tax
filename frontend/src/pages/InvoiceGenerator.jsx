@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import JSZip from 'jszip';
 import Navigation from '../components/Navigation';
 import StepsNav from '../components/StepsNav';
@@ -13,10 +13,12 @@ import Button from '../components/ui/Button';
 import Toast from '../components/ui/Toast';
 import useFormState from '../hooks/useFormState';
 import { useLang } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
+import { useSocietes } from '../hooks/useSocietes';
 import { REGIMES } from '../utils/constants';
 import { generateXML, highlightXML, validateFormData } from '../utils/xmlHelper';
+import api from '../lib/api';
 
-/* ── Totals bar ─────────────────────────────────────────────────────────── */
 const fmt = (n) => n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' MAD';
 
 const TotalsBar = ({ factures, t }) => {
@@ -37,7 +39,6 @@ const TotalsBar = ({ factures, t }) => {
   );
 };
 
-/* ── Restore banner ─────────────────────────────────────────────────────── */
 const RestoreBanner = ({ onRestore, onDismiss, t }) => (
   <div style={{ background: '#0f2744', border: '1px solid #1e3a5f', borderRadius: 10, padding: '12px 18px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
     <span style={{ fontSize: '0.83rem', color: '#e2e8f0' }}><span style={{ color: '#00d4a0' }}>💾</span> {t('draft_saved')} — {t('draft_restore_ask')}</span>
@@ -48,11 +49,121 @@ const RestoreBanner = ({ onRestore, onDismiss, t }) => (
   </div>
 );
 
-/* ── Main ───────────────────────────────────────────────────────────────── */
+const SocietesSelectionModal = ({ isOpen, societes, isLoading, onSelect, onSkip, t }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div style={{
+      position: 'fixed',
+      inset: 0,
+      background: 'rgba(0, 0, 0, 0.7)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 9999,
+      padding: '20px',
+      backdropFilter: 'blur(4px)'
+    }}>
+      <div style={{
+        background: '#0d1728',
+        border: '1px solid rgba(0, 212, 160, 0.2)',
+        borderRadius: 16,
+        padding: '32px 28px',
+        maxWidth: 500,
+        width: '100%',
+        maxHeight: '90vh',
+        overflow: 'auto'
+      }}>
+        <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 12, color: '#e2e8f0' }}>
+          🏢 {t('gen_societes_modal_title') || 'Utiliser une société enregistrée'}
+        </div>
+        <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 24, lineHeight: 1.5 }}>
+          {t('gen_societes_modal_subtitle') || 'Sélectionnez une de vos sociétés enregistrées pour pré-remplir le champ IF automatiquement.'}
+        </div>
+
+        {isLoading ? (
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8' }}>
+            <div style={{ fontSize: 24, marginBottom: 12 }}>⏳</div>
+            <div>Chargement...</div>
+          </div>
+        ) : societes.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8' }}>
+            <div style={{ fontSize: 20, marginBottom: 12 }}>📭</div>
+            <div>{t('gen_societes_empty') || 'Aucune société enregistrée'}</div>
+            <div style={{ fontSize: 12, marginTop: 12, color: '#64748b' }}>
+              {t('gen_societes_empty_help') || 'Vous pouvez en ajouter dans la page "Mes Sociétés"'}
+            </div>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gap: 10, marginBottom: 24, maxHeight: '50vh', overflowY: 'auto' }}>
+            {societes.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => onSelect(s)}
+                style={{
+                  padding: '14px 16px',
+                  background: 'rgba(0, 212, 160, 0.08)',
+                  border: '1px solid rgba(0, 212, 160, 0.3)',
+                  borderRadius: 10,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'all 0.2s ease',
+                  color: '#e2e8f0'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(0, 212, 160, 0.15)';
+                  e.currentTarget.style.borderColor = 'rgba(0, 212, 160, 0.6)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(0, 212, 160, 0.08)';
+                  e.currentTarget.style.borderColor = 'rgba(0, 212, 160, 0.3)';
+                }}
+              >
+                <div style={{ fontWeight: 700, marginBottom: 4, fontSize: 14, color: '#00d4a0' }}>
+                  {s.nom}
+                </div>
+                <div style={{ fontSize: 12, color: '#94a3b8', display: 'flex', gap: 16 }}>
+                  <span>IF: <span style={{ color: '#e2e8f0', fontFamily: 'monospace' }}>{s.if_value || s.if}</span></span>
+                  {(s.ice_value || s.ice) && <span>ICE: <span style={{ color: '#e2e8f0', fontFamily: 'monospace' }}>{s.ice_value || s.ice}</span></span>}
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+
+        <button
+          onClick={onSkip}
+          style={{
+            width: '100%',
+            padding: '12px 20px',
+            background: 'transparent',
+            border: '1px solid rgba(94, 167, 255, 0.3)',
+            borderRadius: 8,
+            color: '#5ea7ff',
+            fontWeight: 700,
+            fontSize: 14,
+            cursor: 'pointer',
+            transition: 'all 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(94, 167, 255, 0.1)';
+            e.currentTarget.style.borderColor = 'rgba(94, 167, 255, 0.5)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.borderColor = 'rgba(94, 167, 255, 0.3)';
+          }}
+        >
+          {t('gen_societes_skip') || 'Continuer sans société'}
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const InvoiceGenerator = () => {
   const { t } = useLang();
   const location = useLocation();
-  const navigate = useNavigate();
   const {
     currentStep, setCurrentStep,
     identification, updateIdentification,
@@ -61,28 +172,54 @@ const InvoiceGenerator = () => {
     autosaveBadge, restoreBanner, restoreDraft, dismissRestore,
   } = useFormState();
 
+  const { user } = useAuth();
+  const { societes: allSocietes, loading: loadingSocietes } = useSocietes();
+
   const [generatedXML, setGeneratedXML] = useState('');
   const [liveXML, setLiveXML] = useState('');
   const [xmlErrors, setXmlErrors] = useState([]);
   const [toastMsg, setToastMsg] = useState('');
   const [showToast, setShowToast] = useState(false);
+  const [showSocietesModal, setShowSocietesModal] = useState(false);
+  const [societes, setSocietes] = useState([]);
   const xmlPanelRef = useRef(null);
   const prefillProcessedRef = useRef(false);
+  const societesModalShownRef = useRef(false);
 
   const toast = useCallback((msg) => { setToastMsg(msg); setShowToast(true); }, []);
 
-  // Handle prefill from location state (from Societes page "Utiliser" button)
+  // ✅ CRITICAL: Filter societes by current user ID ONLY
+  useEffect(() => {
+    if (allSocietes.length > 0 && user?.id && !societesModalShownRef.current && !location.state) {
+      const userSocietes = allSocietes.filter(s => s.user_id === user.id);
+      setSocietes(userSocietes);
+      if (userSocietes.length > 0) {
+        setShowSocietesModal(true);
+        societesModalShownRef.current = true;
+      }
+    }
+  }, [allSocietes, user?.id, location.state]);
+
+  const handleSelectSociete = (societe) => {
+    const ifValue = societe.if_value || societe.if || '';
+    updateIdentification({
+      ...identification,
+      identifiantFiscal: ifValue,
+    });
+    setShowSocietesModal(false);
+    setCurrentStep(2);
+    toast(`✓ ${societe.nom || 'Société'} sélectionnée`);
+  };
+
   useEffect(() => {
     if (location.state && !prefillProcessedRef.current) {
       prefillProcessedRef.current = true;
       const { identification: prefillIdent, prefillFournisseur, skipToStep2 } = location.state;
       
-      // Pre-fill identification if provided
       if (prefillIdent) {
         updateIdentification(prefillIdent);
       }
       
-      // Add pre-filled fournisseur as first invoice if provided
       if (prefillFournisseur) {
         const newFacture = {
           id: 1, ord: '1',
@@ -90,24 +227,20 @@ const InvoiceGenerator = () => {
           if: prefillFournisseur.if || '', nom: prefillFournisseur.nom || '', ice: prefillFournisseur.ice || '',
           tx: '20.00', prorata: '100', mp: '1', dpai: '', dfac: '',
         };
-        // Only add if no factures exist
         if (factures.length === 0) {
           addFacture();
-          // Update the first facture with prefilled supplier data
           setTimeout(() => {
             updateFactures([(f) => ({ ...f, ...newFacture })]);
           }, 100);
         }
       }
       
-      // Skip to step 2 if requested
       if (skipToStep2) {
         setTimeout(() => setCurrentStep(2), 150);
       }
     }
   }, [location.state, updateIdentification, addFacture, updateFactures, factures.length, setCurrentStep]);
 
-  // Live XML preview
   useEffect(() => {
     if (currentStep === 3 && identification.identifiantFiscal) {
       try {
@@ -183,7 +316,6 @@ const InvoiceGenerator = () => {
     else if (mod.type === 'identification' && mod.entries?.[0]) updateIdentification(mod.entries[0]);
   }, [updateFactures, updateIdentification]);
 
-  // Keyboard shortcuts
   useEffect(() => {
     const handler = (e) => {
       if (e.ctrlKey || e.metaKey) {
@@ -203,7 +335,6 @@ const InvoiceGenerator = () => {
     <div className="container" style={{ position: 'relative' }}>
       <Navigation />
 
-      {/* Page Header */}
       <div style={{ paddingTop: '40px', paddingBottom: '28px' }}>
         <h1 style={{
           fontSize: 'clamp(24px, 3vw, 36px)',
@@ -225,54 +356,27 @@ const InvoiceGenerator = () => {
         </p>
       </div>
 
-      {/* Autosave badge */}
       {autosaveBadge && (
         <div style={{ position: 'fixed', bottom: 70, right: 24, background: '#0f2744', border: '1px solid #1e3a5f', borderRadius: 8, padding: '6px 12px', fontSize: '0.75rem', color: '#34D399', zIndex: 9998, animation: 'fadeIn .2s ease' }}>
           {t('autosave_badge')}
         </div>
       )}
 
-      {/* Restore banner */}
+      <SocietesSelectionModal 
+        isOpen={showSocietesModal}
+        societes={societes}
+        isLoading={loadingSocietes}
+        onSelect={handleSelectSociete}
+        onSkip={() => setShowSocietesModal(false)}
+        t={t}
+      />
+
       {restoreBanner && <RestoreBanner onRestore={restoreDraft} onDismiss={dismissRestore} t={t} />}
 
       <StepsNav currentStep={currentStep} onStepChange={handleStepChange} />
 
       {currentStep === 1 && (
         <>
-          {/* Info boxes for Step 1 */}
-          {(() => {
-            try {
-              const societes = JSON.parse(localStorage.getItem('edi_societes') || '[]');
-              if (societes.length > 0) {
-                return (
-                  <div style={{ background: 'rgba(0,212,160,0.08)', border: '1px solid rgba(0,212,160,0.25)', borderRadius: 12, padding: '16px 20px', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 16 }}>
-                    <div style={{ fontSize: '24px', flexShrink: 0, color: '#00d4a0' }}>💡</div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '12px', color: '#94a3b8' }}>
-                        {t('gen_step1_companies_info').replace('{{count}}', societes.length)}
-                      </div>
-                    </div>
-                  </div>
-                );
-              } else {
-                return (
-                  <div style={{ background: 'rgba(0,212,160,0.08)', border: '1px solid rgba(0,212,160,0.25)', borderRadius: 12, padding: '16px 20px', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 16 }}>
-                    <div style={{ fontSize: '24px', flexShrink: 0, color: '#00d4a0' }}>💡</div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '12px', color: '#94a3b8' }}>
-                        {t('gen_step1_no_companies') + ' '}
-                        <button onClick={() => navigate('/societes')} style={{ background: 'transparent', border: 'none', color: '#00d4a0', cursor: 'pointer', fontWeight: 600, padding: 0, textDecoration: 'underline' }}>
-                          {t('gen_step1_add_companies_link')}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
-            } catch {
-              return null;
-            }
-          })()}
           <IdentificationForm data={identification} onChange={updateIdentification} onNext={() => handleStepChange(2)} />
         </>
       )}
@@ -291,9 +395,7 @@ const InvoiceGenerator = () => {
       )}
 
       {currentStep === 3 && (
-        /* Desktop 2-col layout */
         <div className="gen-layout">
-          {/* Left: form summary */}
           <div className="gen-left">
             <div className="panel active">
               <div className="panel-title">{t('xml_gen_title')}</div>
@@ -306,7 +408,7 @@ const InvoiceGenerator = () => {
               <Card title={t('gen_instructions_title')}>
                 <ol style={{ paddingLeft: 18, lineHeight: 2.1, color: '#94a3b8', fontSize: '14px' }}>
                   <li>{t('gen_instruction_1')} <strong style={{ color: '#00d4a0' }}>{t('btn_download_zip')}</strong></li>
-                  <li>{t('gen_instruction_2')} <strong style={{ color: '#00d4a0' }}>SIMPL-TVA</strong> {t('gen_instruction_2').split('www.tax.gov.ma')[1] ? 'www.tax.gov.ma' : ''}
+                  <li>{t('gen_instruction_2')} <strong style={{ color: '#00d4a0' }}>SIMPL-TVA</strong>
                     <a href="https://www.tax.gov.ma" target="_blank" rel="noreferrer" style={{ color: '#00d4a0' }}>www.tax.gov.ma</a>
                   </li>
                   <li>{t('gen_instruction_3')}: <strong style={{ color: '#ffffff' }}>Rédacteur</strong></li>
@@ -318,7 +420,6 @@ const InvoiceGenerator = () => {
             </div>
           </div>
 
-          {/* Right: sticky XML preview + actions */}
           <div className="gen-right" ref={xmlPanelRef}>
             <div className="gen-sticky">
               <Card title={t('xml_preview_title')}>
@@ -344,7 +445,6 @@ const InvoiceGenerator = () => {
         </div>
       )}
 
-      {/* History */}
       <div style={{ marginTop: 48, paddingTop: 28, borderTop: '1px solid var(--border)' }}>
         <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
           {t('history_title')}

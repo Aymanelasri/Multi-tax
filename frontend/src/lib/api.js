@@ -101,6 +101,9 @@ const api = {
   getSocietes: () =>
     request('GET', '/societes'),
 
+  getMyCompanies: () =>
+    request('GET', '/societes/my-companies'),
+
   getSociete: (id) =>
     request('GET', `/societes/${id}`),
 
@@ -183,6 +186,17 @@ const api = {
       new_password: newPassword,
       new_password_confirmation: newPasswordConfirmation
     }),
+
+  // Contact Form (public)
+  submitContact: (name, email, subject, message) =>
+    request('POST', '/contact', { name, email, subject, message }),
+
+  // Update user (admin)
+  updateUser: (id, data) =>
+    request('PUT', `/admin/users/${id}`, data),
+
+  deleteUser: (id) =>
+    request('DELETE', `/admin/users/${id}`),
 }
 
 export default api

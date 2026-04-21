@@ -196,7 +196,7 @@ export const translations = {
     contact_sub1: "Notre support est disponible pour vous aider sur la génération de fichiers EDI, les questions DGI et les points essentiels d'usage.",
     contact_sub2: "Réponse rapide en jours ouvrés.",
     card1_title: "Support email",
-    card1_email: "support@editvamaroc.ma",
+    card1_email: "contact@simpltax.ma",
     card1_text: "Réponse sous 24h ouvrées.",
     card2_title: "À propos du support",
     card2_item1: "Génération de fichiers EDI XML",
@@ -280,6 +280,12 @@ export const translations = {
     societes_modal_start_header_info: "Informations fiscales (requises)",
     societes_modal_cancel: "Annuler",
     societes_modal_continue: "Continuer →",
+    // Generator - Societes selection modal
+    gen_societes_modal_title: "Utiliser une société enregistrée",
+    gen_societes_modal_subtitle: "Sélectionnez une de vos sociétés enregistrées pour pré-remplir le champ IF automatiquement.",
+    gen_societes_empty: "Aucune société enregistrée",
+    gen_societes_empty_help: "Vous pouvez en ajouter dans la page \"Mes Sociétés\"",
+    gen_societes_skip: "Continuer sans société",
     // Generator Step 1 info boxes
     gen_step1_companies_info: "Vous avez {{count}} société(s) enregistrée(s). Passez à l'étape 2 pour les utiliser.",
     gen_step1_no_companies: "Aucune société enregistrée.",
@@ -486,7 +492,7 @@ export const translations = {
     contact_sub1: "Our support team is available to help you with EDI file generation, DGI questions and essential usage points.",
     contact_sub2: "Fast response on business days.",
     card1_title: "Email support",
-    card1_email: "support@editvamaroc.ma",
+    card1_email: "contact@simpltax.ma",
     card1_text: "Response within 24 business hours.",
     card2_title: "About support",
     card2_item1: "EDI XML file generation",
@@ -570,6 +576,12 @@ export const translations = {
     societes_modal_start_header_info: "Tax information (required)",
     societes_modal_cancel: "Cancel",
     societes_modal_continue: "Continue →",
+    // Generator - Societes selection modal
+    gen_societes_modal_title: "Use a registered company",
+    gen_societes_modal_subtitle: "Select one of your registered companies to auto-fill the IF field.",
+    gen_societes_empty: "No companies registered",
+    gen_societes_empty_help: "You can add some in the \"My Companies\" page",
+    gen_societes_skip: "Continue without company",
     // Generator Step 1 info boxes
     gen_step1_companies_info: "You have {{count}} registered company/companies. Go to step 2 to use them.",
     gen_step1_no_companies: "No companies registered.",

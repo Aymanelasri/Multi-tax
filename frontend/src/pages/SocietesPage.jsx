@@ -47,20 +47,33 @@ const Modal = ({ societe, onClose, onSave, t }) => {
 
         {fields.map((row, ri) => (
           <div key={ri} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
-            {row.map(({ key, label, required }) => (
-              <div key={key}>
-                <label style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 5 }}>
-                  {label}{required && <span style={{ color: '#00d4a0', marginLeft: 2 }}>*</span>}
-                </label>
-                <input
-                  value={form[key] || ''}
-                  onChange={e => set(key, e.target.value)}
-                  style={inputStyle}
-                  onFocus={e => e.target.style.borderColor = '#00d4a0'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'}
-                />
-              </div>
-            ))}
+            {row.map(({ key, label, required }) => {
+              const placeholders = {
+                if: '33006240',
+                nom: 'ONEE',
+                ice: '001234567890123',
+                rc: 'RC123456',
+                adresse: '123 Rue de la Paix',
+                ville: 'Casablanca',
+                tel: '+212 5XX XXX XXX',
+                email: 'contact@example.com'
+              };
+              return (
+                <div key={key}>
+                  <label style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 5 }}>
+                    {label}{required && <span style={{ color: '#00d4a0', marginLeft: 2 }}>*</span>}
+                  </label>
+                  <input
+                    value={form[key] || ''}
+                    onChange={e => set(key, e.target.value)}
+                    placeholder={placeholders[key] || ''}
+                    style={{...inputStyle, color: form[key] ? '#f0f4f8' : '#64748b'}}
+                    onFocus={e => e.target.style.borderColor = '#00d4a0'}
+                    onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'}
+                  />
+                </div>
+              );
+            })}
           </div>
         ))}
 
