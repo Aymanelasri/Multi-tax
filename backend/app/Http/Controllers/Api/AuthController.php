@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
@@ -30,7 +31,7 @@ class AuthController extends Controller
                 'email' => $validated['email'],
                 'phone' => $validated['phone'] ?? null,
                 'password' => Hash::make($validated['password']),
-                'status' => 'pending', // Users need approval
+                'status' => 'pending', 
                 'role' => 'user',
             ]);
 
@@ -52,7 +53,7 @@ class AuthController extends Controller
             ], 201);
         } catch (\Exception $e) {
             // Log the full exception for debugging
-            \Log::error('Registration error: ' . $e->getMessage(), [
+            Log::error('Registration error: ' . $e->getMessage(), [
                 'exception' => $e,
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
