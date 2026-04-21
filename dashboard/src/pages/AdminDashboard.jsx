@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useLanguage } from '../context/LanguageContext'
 import { getToken } from '../services/auth'
 import api from '../lib/api'
+import { FaSignOutAlt } from 'react-icons/fa'
 import {
   LineChart,
   AreaChart,
@@ -185,11 +186,13 @@ export default function AdminDashboard() {
   const [editingUser, setEditingUser] = useState(null)
   const [editFormData, setEditFormData] = useState({ name: '', email: '', status: 'pending', role: 'user' })
   const [editLoading, setEditLoading] = useState(false)
-  const [societes, setSocietes] = useState([])
+  const [usersWithSocietes, setUsersWithSocietes] = useState([])
   const [societesLoading, setSocietesLoading] = useState(false)
   const [societesSearchTerm, setSocietesSearchTerm] = useState('')
   const [societesSortBy, setSocietiesSortBy] = useState('recent')
   const [expandedManagerId, setExpandedManagerId] = useState(null)
+  const [selectedUserSocietes, setSelectedUserSocietes] = useState(null)
+  const [showSocietesModal, setShowSocietesModal] = useState(false)
   const [showAddUserForm, setShowAddUserForm] = useState(false)
   const [newUserData, setNewUserData] = useState({ name: '', email: '', password: '', status: 'pending', role: 'user' })
   const [addUserLoading, setAddUserLoading] = useState(false)
@@ -377,25 +380,26 @@ export default function AdminDashboard() {
     if (activeTab === 'messages') fetchMessages()
   }, [activeTab, isAuthenticated])
 
-  // Fetch Sociétés
+  // Fetch Users with Sociétés
   useEffect(() => {
     if (!isAuthenticated) return
 
     const fetchSocietes = async () => {
       try {
         setSocietesLoading(true)
-        const response = await api.get('/admin/societes')
-        setSocietes(response.data || [])
+        // Fetch users with their societies using the correct endpoint
+        const response = await api.get('/admin/users-with-societes')
+        setUsersWithSocietes(response.data || [])
       } catch (error) {
-        console.error('Error fetching societes:', error)
-        showToast('Erreur lors du chargement des sociétés', 'error')
+        console.error('Error fetching users with societes:', error)
+        showToast(language === 'FR' ? 'Erreur lors du chargement des sociétés' : 'Error loading companies', 'error')
       } finally {
         setSocietesLoading(false)
       }
     }
 
     if (activeTab === 'societes') fetchSocietes()
-  }, [activeTab, isAuthenticated])
+  }, [activeTab, isAuthenticated, language])
 
   // Mark message as read - FIX BUG 6
   const handleMarkMessageAsRead = async (messageId) => {
@@ -487,8 +491,8 @@ export default function AdminDashboard() {
     )
   }
 
-  const isMobile = windowSize.width < 600
-  const isTablet = windowSize.width >= 600 && windowSize.width < 1014
+  const isMobile = windowSize.width < 990
+  const isTablet = windowSize.width >= 990 && windowSize.width < 1014
   const isSmallScreen = windowSize.width < 1014
 
   const getInitials = (name) => {
@@ -662,17 +666,19 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <div style={{ background: currentTheme.bgCard, border: `1px solid ${currentTheme.border}`, borderRadius: 16, padding: 24, backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', gap: 16, boxShadow: theme === 'light' ? '0 2px 8px rgba(0,0,0,0.08)' : '0 8px 32px rgba(0,0,0,0.1)' }}>
-                <div style={{ width: 56, height: 56, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, background: theme === 'light' ? 'rgba(59,130,246,0.1)' : 'rgba(0,153,255,0.15)' }}>📈</div>
+                <div style={{ width: 56, height: 56, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, background: theme === 'light' ? 'rgba(59,130,246,0.1)' : 'rgba(0,153,255,0.15)' }}>👤</div>
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('average_declarations')}</div>
-                  <div style={{ fontSize: 28, fontWeight: 900, marginTop: 4, color: currentTheme.textPrimary }}>{stats.avgDeclarationsPerUser?.toFixed(1) || 0}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('New Users') || 'NOUVEAUX UTILISATEURS'}</div>
+                  <div style={{ fontSize: 28, fontWeight: 900, marginTop: 4, color: currentTheme.textPrimary }}>{stats.newUsersThisMonth || 0}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, marginTop: 8, color: currentTheme.accentGreen }}>+{stats.newUsersThisMonth || 0} {t('this_month')}</div>
                 </div>
               </div>
               <div style={{ background: currentTheme.bgCard, border: `1px solid ${currentTheme.border}`, borderRadius: 16, padding: 24, backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', gap: 16, boxShadow: theme === 'light' ? '0 2px 8px rgba(0,0,0,0.08)' : '0 8px 32px rgba(0,0,0,0.1)' }}>
                 <div style={{ width: 56, height: 56, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, background: theme === 'light' ? 'rgba(139,92,246,0.1)' : 'rgba(139,92,246,0.15)' }}>⚡</div>
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('active_user_label')}</div>
-                  <div style={{ fontSize: 16, fontWeight: 900, marginTop: 4, color: currentTheme.textPrimary }}>{stats.mostActiveUser?.name || stats.mostActiveUser?.firstname ? `${stats.mostActiveUser?.firstname || ''} ${stats.mostActiveUser?.lastname || ''}`.trim() : '—'}</div>
+                  <div style={{ fontSize: 20, fontWeight: 900, marginTop: 4, color: currentTheme.textPrimary }}>{stats.lastRegisteredUser?.firstname && stats.lastRegisteredUser?.lastname ? `${stats.lastRegisteredUser.firstname} ${stats.lastRegisteredUser.lastname}` : 'Aucun'}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, marginTop: 8, color: currentTheme.textMuted }}>Dernière inscription</div>
                 </div>
               </div>
             </div>
@@ -1095,23 +1101,53 @@ export default function AdminDashboard() {
         )
 
       case 'societes':
-        const managersWithSocietes = users.map(user => ({
-          ...user,
-          societes: societes.filter(s => s.user_id === user.id).sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-        })).filter(user => user.societes.length > 0)
+        // Filter users with societies by search term
+        const filteredUsersWithSocietes = usersWithSocietes.filter(user => {
+          const userName = `${user.firstname || ''} ${user.lastname || ''} ${user.email || ''}`.toLowerCase()
+          const matchesUserSearch = societesSearchTerm === '' || userName.includes(societesSearchTerm.toLowerCase())
+          
+          if (!matchesUserSearch) return false
+          
+          // Also check if any of their societies match
+          const hasSocietesMatch = user.societes?.some(s =>
+            s.nom?.toLowerCase().includes(societesSearchTerm.toLowerCase()) ||
+            s.if?.toLowerCase().includes(societesSearchTerm.toLowerCase()) ||
+            s.ice?.toLowerCase().includes(societesSearchTerm.toLowerCase())
+          )
+          
+          return matchesUserSearch || hasSocietesMatch
+        })
+        
+        // Sort societies within each user
+        const sortSocietes = (sorties) => {
+          return [...sorties].sort((a, b) => {
+            if (societesSortBy === 'recent') {
+              return new Date(b.created_at || 0) - new Date(a.created_at || 0)
+            } else if (societesSortBy === 'oldest') {
+              return new Date(a.created_at || 0) - new Date(b.created_at || 0)
+            } else if (societesSortBy === 'name') {
+              return (a.nom || '').localeCompare(b.nom || '')
+            }
+            return 0
+          })
+        }
         
         return (
           <div>
             <div style={{ marginBottom: 40 }}>
-              <div style={{ fontSize: isMobile ? 20 : 42, fontWeight: 800, marginBottom: 8, color: currentTheme.textPrimary }}>{t('companies')}</div>
-              <div style={{ fontSize: isMobile ? 13 : 16, color: currentTheme.textMuted }}>{language === 'FR' ? 'Sociétés par manager' : 'Companies by manager'}</div>
+              <div style={{ fontSize: isMobile ? 24 : 42, fontWeight: 800, marginBottom: 8, color: currentTheme.textPrimary }}>
+                🏢 {language === 'FR' ? 'Utilisateurs & Sociétés' : 'Users & Companies'}
+              </div>
+              <div style={{ fontSize: isMobile ? 13 : 16, color: currentTheme.textMuted }}>
+                {language === 'FR' ? 'Gestion des sociétés par utilisateur' : 'Manage companies by user'}
+              </div>
             </div>
 
-            {/* Search and Filter */}
+            {/* Search and Sort */}
             <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap', alignItems: 'center' }}>
               <input
                 type="text"
-                placeholder={language === 'FR' ? 'Rechercher par nom, IF ou ICE...' : 'Search by name, IF or ICE...'}
+                placeholder={language === 'FR' ? 'Rechercher par utilisateur, société, IF ou ICE...' : 'Filter by user, company, IF or ICE...'}
                 value={societesSearchTerm}
                 onChange={(e) => setSocietesSearchTerm(e.target.value)}
                 style={{
@@ -1146,113 +1182,113 @@ export default function AdminDashboard() {
               </select>
             </div>
 
+            {/* Content */}
             {societesLoading ? (
-              <div style={{ textAlign: 'center', padding: '40px 20px', color: currentTheme.textMuted }}>{t('loading')}</div>
-            ) : managersWithSocietes.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '60px 20px', color: currentTheme.textMuted }}>
-                <div style={{ fontSize: 48, marginBottom: 10 }}>🏢</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: currentTheme.textPrimary, marginBottom: 8 }}>{language === 'FR' ? 'Aucune société trouvée' : 'No companies found'}</div>
+                <div style={{ fontSize: 16 }}>{language === 'FR' ? 'Chargement...' : 'Loading...'}</div>
+              </div>
+            ) : filteredUsersWithSocietes.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 20px', color: currentTheme.textMuted }}>
+                <div style={{ fontSize: 48, marginBottom: 10 }}>📭</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: currentTheme.textPrimary, marginBottom: 8 }}>
+                  {language === 'FR' ? 'Aucune donnée trouvée' : 'No data found'}
+                </div>
+                <div style={{ fontSize: 14, color: currentTheme.textMuted }}>
+                  {language === 'FR' ? 'Aucun utilisateur avec des sociétés n\'a été trouvé' : 'No users with companies found'}
+                </div>
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(350px, 1fr))', gap: 20 }}>
-                {managersWithSocietes.map(manager => {
-                  const managerSocietes = manager.societes.filter(s => 
-                    s.nom?.toLowerCase().includes(societesSearchTerm.toLowerCase()) ||
-                    s.if?.toLowerCase().includes(societesSearchTerm.toLowerCase()) ||
-                    s.ice?.toLowerCase().includes(societesSearchTerm.toLowerCase())
-                  ).sort((a, b) => {
-                    if (societesSortBy === 'recent') {
-                      return new Date(b.created_at) - new Date(a.created_at)
-                    } else if (societesSortBy === 'oldest') {
-                      return new Date(a.created_at) - new Date(b.created_at)
-                    } else if (societesSortBy === 'name') {
-                      return a.nom?.localeCompare(b.nom)
-                    }
-                    return 0
-                  })
-                  
-                  return (
-                    <div key={manager.id} style={{
-                      background: currentTheme.bgCard,
-                      border: `1px solid ${currentTheme.border}`,
-                      borderRadius: 16,
-                      overflow: 'hidden',
-                      backdropFilter: 'blur(10px)',
-                      transition: 'all 0.2s ease'
-                    }}>
-                      {/* Manager Header */}
-                      <button
-                        onClick={() => setExpandedManagerId(expandedManagerId === manager.id ? null : manager.id)}
-                        style={{
-                          width: '100%',
-                          padding: 20,
-                          background: 'linear-gradient(135deg, rgba(0,212,160,0.1), rgba(0,153,255,0.05))',
-                          border: 'none',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 12,
-                          transition: 'all 0.2s ease',
-                          fontFamily: 'inherit'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = 'linear-gradient(135deg, rgba(0,212,160,0.15), rgba(0,153,255,0.1))'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'linear-gradient(135deg, rgba(0,212,160,0.1), rgba(0,153,255,0.05))'}
-                      >
-                        <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg, #00d4a0, #0099ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14, color: currentTheme.bgMain, flexShrink: 0 }}>
-                          {getInitials((manager.firstname || '') + ' ' + (manager.lastname || ''))}
-                        </div>
-                        <div style={{ flex: 1, textAlign: 'left' }}>
-                          <div style={{ fontSize: 16, fontWeight: 800, color: currentTheme.textPrimary }}>{manager.firstname} {manager.lastname}</div>
-                          <div style={{ fontSize: 12, color: currentTheme.textMuted }}>{manager.email}</div>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                          <span style={{ fontSize: 20, fontWeight: 900, color: currentTheme.accentGreen }}>{managerSocietes.length}</span>
-                          <span style={{ fontSize: 20, color: currentTheme.textMuted }}>{expandedManagerId === manager.id ? '▼' : '▶'}</span>
-                        </div>
-                      </button>
-
-                      {/* Societes List */}
-                      {expandedManagerId === manager.id && (
-                        <div style={{ padding: 20, borderTop: `1px solid ${currentTheme.border}`, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                          {managerSocietes.length === 0 ? (
-                            <div style={{ textAlign: 'center', padding: '20px', color: currentTheme.textMuted, fontSize: 13 }}>
-                              {language === 'FR' ? 'Aucune société trouvée' : 'No companies found'}
+              <div style={{}}>
+                {/* Table Layout */}
+                <div style={{ overflowX: 'auto', borderRadius: 12, border: `1px solid ${currentTheme.border}`, background: currentTheme.bgCard, backdropFilter: 'blur(10px)' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'inherit' }}>
+                    <thead>
+                      <tr style={{ borderBottom: `1px solid ${currentTheme.border}`, background: `linear-gradient(90deg, rgba(0,212,160,0.08), rgba(0,153,255,0.08))` }}>
+                        <th style={{ padding: '16px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: currentTheme.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          {language === 'FR' ? 'Utilisateur' : 'User'}
+                        </th>
+                        <th style={{ padding: '16px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: currentTheme.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          {language === 'FR' ? 'Email' : 'Email'}
+                        </th>
+                        <th style={{ padding: '16px', textAlign: 'center', fontSize: 12, fontWeight: 700, color: currentTheme.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          {language === 'FR' ? 'Rôle' : 'Role'}
+                        </th>
+                        <th style={{ padding: '16px', textAlign: 'center', fontSize: 12, fontWeight: 700, color: currentTheme.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          {language === 'FR' ? 'Sociétés' : 'Companies'}
+                        </th>
+                        <th style={{ padding: '16px', textAlign: 'center', fontSize: 12, fontWeight: 700, color: currentTheme.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          {language === 'FR' ? 'Action' : 'Action'}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredUsersWithSocietes.map((user, idx) => (
+                        <tr
+                          key={user.id}
+                          style={{
+                            borderBottom: `1px solid ${currentTheme.border}`,
+                            background: idx % 2 === 0 ? 'transparent' : `rgba(0,212,160,0.02)`,
+                            transition: 'background 0.2s ease',
+                            cursor: 'pointer'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = `rgba(0,212,160,0.05)`}
+                          onMouseLeave={(e) => e.currentTarget.style.background = idx % 2 === 0 ? 'transparent' : `rgba(0,212,160,0.02)`}
+                        >
+                          <td style={{ padding: '16px', fontSize: 14 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                              <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #00d4a0, #0099ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 12, color: currentTheme.bgMain, flexShrink: 0 }}>
+                                {getInitials(`${user.firstname || ''} ${user.lastname || ''}`)}
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <div style={{ fontSize: 14, fontWeight: 600, color: currentTheme.textPrimary }}>
+                                  {user.firstname} {user.lastname}
+                                </div>
+                                <div style={{ fontSize: 12, color: currentTheme.textMuted }}>
+                                  ID: {user.id ? String(user.id).slice(0, 8) : 'N/A'}...
+                                </div>
+                              </div>
                             </div>
-                          ) : (
-                            managerSocietes.map(societe => (
-                              <div key={societe.id} style={{
-                                padding: 12,
-                                background: 'rgba(0,212,160,0.05)',
-                                border: '1px solid rgba(0,212,160,0.2)',
-                                borderRadius: 8,
+                          </td>
+                          <td style={{ padding: '16px', fontSize: 14, color: currentTheme.textPrimary }}>
+                            {user.email}
+                          </td>
+                          <td style={{ padding: '16px', fontSize: 13, textAlign: 'center', color: currentTheme.textPrimary }}>
+                            <span style={{ padding: '4px 12px', background: `rgba(0,212,160,0.15)`, color: currentTheme.accentGreen, borderRadius: 6, fontWeight: 600, textTransform: 'capitalize' }}>
+                              {user.role || 'user'}
+                            </span>
+                          </td>
+                          <td style={{ padding: '16px', fontSize: 14, textAlign: 'center', fontWeight: 700, color: currentTheme.accentGreen }}>
+                            {user.societes?.length || 0}
+                          </td>
+                          <td style={{ padding: '16px', textAlign: 'center' }}>
+                            <button
+                              onClick={() => {
+                                setSelectedUserSocietes(user)
+                                setShowSocietesModal(true)
+                              }}
+                              style={{
+                                padding: '8px 16px',
+                                borderRadius: 6,
+                                border: 'none',
+                                background: 'linear-gradient(135deg, rgba(0,212,160,0.3), rgba(0,153,255,0.2))',
+                                color: currentTheme.accentGreen,
+                                fontWeight: 600,
+                                fontSize: 12,
+                                cursor: 'pointer',
+                                fontFamily: 'inherit',
                                 transition: 'all 0.2s ease'
                               }}
-                              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,212,160,0.1)'}
-                              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0,212,160,0.05)'}
-                              >
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 8 }}>
-                                  <div>
-                                    <div style={{ fontSize: 14, fontWeight: 700, color: currentTheme.textPrimary }}>{societe.nom}</div>
-                                    <div style={{ fontSize: 11, color: currentTheme.textMuted, marginTop: 2 }}>IF: <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{societe.if}</span></div>
-                                  </div>
-                                  <div style={{ fontSize: 11, color: currentTheme.accentGreen, fontWeight: 600 }}>
-                                    {societe.created_at ? new Date(societe.created_at).toLocaleDateString('fr-FR') : 'N/A'}
-                                  </div>
-                                </div>
-                                {societe.ice && (
-                                  <div style={{ fontSize: 11, color: currentTheme.textMuted }}>ICE: <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{societe.ice}</span></div>
-                                )}
-                                {societe.ville && (
-                                  <div style={{ fontSize: 11, color: currentTheme.textMuted, marginTop: 4 }}>Ville: <span style={{ fontWeight: 600 }}>{societe.ville}</span></div>
-                                )}
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
+                              onMouseEnter={(e) => e.currentTarget.style.background = 'linear-gradient(135deg, rgba(0,212,160,0.5), rgba(0,153,255,0.3))'}
+                              onMouseLeave={(e) => e.currentTarget.style.background = 'linear-gradient(135deg, rgba(0,212,160,0.3), rgba(0,153,255,0.2))'}
+                            >
+                              👁️ {language === 'FR' ? 'Voir' : 'View'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>
@@ -1523,84 +1559,78 @@ export default function AdminDashboard() {
       fontFamily: "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       transition: 'all 0.3s ease',
       position: 'relative',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      paddingTop: isMobile ? '64px' : '0'
     }}>
       {/* Dark Overlay for Mobile Sidebar */}
-      {isSmallScreen && sidebarOpen && (
+      {isMobile && sidebarOpen && (
         <div
           onClick={closeSidebar}
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0,0,0,0.5)',
+            background: 'rgba(0,0,0,0.6)',
             zIndex: 240,
             animation: 'fadeIn 0.3s ease'
           }}
         />
       )}
 
-      {/* Hamburger Button */}
-      {isSmallScreen && (
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          style={{
-            position: 'fixed',
-            top: 12,
-            left: 16,
-            zIndex: 300,
-            background: '#141d2e',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: 8,
-            padding: '8px 12px',
-            color: 'white',
-            fontSize: 18,
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-            transition: 'all 0.2s ease'
-          }}
-          title="Toggle sidebar"
-        >
-          ☰
-        </button>
-      )}
-
-      {/* Mobile Top Bar - FIX: Mobile navigation only */}
+      {/* Mobile Top Navigation Bar - ONLY on mobile */}
       {isMobile && (
         <div style={{
           position: 'fixed',
           top: 0,
           left: 0,
           right: 0,
-          height: 48,
+          height: 64,
           background: currentTheme.bgSidebar,
           borderBottom: `1px solid ${currentTheme.border}`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0 16px',
-          zIndex: 200,
+          zIndex: 300,
           backdropFilter: 'blur(10px)'
         }}>
-          {/* Left: Avatar + Admin text */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg, #00d4a0, #0099ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 12, color: currentTheme.bgMain }}>
-              {getInitials(adminName)}
-            </div>
-            <span style={{ fontSize: 12, fontWeight: 700, color: currentTheme.textPrimary }}>Admin</span>
+          {/* Left: Hamburger Menu */}
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: 24,
+              color: currentTheme.textPrimary,
+              cursor: 'pointer',
+              padding: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s ease'
+            }}
+            title="Toggle sidebar"
+          >
+            ☰
+          </button>
+
+          {/* Center: Logo/Brand */}
+          <div style={{ fontSize: 16, fontWeight: 800, color: currentTheme.accentGreen }}>
+            Admin
           </div>
-          {/* Right: Theme + Language toggles */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+
+          {/* Right: Theme + Language + User */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button
               onClick={handleToggleTheme}
               style={{
-                width: 32,
-                height: 32,
+                width: 36,
+                height: 36,
                 borderRadius: 6,
-                background: currentTheme.bgCard,
+                background: 'transparent',
                 border: `1px solid ${currentTheme.border}`,
                 color: currentTheme.textSecondary,
                 cursor: 'pointer',
-                fontSize: 14,
+                fontSize: 16,
                 fontFamily: 'inherit',
                 display: 'flex',
                 alignItems: 'center',
@@ -1614,15 +1644,15 @@ export default function AdminDashboard() {
             <button
               onClick={toggleLanguage}
               style={{
-                width: 32,
-                height: 32,
+                width: 36,
+                height: 36,
                 borderRadius: 6,
-                background: currentTheme.bgCard,
+                background: 'transparent',
                 border: `1px solid ${currentTheme.border}`,
                 color: currentTheme.textSecondary,
                 cursor: 'pointer',
                 fontSize: 12,
-                fontWeight: 600,
+                fontWeight: 700,
                 fontFamily: 'inherit',
                 display: 'flex',
                 alignItems: 'center',
@@ -1633,34 +1663,60 @@ export default function AdminDashboard() {
             >
               {language === 'FR' ? 'EN' : 'FR'}
             </button>
+            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #00d4a0, #0099ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 12, color: currentTheme.bgMain }}>
+              {getInitials(adminName)}
+            </div>
           </div>
         </div>
       )}
 
+      {/* Hamburger Button - Desktop/Tablet (hidden on mobile) */}
+      {!isMobile && isSmallScreen && (
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          style={{
+            position: 'fixed',
+            top: 12,
+            left: 16,
+            zIndex: 300,
+            background: currentTheme.bgCard,
+            border: `1px solid ${currentTheme.border}`,
+            borderRadius: 8,
+            padding: '8px 12px',
+            color: currentTheme.textPrimary,
+            fontSize: 18,
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+            transition: 'all 0.2s ease'
+          }}
+          title="Toggle sidebar"
+        >
+          ☰
+        </button>
+      )}
+
       {/* Sidebar - Premium Floating Design */}
       <aside style={{
-        position: isMobile ? 'fixed' : isSmallScreen ? 'fixed' : 'fixed',
-        bottom: isMobile ? 0 : isSmallScreen && !isMobile ? '16px' : '16px',
-        top: isSmallScreen && !isMobile ? 'auto' : isMobile ? 'auto' : '16px',
-        left: isMobile ? 0 : isSmallScreen && !isMobile ? '16px' : '16px',
-        width: isSmallScreen && !isMobile ? 240 : isMobile ? '100%' : isTablet ? 80 : 280,
-        height: isMobile ? 70 : isSmallScreen && !isMobile ? 'auto' : 'calc(100vh - 32px)',
-        background: theme === 'light' ? 'rgba(255, 255, 255, 0.8)' : isMobile ? 'rgba(30, 27, 75, 0.6)' : 'rgba(15, 23, 42, 0.4)',
-        backdropFilter: isMobile ? 'blur(8px)' : 'blur(16px)',
-        border: isMobile ? `1px solid ${theme === 'light' ? 'rgba(15,23,42,0.1)' : 'rgba(255, 255, 255, 0.08)'}` : `1px solid ${theme === 'light' ? 'rgba(15,23,42,0.08)' : 'rgba(255, 255, 255, 0.1)'}`,
-        borderRadius: isMobile ? 0 : isSmallScreen && !isMobile ? 24 : 32,
-        borderTop: isMobile ? `1px solid ${theme === 'light' ? 'rgba(15,23,42,0.1)' : 'rgba(255, 255, 255, 0.08)'}` : 'none',
-        borderRight: isMobile ? 'none' : 'none',
+        position: isMobile ? 'fixed' : 'fixed',
+        top: isMobile ? 64 : '16px',
+        left: 0,
+        width: isMobile ? 280 : isTablet ? 80 : 280,
+        height: isMobile ? 'calc(100vh - 64px)' : 'calc(100vh - 32px)',
+        background: theme === 'light' ? 'rgba(255, 255, 255, 0.95)' : 'rgba(15, 23, 42, 0.95)',
+        backdropFilter: 'blur(16px)',
+        border: isMobile ? `1px solid ${currentTheme.border}` : `1px solid ${theme === 'light' ? 'rgba(15,23,42,0.08)' : 'rgba(255, 255, 255, 0.1)'}`,
+        borderRadius: isMobile ? 0 : 32,
         display: 'flex',
-        flexDirection: isMobile ? 'row' : 'column',
-        justifyContent: isMobile ? 'space-around' : 'flex-start',
-        alignItems: 'center',
-        padding: isMobile ? '8px 0' : isTablet ? '20px 12px' : '24px 20px',
-        zIndex: isSmallScreen && !isMobile ? (sidebarOpen ? 250 : -1) : 1000,
-        transform: isSmallScreen && !isMobile ? (sidebarOpen ? 'translateX(0)' : 'translateX(-300px)') : 'translateX(0)',
+        flexDirection: 'column',
+        justifyContent: 'flex-start',
+        alignItems: 'stretch',
+        padding: isMobile ? '16px 0' : isTablet ? '20px 12px' : '24px 20px',
+        zIndex: isMobile ? (sidebarOpen ? 250 : -1) : 1000,
+        transform: isMobile ? (sidebarOpen ? 'translateX(0)' : 'translateX(-100%)') : 'translateX(0)',
         transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), z-index 0.3s ease',
-        opacity: isSmallScreen && !isMobile && !sidebarOpen ? 0 : 1,
-        pointerEvents: isSmallScreen && !isMobile && !sidebarOpen ? 'none' : 'auto'
+        opacity: isMobile && !sidebarOpen ? 0 : 1,
+        pointerEvents: isMobile && !sidebarOpen ? 'none' : 'auto',
+        overflowY: 'auto'
       }}>
         {/* Header */}
         {!isMobile && (
@@ -1689,39 +1745,42 @@ export default function AdminDashboard() {
         <nav style={{
           flex: 1,
           display: 'flex',
-          flexDirection: isMobile ? 'row' : 'column',
+          flexDirection: 'column',
           gap: 8,
-          padding: isMobile ? 0 : '0 12px',
-          overflowY: isMobile ? 'visible' : 'auto',
+          padding: isMobile ? '0 12px' : '0 12px',
+          overflowY: 'auto',
           width: '100%',
-          justifyContent: isMobile ? 'space-around' : 'flex-start'
+          justifyContent: 'flex-start'
         }}>
           {navItems.map(item => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => {
+                setActiveTab(item.id)
+                if (isMobile) closeSidebar()
+              }}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                gap: isMobile ? 0 : 12,
-                padding: isMobile ? '4px' : isTablet ? '8px' : '12px 16px',
-                width: isMobile ? 'auto' : isTablet ? '48px' : 'auto',
-                height: isMobile ? '48px' : 'auto',
-                background: activeTab === item.id ? isTablet || isMobile ? 'rgba(0,212,160,0.15)' : 'linear-gradient(135deg, rgba(0,212,160,0.2), rgba(0,153,255,0.1))' : 'transparent',
-                borderLeft: activeTab === item.id && !isMobile && !isTablet ? '3px solid #00d4a0' : 'none',
-                borderRadius: isTablet || isMobile ? 8 : 12,
+                justifyContent: 'flex-start',
+                gap: 12,
+                padding: isMobile ? '12px 16px' : isTablet ? '8px' : '12px 16px',
+                width: '100%',
+                height: 'auto',
+                background: activeTab === item.id ? 'linear-gradient(135deg, rgba(0,212,160,0.2), rgba(0,153,255,0.1))' : 'transparent',
+                borderLeft: activeTab === item.id ? '3px solid #00d4a0' : 'none',
+                borderRadius: 12,
                 color: activeTab === item.id ? '#00d4a0' : currentTheme.textSecondary,
                 cursor: 'pointer',
-                fontSize: isMobile ? 11 : 14,
+                fontSize: 14,
                 fontWeight: 600,
                 fontFamily: 'inherit',
                 transition: 'all 0.2s ease',
                 position: 'relative'
               }}
             >
-              <span style={{ fontSize: isMobile ? 20 : 16 }}>{item.emoji}</span>
-              {!isTablet && !isMobile && <span>{item.label}</span>}
+              <span style={{ fontSize: 16 }}>{item.emoji}</span>
+              {!isTablet && <span>{item.label}</span>}
               {item.badge && (
                 <div style={{
                   position: 'absolute',
@@ -1744,6 +1803,39 @@ export default function AdminDashboard() {
               )}
             </button>
           ))}
+          {isMobile && (
+            <button
+              onClick={handleLogout}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+                gap: 12,
+                padding: '12px 16px',
+                width: '100%',
+                marginTop: 'auto',
+                background: 'linear-gradient(135deg, rgba(239,68,68,0.2), rgba(239,68,68,0.1))',
+                borderLeft: '3px solid #ef4444',
+                borderRadius: 12,
+                color: '#ef4444',
+                cursor: 'pointer',
+                fontSize: 14,
+                fontWeight: 700,
+                fontFamily: 'inherit',
+                transition: 'all 0.2s ease',
+                border: 'none'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(239,68,68,0.3), rgba(239,68,68,0.2))'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(239,68,68,0.2), rgba(239,68,68,0.1))'
+              }}
+            >
+              <FaSignOutAlt />
+              <span>{t('logout')}</span>
+            </button>
+          )}
         </nav>
 
         {/* Footer */}
@@ -1757,7 +1849,7 @@ export default function AdminDashboard() {
             flexDirection: 'column',
             gap: 8,
             width: '100%',
-            justifyContent: 'center'
+            justifyContent: 'flex-end'
           }}>
             {/* ISSUE 1 FIX: Hide theme and language toggles on mobile */}
             {!isMobile && (
@@ -1811,25 +1903,34 @@ export default function AdminDashboard() {
                 </button>
               </>
             )}
-            {/* FIX BUG 3: Logout button */}
+            {/* FIX BUG 3: Logout button - positioned at bottom with red styling */}
             <button
               onClick={handleLogout}
               style={{
                 padding: isTablet ? '8px' : '10px 16px',
-                background: 'linear-gradient(135deg, rgba(239,68,68,0.1), rgba(239,68,68,0.05))',
-                border: `1px solid rgba(239,68,68,0.2)`,
+                background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                border: `1px solid #ef4444`,
                 borderRadius: 8,
-                color: '#ef4444',
+                color: 'white',
                 cursor: 'pointer',
                 fontSize: isTablet ? 14 : 12,
-                fontWeight: 600,
+                fontWeight: 700,
                 fontFamily: 'inherit',
                 transition: 'all 0.2s ease',
                 width: isTablet ? '32px' : 'auto',
                 height: isTablet ? '32px' : 'auto',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(239,68,68,0.2)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(239,68,68,0.3)'
+                e.currentTarget.style.transform = 'translateY(-2px)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(239,68,68,0.2)'
+                e.currentTarget.style.transform = 'translateY(0)'
               }}
             >
               {isTablet ? '🚪' : `🚪 ${t('logout')}`}
@@ -1843,10 +1944,10 @@ export default function AdminDashboard() {
         flex: 1,
         overflowY: 'auto',
         overflowX: 'hidden',
-        marginLeft: isMobile ? 0 : isSmallScreen ? 0 : isTablet ? 120 : 320,
-        marginTop: isMobile ? 48 : 0,
-        paddingBottom: isMobile ? 70 : 32,
-        padding: isMobile ? '16px 16px 70px 16px' : isTablet ? '32px 24px' : '40px 48px',
+        marginLeft: isMobile ? 0 : isTablet ? 120 : 320,
+        marginTop: isMobile ? 0 : 0,
+        paddingBottom: isMobile ? 32 : 32,
+        padding: isMobile ? '16px 16px 32px 16px' : isTablet ? '32px 24px' : '40px 48px',
         background: theme === 'light' ? '#f8fafc' : '#020617',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
       }}>
@@ -2039,7 +2140,183 @@ export default function AdminDashboard() {
                   transition: 'all 0.2s ease'
                 }}
               >
-                {t('cancel')}
+                {language === 'FR' ? 'Fermer' : 'Close'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Companies Modal */}
+      {showSocietesModal && selectedUserSocietes && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.6)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 3000,
+          padding: '20px'
+        }}
+        onClick={() => setShowSocietesModal(false)}
+        >
+          <div style={{
+            background: currentTheme.bgCard,
+            border: `1px solid ${currentTheme.border}`,
+            borderRadius: 20,
+            padding: 32,
+            maxWidth: 800,
+            width: '100%',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            backdropFilter: 'blur(16px)',
+            boxShadow: theme === 'light' ? '0 25px 60px rgba(0,0,0,0.2)' : '0 25px 60px rgba(0,0,0,0.4)'
+          }}
+          onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 28, paddingBottom: 20, borderBottom: `1px solid ${currentTheme.border}` }}>
+              <div style={{ width: 50, height: 50, borderRadius: '50%', background: 'linear-gradient(135deg, #00d4a0, #0099ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 16, color: currentTheme.bgMain, flexShrink: 0 }}>
+                {getInitials(`${selectedUserSocietes.firstname || ''} ${selectedUserSocietes.lastname || ''}`)}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: currentTheme.textPrimary }}>
+                  {selectedUserSocietes.firstname} {selectedUserSocietes.lastname}
+                </div>
+                <div style={{ fontSize: 13, color: currentTheme.textMuted }}>
+                  {selectedUserSocietes.email}
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSocietesModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: 24,
+                  cursor: 'pointer',
+                  color: currentTheme.textMuted,
+                  padding: '8px',
+                  transition: 'color 0.2s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.color = currentTheme.accentGreen}
+                onMouseLeave={(e) => e.currentTarget.style.color = currentTheme.textMuted}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Content */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: currentTheme.textPrimary, marginBottom: 20 }}>
+                🏢 {language === 'FR' ? `Sociétés (${selectedUserSocietes.societes?.length || 0})` : `Companies (${selectedUserSocietes.societes?.length || 0})`}
+              </div>
+
+              {!selectedUserSocietes.societes || selectedUserSocietes.societes.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: currentTheme.textMuted }}>
+                  <div style={{ fontSize: 36, marginBottom: 12 }}>📭</div>
+                  <div style={{ fontSize: 14 }}>{language === 'FR' ? 'Aucune société trouvée' : 'No companies found'}</div>
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
+                  {selectedUserSocietes.societes.map((societe) => (
+                    <div
+                      key={societe.id}
+                      style={{
+                        background: `rgba(0,212,160,0.05)`,
+                        border: `1px solid rgba(0,212,160,0.2)`,
+                        borderRadius: 12,
+                        padding: 16,
+                        transition: 'all 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(0,212,160,0.15)'
+                        e.currentTarget.style.borderColor = 'rgba(0,212,160,0.4)'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(0,212,160,0.05)'
+                        e.currentTarget.style.borderColor = 'rgba(0,212,160,0.2)'
+                      }}
+                    >
+                      <div style={{ marginBottom: 12 }}>
+                        <div style={{ fontSize: 16, fontWeight: 700, color: currentTheme.textPrimary, marginBottom: 4 }}>
+                          {societe.nom}
+                        </div>
+                        <div style={{ fontSize: 13, color: currentTheme.textMuted }}>
+                          {societe.ville && `${societe.ville} • `}
+                          {societe.created_at && new Date(societe.created_at).toLocaleDateString(language === 'FR' ? 'fr-FR' : 'en-US')}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                        <div>
+                          <div style={{ fontSize: 11, fontWeight: 600, color: currentTheme.textMuted, textTransform: 'uppercase', marginBottom: 4, letterSpacing: '0.05em' }}>
+                            {language === 'FR' ? 'IF (Identifiant Fiscal)' : 'Tax ID (IF)'}
+                          </div>
+                          <div style={{ fontSize: 14, fontWeight: 700, fontFamily: 'monospace', color: currentTheme.accentGreen, wordBreak: 'break-all' }}>
+                            {societe.if || '—'}
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 11, fontWeight: 600, color: currentTheme.textMuted, textTransform: 'uppercase', marginBottom: 4, letterSpacing: '0.05em' }}>
+                            {language === 'FR' ? 'ICE' : 'ICE Code'}
+                          </div>
+                          <div style={{ fontSize: 14, fontWeight: 700, fontFamily: 'monospace', color: currentTheme.accentBlue, wordBreak: 'break-all' }}>
+                            {societe.ice || '—'}
+                          </div>
+                        </div>
+                      </div>
+
+                      {societe.status && (
+                        <div>
+                          <div style={{ fontSize: 11, fontWeight: 600, color: currentTheme.textMuted, textTransform: 'uppercase', marginBottom: 4, letterSpacing: '0.05em' }}>
+                            {language === 'FR' ? 'Statut' : 'Status'}
+                          </div>
+                          <span style={{
+                            padding: '4px 10px',
+                            borderRadius: 4,
+                            fontSize: 12,
+                            fontWeight: 600,
+                            background: societe.status === 'active' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)',
+                            color: societe.status === 'active' ? '#10b981' : '#ef4444',
+                            textTransform: 'capitalize'
+                          }}>
+                            {societe.status}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Close Button */}
+            <div style={{ paddingTop: 20, borderTop: `1px solid ${currentTheme.border}`, display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+              <button
+                onClick={() => setShowSocietesModal(false)}
+                style={{
+                  padding: '12px 24px',
+                  borderRadius: 8,
+                  border: `1px solid ${currentTheme.border}`,
+                  background: 'transparent',
+                  color: currentTheme.textPrimary,
+                  fontWeight: 600,
+                  fontSize: 14,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = `rgba(0,212,160,0.1)`
+                  e.currentTarget.style.borderColor = 'rgba(0,212,160,0.3)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent'
+                  e.currentTarget.style.borderColor = currentTheme.border
+                }}
+              >
+                {language === 'FR' ? 'Fermer' : 'Close'}
               </button>
             </div>
           </div>
@@ -2206,7 +2483,7 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
-      )}}
+      )}
 
       {/* Toast */}
       {toast && (

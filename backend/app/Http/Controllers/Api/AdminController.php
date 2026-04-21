@@ -272,7 +272,7 @@ class AdminController extends Controller
      */
     public function usersWithSocietes(Request $request)
     {
-        $users = User::withCount('societes')
+        $users = User::with('societes')
             ->has('societes')
             ->where('role', '!=', 'admin')
             ->orderBy('created_at', 'desc')
@@ -280,13 +280,29 @@ class AdminController extends Controller
             ->map(function ($user) {
                 return [
                     'id' => $user->id,
-                    'first_name' => $user->firstname ?? explode(' ', $user->name)[0] ?? '',
-                    'last_name' => $user->lastname ?? (explode(' ', $user->name)[1] ?? ''),
+                    'firstname' => $user->firstname ?? explode(' ', $user->name)[0] ?? '',
+                    'lastname' => $user->lastname ?? (explode(' ', $user->name)[1] ?? ''),
                     'name' => $user->name,
                     'email' => $user->email,
                     'company' => $user->company ?? '',
                     'status' => $user->status,
-                    'societes_count' => $user->societes_count,
+                    'role' => $user->role,
+                    'societes' => $user->societes->map(function ($societe) {
+                        return [
+                            'id' => $societe->id,
+                            'nom' => $societe->nom,
+                            'if' => $societe->if,
+                            'ice' => $societe->ice,
+                            'rc' => $societe->rc,
+                            'adresse' => $societe->adresse,
+                            'ville' => $societe->ville,
+                            'tel' => $societe->tel,
+                            'email' => $societe->email,
+                            'user_id' => $societe->user_id,
+                            'created_at' => $societe->created_at,
+                            'updated_at' => $societe->updated_at,
+                        ];
+                    })->values(),
                     'created_at' => $user->created_at,
                 ];
             });
