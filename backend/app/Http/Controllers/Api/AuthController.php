@@ -13,42 +13,62 @@ class AuthController extends Controller
 {
     public function register(Request $request)
     {
-        $validated = $request->validate([
-            'firstname' => 'required|string|max:255',
-            'lastname' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'nullable|string|max:20',
-            'password' => ['required', 'confirmed', Password::min(6)],
-        ]);
+        try {
+            $validated = $request->validate([
+                'firstname' => 'required|string|max:255',
+                'lastname' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email',
+                'phone' => 'nullable|string|max:20',
+                'password' => ['required', 'confirmed', Password::min(6)],
+            ]);
 
-        // Combine first and last name
-        $fullName = trim($validated['firstname'] . ' ' . $validated['lastname']);
+            // Combine first and last name
+            $fullName = trim($validated['firstname'] . ' ' . $validated['lastname']);
 
-        $user = User::create([
-            'name' => $fullName,
-            'email' => $validated['email'],
-            'phone' => $validated['phone'] ?? null,
-            'password' => Hash::make($validated['password']),
-            'status' => 'pending', // Users need approval
-            'role' => 'user',
-        ]);
+            $user = User::create([
+                'name' => $fullName,
+                'email' => $validated['email'],
+                'phone' => $validated['phone'] ?? null,
+                'password' => Hash::make($validated['password']),
+                'status' => 'pending', // Users need approval
+                'role' => 'user',
+            ]);
 
-        // Send email verification
-        event(new Registered($user));
+            // Send email verification
+            event(new Registered($user));
 
-        return response()->json([
-            'status' => 'success',
-            'code' => 201,
-            'message' => 'User registered successfully. Please check your email to verify your account.',
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'status' => $user->status,
-                'role' => $user->role,
-            ],
-        ], 201);
+            return response()->json([
+                'status' => 'success',
+                'code' => 201,
+                'message' => 'User registered successfully. Please check your email to verify your account.',
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                    'status' => $user->status,
+                    'role' => $user->role,
+                ],
+            ], 201);
+        } catch (\Exception $e) {
+            // Log the full exception for debugging
+            \Log::error('Registration error: ' . $e->getMessage(), [
+                'exception' => $e,
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'code' => 500,
+                'message' => 'Registration failed',
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'debug' => config('app.debug') ? $e->getTraceAsString() : null,
+            ], 500);
+        }
     }
 
     public function login(Request $request)
