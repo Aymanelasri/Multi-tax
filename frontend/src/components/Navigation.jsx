@@ -389,8 +389,63 @@ const Navigation = () => {
   const [open, setOpen] = useState(false);
   const [showGeneratorTooltip, setShowGeneratorTooltip] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [activeSection, setActiveSection] = useState('');
 
-  const isHome = location.pathname === '/';
+  // Track active section based on scroll position
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = ['features', 'how'];
+      const scrollPosition = window.scrollY + 100;
+
+      for (const sectionId of sections) {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          const { offsetTop, offsetHeight } = element;
+          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+            setActiveSection(`#${sectionId}`);
+            return;
+          }
+        }
+      }
+      setActiveSection('');
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Check on mount
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Helper function to check if link is active
+  const isActive = (path) => {
+    if (path.startsWith('#')) {
+      // Check both hash and scroll position
+      return location.hash === path || activeSection === path;
+    }
+    return location.pathname === path;
+  };
+
+  // Define fixed navigation links based on auth state
+  const getNavLinks = () => {
+    if (isAuthenticated && isApproved) {
+      // Logged in and approved: [Accueil, Sociétés, Générateur, Contact]
+      return [
+        { label: t('nav_home'), path: '/', type: 'route' },
+        { label: t('nav_societes'), path: '/societes', type: 'route' },
+        { label: t('nav_generator'), path: '/generateur', type: 'route', hasTooltip: true },
+        { label: t('nav_contact'), path: '/contact', type: 'route' }
+      ];
+    } else {
+      // Not logged in or pending: [Accueil, Outils, Guide, Contact]
+      return [
+        { label: t('nav_home'), path: '/', type: 'route' },
+        { label: t('nav_tools'), path: '#features', type: 'hash' },
+        { label: t('nav_guide'), path: '#how', type: 'hash' },
+        { label: t('nav_contact'), path: '/contact', type: 'route' }
+      ];
+    }
+  };
+
+  const navLinks = getNavLinks();
 
   // Close dropdown when route changes
   useEffect(() => {
@@ -452,31 +507,37 @@ const Navigation = () => {
         </div>
 
         <div className="sidebar-body">
-          <button className={`sidebar-link${location.pathname === '/' ? ' active' : ''}`} onClick={() => go('/')}>
-            <span className="sidebar-link-icon">🏠</span> {t('nav_home')}
-          </button>
-          {isApproved && (
-            <>
-              <button className={`sidebar-link${location.pathname === '/societes' ? ' active' : ''}`} onClick={() => go('/societes')}>
-                <span className="sidebar-link-icon">🏢</span> {t('nav_societes')}
-              </button>
-              <button className={`sidebar-link${location.pathname === '/generateur' ? ' active' : ''}`} onClick={() => go('/generateur')}>
-                <span className="sidebar-link-icon">⚡</span> {t('nav_generator_full')}
-              </button>
-            </>
-          )}
-          <button className="sidebar-link" onClick={() => { close(); navigate('/'); setTimeout(() => { document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' }); }, 100); }}>
-            <span className="sidebar-link-icon">🛠</span> {t('nav_tools')}
-          </button>
-          <button className="sidebar-link" onClick={() => { close(); navigate('/'); setTimeout(() => { document.getElementById('how')?.scrollIntoView({ behavior: 'smooth' }); }, 100); }}>
-            <span className="sidebar-link-icon">📖</span> {t('nav_guide')}
-          </button>
-
-          <div className="sidebar-sep" />
-
-          <button className={`sidebar-link${location.pathname === '/contact' ? ' active' : ''}`} onClick={() => go('/contact')}>
-            <span className="sidebar-link-icon">📞</span> {t('nav_contact')}
-          </button>
+          {navLinks.map((link, index) => {
+            const icon = index === 0 ? '🏠' : index === 1 ? (isApproved ? '🏢' : '🛠') : index === 2 ? (isApproved ? '⚡' : '📖') : '📞';
+            
+            if (link.type === 'hash') {
+              return (
+                <button 
+                  key={index}
+                  className={`sidebar-link${isActive(link.path) ? ' active' : ''}`}
+                  onClick={() => {
+                    close();
+                    navigate('/');
+                    setTimeout(() => {
+                      document.querySelector(link.path)?.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  }}
+                >
+                  <span className="sidebar-link-icon">{icon}</span> {link.label}
+                </button>
+              );
+            } else {
+              return (
+                <button 
+                  key={index}
+                  className={`sidebar-link${isActive(link.path) ? ' active' : ''}`}
+                  onClick={() => go(link.path)}
+                >
+                  <span className="sidebar-link-icon">{icon}</span> {link.label}
+                </button>
+              );
+            }
+          })}
         </div>
 
         <div className="sidebar-footer">
@@ -517,24 +578,29 @@ const Navigation = () => {
             <span className="nav-brand">SIMPL-<span>TVA</span></span>
           </div>
 
-          {isHome && (
-            <div className="nav-center">
-              <button className={`nav-link${location.pathname === '/' ? ' active' : ''}`} onClick={() => navigate('/')}>{t('nav_home')}</button>
-              <a href="#features" className="nav-link">{t('nav_tools')}</a>
-              <a href="#how" className="nav-link">{t('nav_guide')}</a>
-              <button className={`nav-link${location.pathname === '/contact' ? ' active' : ''}`} onClick={() => navigate('/contact')}>{t('nav_contact')}</button>
-            </div>
-          )}
-          
-          {!isHome && (
-            <div className="nav-center">
-              <button className={`nav-link${location.pathname === '/' ? ' active' : ''}`} onClick={() => navigate('/')}>{t('nav_home')}</button>
-              {isApproved && (
-                <>
-                  <button className={`nav-link${location.pathname === '/societes' ? ' active' : ''}`} onClick={() => navigate('/societes')} style={{ border: 'none' }}>{t('nav_societes')}</button>
-                  <div className="gen-tooltip-wrap" style={{ display: 'inline-block', border: 'none' }}>
-                    <button className={`nav-link${location.pathname === '/generateur' ? ' active' : ''}`} onClick={() => navigate('/generateur')} style={{ border: 'none' }} onMouseEnter={() => hasNoCompanies() && setShowGeneratorTooltip(true)} onMouseLeave={() => setShowGeneratorTooltip(false)}>
-                      {t('nav_generator')}
+          <div className="nav-center">
+            {navLinks.map((link, index) => {
+              if (link.type === 'hash') {
+                return (
+                  <a 
+                    key={index}
+                    href={link.path} 
+                    className={`nav-link${isActive(link.path) ? ' active' : ''}`}
+                  >
+                    {link.label}
+                  </a>
+                );
+              } else if (link.hasTooltip) {
+                return (
+                  <div key={index} className="gen-tooltip-wrap" style={{ display: 'inline-block', border: 'none' }}>
+                    <button 
+                      className={`nav-link${isActive(link.path) ? ' active' : ''}`}
+                      onClick={() => navigate(link.path)}
+                      style={{ border: 'none' }}
+                      onMouseEnter={() => hasNoCompanies() && setShowGeneratorTooltip(true)}
+                      onMouseLeave={() => setShowGeneratorTooltip(false)}
+                    >
+                      {link.label}
                     </button>
                     {showGeneratorTooltip && hasNoCompanies() && (
                       <div className="gen-tooltip">
@@ -545,16 +611,23 @@ const Navigation = () => {
                       </div>
                     )}
                   </div>
-                </>
-              )}
-              <button className={`nav-link${location.pathname === '/contact' ? ' active' : ''}`} onClick={() => navigate('/contact')} style={{ border: 'none' }}>{t('nav_contact')}</button>
-            </div>
-          )}
+                );
+              } else {
+                return (
+                  <button 
+                    key={index}
+                    className={`nav-link${isActive(link.path) ? ' active' : ''}`}
+                    onClick={() => navigate(link.path)}
+                    style={{ border: 'none' }}
+                  >
+                    {link.label}
+                  </button>
+                );
+              }
+            })}
+          </div>
 
           <div className="nav-right">
-            {!isHome && (
-              <button className="back-btn" style={{ display: 'none' }} onClick={() => navigate('/')}>← {t('nav_home')}</button>
-            )}
             <div className="lang-wrap">
               <button className={`lang-btn${lang === 'FR' ? ' active' : ''}`} onClick={toggleLang}>FR</button>
               <span className="lang-sep">|</span>

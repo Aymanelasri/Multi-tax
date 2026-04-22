@@ -349,12 +349,14 @@ export default function AdminDashboard() {
       setPasswordLoading(true)
       await api.put('/admin/password', {
         current_password: passwordData.currentPassword,
-        new_password: passwordData.newPassword
+        new_password: passwordData.newPassword,
+        new_password_confirmation: passwordData.confirmPassword
       })
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })
       showToast('Mot de passe mis à jour', 'success')
     } catch (error) {
-      showToast('Erreur lors de la mise à jour du mot de passe', 'error')
+      const errorMsg = error.response?.data?.message || 'Erreur lors de la mise à jour du mot de passe'
+      showToast(errorMsg, 'error')
     } finally {
       setPasswordLoading(false)
     }
