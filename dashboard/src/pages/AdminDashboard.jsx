@@ -370,7 +370,7 @@ export default function AdminDashboard() {
     localStorage.removeItem('adminLang')
     // Redirect to frontend login
     const frontendUrl = window.location.hostname.includes('netlify')
-      ? 'https://simpltvaa.netlify.app/login'
+      ? 'https://simpltvataxx.netlify.app/login'
       : '/login'
     window.location.href = frontendUrl
   }
@@ -487,7 +487,7 @@ export default function AdminDashboard() {
           <div style={{ fontSize: 48, marginBottom: 20 }}>🔐</div>
           <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 10 }}>Accès refusé</div>
           <div style={{ color: currentTheme.textMuted, marginBottom: 30 }}>Connectez-vous en tant qu'administrateur</div>
-          <a href={window.location.hostname.includes('netlify') ? 'https://simpltvaa.netlify.app/login' : '/login'} style={{
+          <a href={window.location.hostname.includes('netlify') ? 'https://simpltvataxx.netlify.app/login' : '/login'} style={{
             display: 'inline-block',
             padding: '12px 24px',
             background: currentTheme.accentGreen,
