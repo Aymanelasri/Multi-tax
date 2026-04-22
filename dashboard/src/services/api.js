@@ -56,7 +56,7 @@ const api = {
           setTimeout(() => {
             // In production, redirect to frontend domain
             const frontendUrl = window.location.hostname.includes('netlify')
-              ? 'https://simptva.netlify.app/login'
+              ? 'https://simpltvaa.netlify.app/login'
               : '/login'
             window.location.href = frontendUrl
           }, 100)

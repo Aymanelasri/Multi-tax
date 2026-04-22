@@ -83,6 +83,22 @@ export default function RegisterPage() {
       }))
     }
 
+    // Validate phone number format
+    if (name === 'phone' && value) {
+      const phoneRegex = /^(\+212|0)(5|6|7)[0-9]{8}$/
+      if (!phoneRegex.test(value.replace(/\s/g, ''))) {
+        setErrors(prev => ({
+          ...prev,
+          phone: lang === 'FR' ? 'Numéro de téléphone invalide' : 'Invalid phone number'
+        }))
+      } else {
+        setErrors(prev => ({
+          ...prev,
+          phone: ''
+        }))
+      }
+    }
+
     // Calculate password strength
     if (name === 'password') {
       setPasswordStrength(calculatePasswordStrength(value))
@@ -121,8 +137,13 @@ export default function RegisterPage() {
     if (!formData.email.trim()) {
       newErrors.email = lang === 'FR' ? 'L\'email est requis' : 'Email is required'
     }
-     if (!formData.phone.trim()) {
+    if (!formData.phone.trim()) {
       newErrors.phone = lang === 'FR' ? 'Le numéro de téléphone est requis' : 'Phone number is required'
+    } else {
+      const phoneRegex = /^(\+212|0)(5|6|7)[0-9]{8}$/
+      if (!phoneRegex.test(formData.phone.replace(/\s/g, ''))) {
+        newErrors.phone = lang === 'FR' ? 'Numéro de téléphone invalide' : 'Invalid phone number'
+      }
     }
     if (!formData.password) {
       newErrors.password = lang === 'FR' ? 'Le mot de passe est requis' : 'Password is required'
@@ -183,9 +204,11 @@ export default function RegisterPage() {
     return formData.firstname.trim() && 
            formData.lastname.trim() && 
            formData.email.trim() && 
+           formData.phone.trim() &&
            formData.password && 
            formData.password === formData.password_confirmation && 
-           formData.terms
+           formData.terms &&
+           !errors.phone
   }
 
   const passwordsMatch = formData.password && formData.password_confirmation && 
@@ -273,7 +296,7 @@ export default function RegisterPage() {
 
               {/* Phone */}
               <div className="form-group">
-                <label htmlFor="phone">{t('auth_phone')}</label>
+                <label htmlFor="phone">{lang === 'FR' ? 'TÉLÉPHONE' : 'PHONE'}</label>
                 <input
                   id="phone"
                   name="phone"
@@ -281,7 +304,10 @@ export default function RegisterPage() {
                   placeholder="+212 6XX XXX XXX"
                   value={formData.phone}
                   onChange={handleChange}
+                  className={errors.phone ? 'error' : ''}
+                  required
                 />
+                {errors.phone && <span className="error-text">{errors.phone}</span>}
               </div>
 
               {/* Password */}

@@ -217,7 +217,7 @@
                 <h2>Verify Your Email Address</h2>
 
                 <p class="greeting">
-                    Hello <strong>{{ $user->name }}</strong>,
+                    Hello <strong>{{ $name }}</strong>,
                 </p>
 
                 <p class="description">

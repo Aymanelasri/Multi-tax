@@ -23,6 +23,8 @@ use App\Http\Controllers\Api\ContactController;
 // Public Auth Routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
+Route::post('/resend-verification-email', [AuthController::class, 'resendVerificationEmail']);
 
 // Password Reset Routes (public)
 Route::post('/password/forgot', [PasswordResetController::class, 'forgotPassword']);
@@ -33,7 +35,7 @@ Route::get('/email/verify/{id}/{hash}', VerifyEmailController::class)
     ->name('verification.verify');
 
 // Email Resend Route (public - for frontend compatibility)
-Route::post('/email/resend-verification', [EmailVerificationNotificationController::class, 'store']);
+Route::post('/email/resend-verification', [AuthController::class, 'resendVerificationEmail']);
 
 // Contact Form Route (public)
 Route::post('/contact', [ContactController::class, 'store']);
