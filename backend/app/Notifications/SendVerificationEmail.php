@@ -65,6 +65,7 @@ class SendVerificationEmail extends Notification implements ShouldQueue
             'name' => $name,
             'verificationUrl' => $verificationUrl,
             'token' => $token,
+            'frontendUrl' => config('app.frontend_url'),
         ], function ($message) use ($email, $name) {
             $message->to($email)
                 ->subject('Verify Your Email Address - ' . config('app.name'));
