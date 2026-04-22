@@ -265,9 +265,12 @@ export default function AdminDashboard() {
       try {
         setLoading(true)
         const response = await api.get('/admin/users')
-        setUsers(response.data || [])
+        // Handle Laravel paginated response format
+        const usersData = response.data?.data || response.data || []
+        setUsers(Array.isArray(usersData) ? usersData : [])
       } catch (error) {
         showToast('Erreur lors du chargement des utilisateurs', 'error')
+        setUsers([])
       } finally {
         setLoading(false)
       }
@@ -284,9 +287,12 @@ export default function AdminDashboard() {
       try {
         setLoading(true)
         const response = await api.get('/admin/users/pending')
-        setPendingUsers(response.data || [])
+        // Handle Laravel paginated response format
+        const pendingData = response.data?.data || response.data || []
+        setPendingUsers(Array.isArray(pendingData) ? pendingData : [])
       } catch (error) {
         showToast('Erreur lors du chargement', 'error')
+        setPendingUsers([])
       } finally {
         setLoading(false)
       }
