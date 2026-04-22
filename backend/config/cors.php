@@ -5,7 +5,7 @@ return [
     'allowed_methods' => ['*'],
     // Allow all localhost origins during development
     'allowed_origins' => [
-        'https://simpltvatax.netlify.app',
+        'https://simpltvataxx.netlify.app',
         'https://admintvas.netlify.app',
         'http://localhost:3000',      // Frontend
         'http://localhost:3001',      // Admin Dashboard
