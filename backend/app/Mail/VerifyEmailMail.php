@@ -26,7 +26,7 @@ class VerifyEmailMail extends Mailable
 
         // Generate the frontend verification URL
         // Point to the frontend email verification page
-        $frontendUrl = env('FRONTEND_URL', config('app.frontend_url', 'http://localhost:3000'));
+        $frontendUrl = config('app.frontend_url');
         $this->verificationUrl = $frontendUrl . '/email/verify/' . $user->getKey() . '/' . sha1($user->getEmailForVerification());
     }
 
@@ -51,6 +51,7 @@ class VerifyEmailMail extends Mailable
             with: [
                 'user' => $this->user,
                 'verificationUrl' => $this->verificationUrl,
+                'frontendUrl' => config('app.frontend_url'),
             ],
         );
     }

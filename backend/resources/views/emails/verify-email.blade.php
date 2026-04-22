@@ -241,9 +241,9 @@
             <!-- Footer -->
             <div class="email-footer">
                 <div class="footer-links">
-                    <a href="https://multitax.netlify.app">Visit Website</a>
-                    <a href="https://multitax.netlify.app/support">Support</a>
-                    <a href="https://multitax.netlify.app/privacy">Privacy</a>
+                    <a href="{{ $frontendUrl }}">Visit Website</a>
+                    <a href="{{ $frontendUrl }}/support">Support</a>
+                    <a href="{{ $frontendUrl }}/privacy">Privacy</a>
                 </div>
 
                 <div class="footer-text">
