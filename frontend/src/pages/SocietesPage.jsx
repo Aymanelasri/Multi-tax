@@ -189,17 +189,12 @@ const SocietesPage = () => {
   };
 
   const handleUse = async (s) => {
-    // Increment usage count in database
     try {
       const response = await api.incrementSocieteUsage(s.id);
-      // Update local state with fresh data from server
       setSocietes(societes.map(soc => soc.id === s.id ? response.data : soc));
     } catch (err) {
-      console.error('Failed to increment usage:', err);
-      // Continue anyway - don't block the user
     }
 
-    // Pre-fill the IF from company if available
     setStartDeclForm({
       identifiantFiscal: s.if || '',
       annee: new Date().getFullYear().toString(),
@@ -247,7 +242,7 @@ const SocietesPage = () => {
   return (
     <div style={{ minHeight: '100vh', background: '#080c1f' }}>
       <Navigation />
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '48px 48px 100px' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '88px 48px 100px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 40, flexWrap: 'wrap', gap: 16 }}>

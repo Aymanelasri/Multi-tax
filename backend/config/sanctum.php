@@ -40,13 +40,13 @@ return [
     | Expiration Minutes
     |--------------------------------------------------------------------------
     |
-    | This value controls the number of minutes until an issued token will be
-    | considered expired. This will override any values set in the token's
-    | "expires_at" attribute, but first-party sessions are not affected.
+    | SECURITY: Tokens expire after 24 hours (1440 minutes) for security.
+    | Users will need to re-login after this period.
+    | Set to null for no expiration (not recommended for production).
     |
     */
 
-    'expiration' => null,
+    'expiration' => env('SANCTUM_TOKEN_EXPIRATION', 1440), // 24 hours
 
     /*
     |--------------------------------------------------------------------------

@@ -273,15 +273,45 @@ class AdminController extends Controller
         }
     }
 
-    /**     * Delete a user
+    /**     * Delete a user and ALL related data (cascade delete)
      */
     public function deleteUser(Request $request, User $user)
     {
-        $user->delete();
+        try {
+            DB::beginTransaction();
 
-        return response()->json([
-            'message' => 'User deleted successfully',
-        ], 200);
+            // Delete all related data in order
+            // 1. Delete generations (file downloads history)
+            $user->generations()->delete();
+
+            // 2. Delete historiques (activity history)
+            $user->historiques()->delete();
+
+            // 3. Delete declarations
+            $user->declarations()->delete();
+
+            // 4. Delete societes (companies)
+            $user->societes()->delete();
+
+            // 5. Delete modules (if any)
+            $user->modules()->delete();
+
+            // 6. Finally delete the user
+            $user->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'User and all related data deleted successfully',
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'message' => 'Failed to delete user',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

@@ -106,6 +106,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $validated['email'])->first();
 
+        // SECURITY: Check credentials
         if (!$user || !Hash::check($validated['password'], $user->password)) {
             return response()->json([
                 'status' => 'error',
@@ -114,7 +115,16 @@ class AuthController extends Controller
             ], 401);
         }
 
-        // DEV: Skip email verification check in development
+        // SECURITY: Check if user is rejected
+        if ($user->status === 'rejected') {
+            return response()->json([
+                'status' => 'error',
+                'code' => 403,
+                'message' => 'Your account has been rejected. Please contact support.'
+            ], 403);
+        }
+
+        // SECURITY: Check email verification (production only)
         if (config('app.env') === 'production') {
             if (!$user->email_verified_at) {
                 return response()->json([
@@ -125,7 +135,7 @@ class AuthController extends Controller
             }
         }
 
-        // Allow login regardless of approval status
+        // Allow login for pending and approved users
         // Frontend will handle access restrictions based on user.status
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -307,7 +317,17 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        // Delete all tokens for the user
         $request->user()->tokens()->delete();
+
+        // SECURITY: Only invalidate session if it exists
+        if ($request->hasSession()) {
+            // Invalidate the session
+            $request->session()->invalidate();
+
+            // Regenerate CSRF token
+            $request->session()->regenerateToken();
+        }
 
         return response()->json([
             'status' => 'success',
@@ -323,5 +343,54 @@ class AuthController extends Controller
             'code' => 200,
             'data' => $request->user()
         ], 200);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        try {
+            $user = $request->user();
+
+            $validated = $request->validate([
+                'firstname' => 'required|string|max:255',
+                'lastname' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email,' . $user->id,
+                'phone' => 'nullable|string|max:20',
+            ]);
+
+            // Combine first and last name
+            $fullName = trim($validated['firstname'] . ' ' . $validated['lastname']);
+
+            // Update user
+            $user->update([
+                'name' => $fullName,
+                'email' => $validated['email'],
+                'phone' => $validated['phone'] ?? null,
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'code' => 200,
+                'message' => 'Profile updated successfully',
+                'data' => $user->fresh()
+            ], 200);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => 'error',
+                'code' => 422,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Profile update error: ' . $e->getMessage(), [
+                'exception' => $e,
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'code' => 500,
+                'message' => 'Profile update failed',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 }

@@ -69,6 +69,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Historique::class);
     }
 
+    public function generations()
+    {
+        return $this->hasMany(Generation::class);
+    }
+
     /**
      * Send the email verification notification.
      *

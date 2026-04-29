@@ -9,27 +9,41 @@ use Symfony\Component\HttpFoundation\Response;
 class IsApproved
 {
     /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * SECURITY: Verify user is authenticated AND approved
+     * Prevents pending/rejected users from accessing protected resources
      */
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
 
+        // SECURITY: Check if user exists
         if (!$user) {
             return response()->json([
                 'status' => 'error',
                 'code' => 401,
-                'message' => 'Unauthorized'
+                'message' => 'Unauthenticated. Please log in.'
             ], 401);
         }
 
+        // SECURITY: Check if user is approved
         if ($user->status !== 'approved') {
+            $message = $user->status === 'pending'
+                ? 'Votre compte est en attente d\'approbation. Vous ne pouvez pas accéder à cette section pour le moment.'
+                : 'Votre compte a été rejeté. Contactez l\'administrateur.';
+
             return response()->json([
                 'status' => 'error',
                 'code' => 403,
-                'message' => 'Votre compte est en attente d\'approbation. Vous ne pouvez pas accéder à cette section pour le moment.'
+                'message' => $message
+            ], 403);
+        }
+
+        // SECURITY: Check if email is verified (production only)
+        if (config('app.env') === 'production' && !$user->email_verified_at) {
+            return response()->json([
+                'status' => 'error',
+                'code' => 403,
+                'message' => 'Email not verified. Please verify your email address.'
             ], 403);
         }
 

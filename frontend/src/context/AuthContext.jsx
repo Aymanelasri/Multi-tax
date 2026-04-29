@@ -122,17 +122,25 @@ export const AuthProvider = ({ children }) => {
         await api.logout()
       }
     } catch (error) {
-      console.error('Logout error:', error)
+      // Ignore logout errors, still clear local data
     } finally {
       clearAuth()
     }
   }
 
   const clearAuth = () => {
+    // SECURITY: Clear ALL auth data from both storages
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     sessionStorage.removeItem('token')
     sessionStorage.removeItem('user')
+    
+    // Clear admin preferences if admin
+    if (user?.role === 'admin') {
+      localStorage.removeItem('adminTheme')
+      localStorage.removeItem('adminLang')
+    }
+    
     setToken(null)
     setUser(null)
   }

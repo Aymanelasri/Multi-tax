@@ -178,6 +178,7 @@ const InvoiceGenerator = () => {
   const [generatedXML, setGeneratedXML] = useState('');
   const [liveXML, setLiveXML] = useState('');
   const [xmlErrors, setXmlErrors] = useState([]);
+  const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
   const [showToast, setShowToast] = useState(false);
   const [showSocietesModal, setShowSocietesModal] = useState(false);
@@ -274,7 +275,12 @@ const InvoiceGenerator = () => {
 
   const handleDownloadZIP = useCallback(async () => {
     const errors = validateFormData(identification, factures);
-    if (errors.length > 0) { setXmlErrors(errors); toast(t('gen_zip_error')); return; }
+    if (errors.length > 0) { 
+      setXmlErrors(errors); 
+      setShowValidationErrors(true);
+      toast(t('gen_zip_error')); 
+      return; 
+    }
     try {
       const plainXml = generateXML(identification.identifiantFiscal, identification.annee, identification.periode, identification.regime, factures);
       const fname = `releveDeduction_IF${identification.identifiantFiscal}_${identification.annee}_P${identification.periode}`;
@@ -313,7 +319,14 @@ const InvoiceGenerator = () => {
   }, [identification, factures, toast, addToHistory, clearAutosave, t]);
 
   const handleDownloadXML = useCallback(async () => {
-    if (!generatedXML) return;
+    const errors = validateFormData(identification, factures);
+    if (errors.length > 0) { 
+      setXmlErrors(errors); 
+      setShowValidationErrors(true);
+      toast(t('xml_validation_error')); 
+      return; 
+    }
+    
     const plainXml = generateXML(identification.identifiantFiscal, identification.annee, identification.periode, identification.regime, factures);
     const fname = `releveDeduction_IF${identification.identifiantFiscal}_${identification.annee}_P${identification.periode}.xml`;
     const blob = new Blob([plainXml], { type: 'text/xml' });
@@ -321,6 +334,9 @@ const InvoiceGenerator = () => {
     const a = document.createElement('a');
     a.href = url; a.download = fname; a.click();
     URL.revokeObjectURL(url);
+    
+    addToHistory(identification, factures);
+    clearAutosave();
     
     // Save to database
     try {
@@ -340,13 +356,24 @@ const InvoiceGenerator = () => {
     }
     
     toast(t('xml_downloaded').replace('{filename}', fname));
-  }, [generatedXML, identification, factures, toast, t]);
+  }, [identification, factures, toast, addToHistory, clearAutosave, t]);
 
   const handleCopyXML = useCallback(() => {
-    if (!generatedXML) return;
+    const errors = validateFormData(identification, factures);
+    if (errors.length > 0) { 
+      setXmlErrors(errors); 
+      setShowValidationErrors(true);
+      toast(t('xml_validation_error')); 
+      return; 
+    }
+    
     const plainXml = generateXML(identification.identifiantFiscal, identification.annee, identification.periode, identification.regime, factures);
-    navigator.clipboard.writeText(plainXml).then(() => toast(t('xml_copied')));
-  }, [generatedXML, identification, factures, toast, t]);
+    navigator.clipboard.writeText(plainXml).then(() => {
+      addToHistory(identification, factures);
+      clearAutosave();
+      toast(t('xml_copied'));
+    });
+  }, [identification, factures, toast, addToHistory, clearAutosave, t]);
 
   const handleLoadModule = useCallback((mod) => {
     if (mod.type === 'factures' && Array.isArray(mod.entries)) updateFactures(mod.entries);
@@ -372,7 +399,7 @@ const InvoiceGenerator = () => {
     <div className="container" style={{ position: 'relative' }}>
       <Navigation />
 
-      <div style={{ paddingTop: '40px', paddingBottom: '28px' }}>
+      <div style={{ paddingTop: '80px', paddingBottom: '28px' }}>
         <h1 style={{
           fontSize: 'clamp(24px, 3vw, 36px)',
           fontWeight: 800,
@@ -441,7 +468,7 @@ const InvoiceGenerator = () => {
               </p>
               <SummaryGrid factures={factures} identification={identification} regimes={REGIMES} />
               <TotalsBar factures={factures} t={t} />
-              <ValidationErrors errors={xmlErrors} isVisible={xmlErrors.length > 0} />
+              <ValidationErrors errors={xmlErrors} isVisible={showValidationErrors && xmlErrors.length > 0} />
               <Card title={t('gen_instructions_title')}>
                 <ol style={{ paddingLeft: 18, lineHeight: 2.1, color: '#94a3b8', fontSize: '14px' }}>
                   <li>{t('gen_instruction_1')} <strong style={{ color: '#00d4a0' }}>{t('btn_download_zip')}</strong></li>
@@ -466,13 +493,8 @@ const InvoiceGenerator = () => {
                 <Button variant="primary" onClick={handleDownloadZIP} title={`${t('shortcut_hint')}`}>
                   {t('btn_download_zip')}
                 </Button>
-                <Button variant="blue" onClick={handleGenerateXML}>{t('btn_preview')}</Button>
-                {generatedXML && (
-                  <>
-                    <Button variant="secondary" onClick={handleDownloadXML}>{t('btn_download_xml')}</Button>
-                    <Button variant="accent3" onClick={handleCopyXML}>{t('btn_copy_xml')}</Button>
-                  </>
-                )}
+                <Button variant="secondary" onClick={handleDownloadXML}>{t('btn_download_xml')}</Button>
+                <Button variant="accent3" onClick={handleCopyXML}>{t('btn_copy_xml')}</Button>
               </div>
               <p style={{ fontSize: '11px', color: '#64748b', marginTop: 8 }}>
                 {t('shortcut_hint')}

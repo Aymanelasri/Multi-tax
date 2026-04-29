@@ -235,7 +235,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <style jsx>{`
+        <style>{`
           .auth-layout {
             display: grid;
             grid-template-columns: 45% 55%;

@@ -76,8 +76,19 @@ export const isAdmin = () => {
 }
 
 /**
- * Clear all auth data
+ * Clear all auth data from storage
+ * SECURITY: Clears both localStorage and sessionStorage
  */
 export const clearAuth = () => {
-  removeToken()
+  // Remove tokens
+  localStorage.removeItem(TOKEN_KEY)
+  sessionStorage.removeItem(TOKEN_KEY)
+  
+  // Remove user data
+  localStorage.removeItem(USER_KEY)
+  sessionStorage.removeItem(USER_KEY)
+  
+  // Remove any other auth-related data
+  localStorage.removeItem('adminTheme')
+  localStorage.removeItem('adminLang')
 }

@@ -65,14 +65,33 @@ class GenerationController extends Controller
             $validated = $request->validate([
                 'factures' => 'required|integer|min:0',
                 'montant_ttc' => 'required|numeric|min:0',
-                'file_type' => 'required|string|in:XML,ZIP,CSV',
-                'file_name' => 'required|string',
-                'file_content' => 'required|string', // Base64 encoded file content
+                'file_type' => 'required|string|in:XML,ZIP,CSV,XLSX',
+                'file_name' => 'nullable|string',
+                'file_content' => 'nullable|string', // Base64 encoded file content
+                'file' => 'nullable|file|max:10240', // File upload (max 10MB)
+                'reference' => 'nullable|string',
             ]);
 
-            // Decode and save file
-            $fileContent = base64_decode($validated['file_content']);
-            $fileName = $validated['file_name'];
+            $fileContent = null;
+            $fileName = $validated['file_name'] ?? 'file_' . time();
+            
+            // Handle file upload (FormData)
+            if ($request->hasFile('file')) {
+                $uploadedFile = $request->file('file');
+                $fileContent = file_get_contents($uploadedFile->getRealPath());
+                $fileName = $uploadedFile->getClientOriginalName();
+            }
+            // Handle base64 content (legacy)
+            elseif (!empty($validated['file_content'])) {
+                $fileContent = base64_decode($validated['file_content']);
+            }
+            else {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Either file or file_content is required'
+                ], 422);
+            }
+
             $filePath = 'generations/' . auth()->id() . '/' . $fileName;
             
             // Store file
@@ -81,13 +100,13 @@ class GenerationController extends Controller
 
             $generation = Generation::create([
                 'user_id' => auth()->id() ?? null,
-                'reference' => Generation::generateReference(),
+                'reference' => $validated['reference'] ?? Generation::generateReference(),
                 'date' => now(),
                 'factures' => $validated['factures'],
                 'montant_ttc' => $validated['montant_ttc'],
                 'statut' => 'success',
                 'file_type' => $validated['file_type'],
-                'file_name' => $validated['file_name'],
+                'file_name' => $fileName,
                 'file_path' => $filePath,
                 'file_size' => $fileSize,
             ]);
@@ -146,6 +165,7 @@ class GenerationController extends Controller
                 'XML' => 'application/xml',
                 'ZIP' => 'application/zip',
                 'CSV' => 'text/csv',
+                'XLSX' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 default => 'application/octet-stream',
             };
 

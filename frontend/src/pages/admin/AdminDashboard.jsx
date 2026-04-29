@@ -18,10 +18,18 @@ import {
 
 // Suppress ResizeObserver warnings
 if (typeof window !== 'undefined') {
-  const originalError = console.error
-  console.error = (...args) => {
+  const originalError = window.console.error
+  const originalWarn = window.console.warn
+  
+  window.console.error = (...args) => {
     if (args[0]?.includes?.('ResizeObserver loop completed')) return
     originalError(...args)
+  }
+  
+  window.console.warn = (...args) => {
+    if (args[0]?.includes?.('width(-1) and height(-1)')) return
+    if (args[0]?.includes?.('chart should be greater than 0')) return
+    originalWarn(...args)
   }
 }
 
@@ -384,8 +392,11 @@ export default function AdminDashboard() {
 
   // FIX BUG 3: Logout button with proper redirect
   const handleLogout = () => {
+    // Clear ALL tokens from both localStorage and sessionStorage
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+    sessionStorage.removeItem('token')
+    sessionStorage.removeItem('user')
     localStorage.removeItem('adminTheme')
     localStorage.removeItem('adminLang')
     // Redirect to frontend login
@@ -402,7 +413,6 @@ export default function AdminDashboard() {
         // Extract data array from paginated response
         setMessages(response.data.data || response.data || [])
       } catch (error) {
-        console.error('Error fetching messages:', error)
       }
     }
 
@@ -420,7 +430,6 @@ export default function AdminDashboard() {
         const response = await api.get('/admin/users-with-societes')
         setUsersWithSocietes(response.data || [])
       } catch (error) {
-        console.error('Error fetching users with societes:', error)
         showToast(t('error_loading_companies'), 'error')
       } finally {
         setSocietesLoading(false)
@@ -560,9 +569,7 @@ export default function AdminDashboard() {
         if (loading || !stats) {
           return <div style={{ padding: '40px 20px', textAlign: 'center', color: currentTheme.textMuted }}>Chargement...</div>
         }
-        console.log('Stats data:', stats)
 
-        // Fallback to users list if API doesn't return lastRegisteredUser
         const lastUser = stats.lastRegisteredUser?.firstname 
           ? `${stats.lastRegisteredUser.firstname} ${stats.lastRegisteredUser.lastname}`
           : users.length > 0 
@@ -1586,7 +1593,6 @@ export default function AdminDashboard() {
       const user = JSON.parse(userStr)
       adminName = user.name || 'Admin'
     } catch (error) {
-      console.log('Parse error')
     }
   }
 
@@ -1830,6 +1836,9 @@ export default function AdminDashboard() {
                 width: '100%',
                 height: 'auto',
                 background: activeTab === item.id ? 'linear-gradient(135deg, rgba(16,185,129,0.12), rgba(16,185,129,0.03))' : 'transparent',
+                borderTop: 'none',
+                borderRight: 'none',
+                borderBottom: 'none',
                 borderLeft: activeTab === item.id ? '2px solid #10b981' : 'none',
                 borderRadius: 10,
                 color: activeTab === item.id ? '#10b981' : currentTheme.textSecondary,
@@ -1838,8 +1847,7 @@ export default function AdminDashboard() {
                 fontWeight: activeTab === item.id ? 700 : 500,
                 fontFamily: 'inherit',
                 transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                position: 'relative',
-                border: 'none'
+                position: 'relative'
               }}
               onMouseEnter={(e) => {
                 if (activeTab !== item.id) {

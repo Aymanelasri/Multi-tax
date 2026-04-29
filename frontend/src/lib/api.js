@@ -17,7 +17,6 @@ const fetchCSRFToken = async () => {
       credentials: 'include',
     })
   } catch (error) {
-    console.warn('⚠ CSRF cookie fetch failed:', error.message)
   }
 }
 
@@ -47,15 +46,23 @@ const request = async (method, url, body = null, authToken = null) => {
   if (body) {
     options.body = JSON.stringify(body)
   }
-
-  // 5. Log request details
-  console.log(`📤 ${method} ${API_URL}${url}`)
   
-  // 6. Make request
   const response = await fetch(`${API_URL}${url}`, options)
-  console.log(`📥 ${response.status} ${url}`, response)
 
-  // 7. Handle response
+  // SECURITY: Auto-logout on 401 Unauthorized (but not for login endpoint)
+  if (response.status === 401 && !url.includes('/login')) {
+    // Clear all auth data
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    sessionStorage.removeItem('token')
+    sessionStorage.removeItem('user')
+    
+    // Redirect to login if not already there
+    if (!window.location.pathname.includes('/login')) {
+      window.location.href = '/login'
+    }
+  }
+
   if (!response.ok) {
     let error
     try {
@@ -63,14 +70,6 @@ const request = async (method, url, body = null, authToken = null) => {
     } catch {
       error = { message: response.statusText }
     }
-    
-    // Log full error details for debugging
-    console.error(`❌ API Error [${response.status}]:`, {
-      url: `${API_URL}${url}`,
-      method,
-      status: response.status,
-      error,
-    })
     
     const errorMessage = error.errors
       ? Object.entries(error.errors)
@@ -216,6 +215,10 @@ const api = {
       new_password: newPassword,
       new_password_confirmation: newPasswordConfirmation
     }),
+
+  // Profile update (authenticated user)
+  updateProfile: (data) =>
+    request('PUT', '/profile', data),
 
   // Contact Form (public)
   submitContact: (name, email, subject, message) =>

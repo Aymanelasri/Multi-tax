@@ -19,6 +19,9 @@ export default function ProfilePage() {
   const [errors, setErrors] = useState({})
   const [success, setSuccess] = useState('')
   const [activeTab, setActiveTab] = useState('info')
+  const [isProfileLocked, setIsProfileLocked] = useState(false)
+  const [remainingDays, setRemainingDays] = useState(0)
+  const [editsRemaining, setEditsRemaining] = useState(2)
 
   const { user, refreshUser } = useAuth()
   const { lang } = useLang()
@@ -44,6 +47,40 @@ export default function ProfilePage() {
         newPassword: '',
         confirmPassword: ''
       })
+
+      // SECURITY: Admins have no edit limits
+      if (user.role === 'admin') {
+        setIsProfileLocked(false)
+        setEditsRemaining(999) // Unlimited for admins
+        return
+      }
+
+      // SECURITY: Use user-specific localStorage keys for regular users
+      const userId = user?.id || JSON.parse(localStorage.getItem('user') || '{}')?.id
+      
+      // Check profile edit lock (2 edits max, 15 days lock)
+      const editCount = parseInt(localStorage.getItem(`profileEditCount_${userId}`) || '0')
+      const lastEdit = localStorage.getItem(`profileLastEdit_${userId}`)
+      
+      if (editCount >= 2 && lastEdit) {
+        const lastEditDate = new Date(lastEdit)
+        const now = new Date()
+        const daysSinceEdit = Math.floor((now - lastEditDate) / (1000 * 60 * 60 * 24))
+        const daysRemaining = 15 - daysSinceEdit
+        
+        if (daysRemaining > 0) {
+          setIsProfileLocked(true)
+          setRemainingDays(daysRemaining)
+          setEditsRemaining(0)
+        } else {
+          localStorage.setItem(`profileEditCount_${userId}`, '0')
+          localStorage.removeItem(`profileLastEdit_${userId}`)
+          setIsProfileLocked(false)
+          setEditsRemaining(2)
+        }
+      } else {
+        setEditsRemaining(2 - editCount)
+      }
     }
   }, [user])
 
@@ -106,25 +143,48 @@ export default function ProfilePage() {
     e.preventDefault()
     if (!validateInfo()) return
     
+    if (isProfileLocked) {
+      setErrors({ general: lang === 'FR' 
+        ? `Profil verrouillé pour ${remainingDays} jour(s) restant(s)` 
+        : `Profile locked for ${remainingDays} day(s) remaining` })
+      return
+    }
+    
     setLoading(true)
     setSuccess('')
+    setErrors({})
     
     try {
-      // TODO: Implement update profile API call
-      // const response = await api.updateProfile({
-      //   firstname: formData.firstname,
-      //   lastname: formData.lastname,
-      //   email: formData.email,
-      //   phone: formData.phone
-      // })
+      await api.updateProfile({
+        firstname: formData.firstname,
+        lastname: formData.lastname,
+        email: formData.email,
+        phone: formData.phone
+      })
       
-      // Simulate success for now
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // SECURITY: Only track edits for regular users, not admins
+      if (user?.role !== 'admin') {
+        const userId = user?.id || JSON.parse(localStorage.getItem('user') || '{}')?.id
+        
+        const currentCount = parseInt(localStorage.getItem(`profileEditCount_${userId}`) || '0')
+        const newCount = currentCount + 1
+        localStorage.setItem(`profileEditCount_${userId}`, newCount.toString())
+        localStorage.setItem(`profileLastEdit_${userId}`, new Date().toISOString())
+        
+        const remaining = 2 - newCount
+        setEditsRemaining(remaining)
+        
+        if (newCount >= 2) {
+          setIsProfileLocked(true)
+          setRemainingDays(15)
+        }
+      }
       
       setSuccess(lang === 'FR' ? 'Profil mis à jour avec succès' : 'Profile updated successfully')
       await refreshUser()
+      setTimeout(() => setSuccess(''), 3000)
     } catch (error) {
-      setErrors({ general: error.message })
+      setErrors({ general: error.message || (lang === 'FR' ? 'Erreur lors de la mise à jour' : 'Error updating profile') })
     } finally {
       setLoading(false)
     }
@@ -138,7 +198,7 @@ export default function ProfilePage() {
     setSuccess('')
     
     try {
-      const response = await api.updatePassword(
+      await api.updatePassword(
         formData.currentPassword,
         formData.newPassword,
         formData.confirmPassword
@@ -151,23 +211,28 @@ export default function ProfilePage() {
         newPassword: '',
         confirmPassword: ''
       }))
-      
-      // Clear success message after 3 seconds
+      setErrors({})
       setTimeout(() => setSuccess(''), 3000)
     } catch (error) {
-      // Handle API errors
       const errorMessage = error.message || ''
       
-      // Check if it's a field-specific error from the backend
-      if (errorMessage.includes('current_password')) {
+      if (errorMessage.includes('actuel est incorrect') || errorMessage.includes('current password is incorrect')) {
         setErrors({
           currentPassword: lang === 'FR' 
             ? 'Le mot de passe actuel est incorrect.' 
             : 'Current password is incorrect.'
         })
-      } else if (errorMessage.includes('new_password')) {
+      } else if (errorMessage.includes('doit être différent') || errorMessage.includes('must be different')) {
         setErrors({
-          newPassword: errorMessage
+          newPassword: lang === 'FR'
+            ? 'Le nouveau mot de passe doit être différent de l\'ancien.'
+            : 'New password must be different from the old one.'
+        })
+      } else if (errorMessage.includes('confirmation') || errorMessage.includes('ne correspond pas')) {
+        setErrors({
+          confirmPassword: lang === 'FR' 
+            ? 'La confirmation du mot de passe ne correspond pas.' 
+            : 'Password confirmation does not match.'
         })
       } else {
         setErrors({
@@ -246,6 +311,26 @@ export default function ProfilePage() {
           {/* Tab Content */}
           {activeTab === 'info' && (
             <div className="tab-content">
+              {isProfileLocked && (
+                <div className="lock-banner">
+                  <span>🔒</span>
+                  <span>
+                    {lang === 'FR' 
+                      ? `Profil verrouillé pour ${remainingDays} jour(s) restant(s)` 
+                      : `Profile locked for ${remainingDays} day(s) remaining`}
+                  </span>
+                </div>
+              )}
+              {!isProfileLocked && editsRemaining === 1 && (
+                <div className="warning-banner">
+                  <span>⚠️</span>
+                  <span>
+                    {lang === 'FR' 
+                      ? 'Il vous reste 1 modification' 
+                      : 'You have 1 edit remaining'}
+                  </span>
+                </div>
+              )}
               <form onSubmit={handleUpdateInfo}>
                 <div className="form-grid">
                   <div className="form-group">
@@ -259,6 +344,7 @@ export default function ProfilePage() {
                       value={formData.firstname}
                       onChange={handleChange}
                       className={errors.firstname ? 'error' : ''}
+                      disabled={isProfileLocked}
                       required
                     />
                     {errors.firstname && <span className="error-text">{errors.firstname}</span>}
@@ -275,6 +361,7 @@ export default function ProfilePage() {
                       value={formData.lastname}
                       onChange={handleChange}
                       className={errors.lastname ? 'error' : ''}
+                      disabled={isProfileLocked}
                       required
                     />
                     {errors.lastname && <span className="error-text">{errors.lastname}</span>}
@@ -290,6 +377,8 @@ export default function ProfilePage() {
                     value={formData.email}
                     onChange={handleChange}
                     className={errors.email ? 'error' : ''}
+                    disabled={true}
+                    style={{ opacity: 0.5, cursor: 'not-allowed' }}
                     required
                   />
                   {errors.email && <span className="error-text">{errors.email}</span>}
@@ -307,12 +396,13 @@ export default function ProfilePage() {
                     onChange={handleChange}
                     className={errors.phone ? 'error' : ''}
                     placeholder="+212 6XX XXX XXX"
+                    disabled={isProfileLocked}
                     required
                   />
                   {errors.phone && <span className="error-text">{errors.phone}</span>}
                 </div>
 
-                <button type="submit" className="submit-button" disabled={loading}>
+                <button type="submit" className="submit-button" disabled={loading || isProfileLocked}>
                   {loading ? (
                     <div className="loading-dots">
                       <div className="dot"></div>
@@ -534,6 +624,19 @@ export default function ProfilePage() {
             gap: 8px;
           }
 
+          .lock-banner, .warning-banner {
+            background: rgba(251, 191, 36, 0.08);
+            border: 1px solid rgba(251, 191, 36, 0.25);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            color: #fcd34d;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+
           .tab-content {
             background: rgba(20, 29, 46, 0.5);
             border: 1px solid rgba(255, 255, 255, 0.06);
@@ -583,6 +686,12 @@ export default function ProfilePage() {
           .form-group input:focus {
             border-color: #00d4a0;
             box-shadow: 0 0 0 3px rgba(0, 212, 160, 0.12);
+          }
+
+          .form-group input:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: rgba(20, 29, 46, 0.5);
           }
 
           .form-group input.error {

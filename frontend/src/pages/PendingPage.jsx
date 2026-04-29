@@ -1,10 +1,12 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../context/LanguageContext'
+
 import AuthNavbar from '../components/AuthNavbar'
 
 export default function PendingPage() {
   const { lang } = useLang()
+  
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -12,6 +14,11 @@ export default function PendingPage() {
       ? 'En attente d\'approbation — SIMPL-TVA' 
       : 'Pending Approval — SIMPL-TVA'
   }, [lang])
+
+  const handleBackToLogin = async () => {
+    
+    navigate('/')
+  }
 
   const styles = {
     layout: {
@@ -81,7 +88,7 @@ export default function PendingPage() {
             </p>
             <button 
               style={styles.button}
-              onClick={() => navigate('/login')}
+              onClick={handleBackToLogin}
               onMouseEnter={e => e.target.style.background = '#00b389'}
               onMouseLeave={e => e.target.style.background = '#00d4a0'}
             >

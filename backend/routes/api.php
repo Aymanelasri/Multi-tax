@@ -21,15 +21,15 @@ use App\Http\Controllers\Api\GenerationController;
 |--------------------------------------------------------------------------
 */
 
-// Public Auth Routes
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
-Route::post('/resend-verification-email', [AuthController::class, 'resendVerificationEmail']);
+// Public Auth Routes (with rate limiting)
+Route::middleware('throttle:login')->post('/login', [AuthController::class, 'login']);
+Route::middleware('throttle:api')->post('/register', [AuthController::class, 'register']);
+Route::middleware('throttle:api')->post('/verify-email', [AuthController::class, 'verifyEmail']);
+Route::middleware('throttle:api')->post('/resend-verification-email', [AuthController::class, 'resendVerificationEmail']);
 
-// Password Reset Routes (public)
-Route::post('/password/forgot', [PasswordResetController::class, 'forgotPassword']);
-Route::post('/password/reset', [PasswordResetController::class, 'resetPassword']);
+// Password Reset Routes (with rate limiting)
+Route::middleware('throttle:password-reset')->post('/password/forgot', [PasswordResetController::class, 'forgotPassword']);
+Route::middleware('throttle:password-reset')->post('/password/reset', [PasswordResetController::class, 'resetPassword']);
 
 // Email Verification Route (public - signature validation built-in)
 Route::get('/email/verify/{id}/{hash}', VerifyEmailController::class)
@@ -50,6 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Auth endpoints
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
+    Route::put('/profile', [AuthController::class, 'updateProfile']);
     Route::post('/password/update', [PasswordController::class, 'update']);
 
     // Societes endpoints (require approval)

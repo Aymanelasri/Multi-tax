@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { useLanguage } from '../../context/LanguageContext'
+import { useAdminLanguage } from '../../context/AdminLanguageContext'
 import api from '../../lib/api'
 
 export default function AdminSocietes({ showToast }) {
-  const { t } = useLanguage()
+  const { t } = useAdminLanguage()
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [expandedUser, setExpandedUser] = useState(null)
@@ -93,8 +93,8 @@ export default function AdminSocietes({ showToast }) {
   const filteredUsers = users.filter(user => {
     const searchLower = searchTerm.toLowerCase()
     return (
-      user.first_name?.toLowerCase().includes(searchLower) ||
-      user.last_name?.toLowerCase().includes(searchLower) ||
+      user.firstname?.toLowerCase().includes(searchLower) ||
+      user.lastname?.toLowerCase().includes(searchLower) ||
       user.name?.toLowerCase().includes(searchLower) ||
       user.email?.toLowerCase().includes(searchLower)
     )
@@ -124,7 +124,7 @@ export default function AdminSocietes({ showToast }) {
       }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '32px', marginBottom: '12px' }}>⏳</div>
-          <div>Chargement des sociétés...</div>
+          <div>{t('loading')}</div>
         </div>
       </div>
     )
@@ -143,13 +143,10 @@ export default function AdminSocietes({ showToast }) {
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏢</div>
           <div style={{ fontSize: '18px', fontWeight: 'bold', color: 'white', marginBottom: '8px' }}>
-            Aucune société trouvée
+            {t('no_companies_found')}
           </div>
           <div style={{ fontSize: '14px', color: '#94a3b8' }}>
-            Aucun utilisateur n'a enregistré de sociétés pour le moment.
-          </div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '16px' }}>
-            Debug: {users.length} utilisateurs chargés
+            {t('no_companies_found_sub')}
           </div>
         </div>
       </div>
@@ -166,10 +163,10 @@ export default function AdminSocietes({ showToast }) {
           color: 'white',
           marginBottom: '8px',
         }}>
-          🏢 Sociétés
+          🏢 {t('companies')}
         </h1>
         <p style={{ color: '#94a3b8', fontSize: '14px' }}>
-          Gestion des sociétés enregistrées par utilisateur
+          {t('manage_users')}
         </p>
       </div>
 
@@ -181,7 +178,7 @@ export default function AdminSocietes({ showToast }) {
       }}>
         <input
           type="text"
-          placeholder="Rechercher par nom, email ou société..."
+          placeholder={t('search_placeholder')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           style={{
@@ -209,7 +206,7 @@ export default function AdminSocietes({ showToast }) {
             fontFamily: 'inherit',
           }}
         >
-          🔄 Rafraîchir
+          🔄 {t('update')}
         </button>
       </div>
 
@@ -250,7 +247,7 @@ export default function AdminSocietes({ showToast }) {
                   fontWeight: 'bold',
                   fontSize: '14px',
                 }}>
-                  {getInitials(user.first_name, user.last_name)}
+                  {getInitials(user.firstname, user.lastname)}
                 </div>
                 <div style={{ textAlign: 'left' }}>
                   <div style={{ fontWeight: '600', color: 'white', fontSize: '14px' }}>
@@ -264,9 +261,9 @@ export default function AdminSocietes({ showToast }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: '14px', fontWeight: '600', color: 'white' }}>
-                    {user.societes_count || 0}
+                    {user.societes?.length || user.societes_count || 0}
                   </div>
-                  <div style={{ fontSize: '12px', color: '#94a3b8' }}>Sociétés</div>
+                  <div style={{ fontSize: '12px', color: '#94a3b8' }}>{t('companies')}</div>
                 </div>
                 <div style={{
                   padding: '6px 12px',
@@ -292,12 +289,12 @@ export default function AdminSocietes({ showToast }) {
                 padding: '16px 24px',
               }}>
                 <h4 style={{ fontSize: '12px', fontWeight: '600', color: '#a5b4fc', marginBottom: '16px' }}>
-                  🏢 Sociétés de {user.name}
+                  🏢 {t('companies')} {t('of')} {user.name}
                 </h4>
 
                 {loadingSocietes[user.id] ? (
                   <div style={{ textAlign: 'center', padding: '20px', color: '#94a3b8' }}>
-                    ⏳ Chargement...
+                    ⏳ {t('loading')}
                   </div>
                 ) : userSocietes[user.id] && userSocietes[user.id].length > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -350,7 +347,7 @@ export default function AdminSocietes({ showToast }) {
                     borderRadius: '12px',
                     color: '#94a3b8',
                   }}>
-                    📭 Aucune société enregistrée
+                    📭 {t('no_companies_found')}
                   </div>
                 )}
               </div>
@@ -372,7 +369,7 @@ export default function AdminSocietes({ showToast }) {
           padding: '16px',
           textAlign: 'center',
         }}>
-          <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px', fontWeight: '600' }}>UTILISATEURS</div>
+          <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px', fontWeight: '600' }}>{t('users')}</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#a5b4fc' }}>{filteredUsers.length}</div>
         </div>
         <div style={{
@@ -382,9 +379,9 @@ export default function AdminSocietes({ showToast }) {
           padding: '16px',
           textAlign: 'center',
         }}>
-          <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px', fontWeight: '600' }}>TOTAL SOCIÉTÉS</div>
+          <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px', fontWeight: '600' }}>{t('companies_label')}</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#86efac' }}>
-            {filteredUsers.reduce((sum, user) => sum + (user.societes_count || 0), 0)}
+            {filteredUsers.reduce((sum, user) => sum + (user.societes?.length || user.societes_count || 0), 0)}
           </div>
         </div>
         <div style={{
@@ -394,10 +391,10 @@ export default function AdminSocietes({ showToast }) {
           padding: '16px',
           textAlign: 'center',
         }}>
-          <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px', fontWeight: '600' }}>MOYENNE</div>
+          <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px', fontWeight: '600' }}>{t('average')}</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#fcd34d' }}>
             {filteredUsers.length > 0 
-              ? (filteredUsers.reduce((sum, user) => sum + (user.societes_count || 0), 0) / filteredUsers.length).toFixed(1)
+              ? (filteredUsers.reduce((sum, user) => sum + (user.societes?.length || user.societes_count || 0), 0) / filteredUsers.length).toFixed(1)
               : '0'
             }
           </div>

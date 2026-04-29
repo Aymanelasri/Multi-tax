@@ -24,7 +24,7 @@ class HistoriqueController extends Controller
     {
         $validated = $request->validate([
             'societe_id' => 'nullable|exists:societes,id',
-            'action' => 'required|in:creation,update,generation,export',
+            'action' => 'required|in:creation,update,generation,export,import,load_module',
             'description' => 'required|string',
             'data' => 'nullable|array',
         ]);
@@ -66,7 +66,7 @@ class HistoriqueController extends Controller
         }
 
         $validated = $request->validate([
-            'action' => 'in:creation,update,generation,export',
+            'action' => 'in:creation,update,generation,export,import,load_module',
             'description' => 'string',
             'data' => 'nullable|array',
         ]);

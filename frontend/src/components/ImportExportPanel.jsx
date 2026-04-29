@@ -3,6 +3,7 @@ import * as XLSX from 'xlsx';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { Upload, Download, Copy as LucideCopy, FolderOpen } from 'lucide-react';
+import api from '../lib/api';
 
 const getModulesKey = (userId) => userId ? `simpl_tva_modules_user_${userId}` : 'simpl_tva_modules';
 const loadModules = (userId) => { try { return JSON.parse(localStorage.getItem(getModulesKey(userId)) || '[]'); } catch { return []; } };
@@ -83,7 +84,23 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
       onLoadModule({ type: 'factures', entries: merged });
     }
     showToast(isFR ? `${rows.length} factures importées depuis le fichier` : `${rows.length} invoices imported from file`);
-  }, [factures, onLoadModule, isFR]);
+    
+    // TRACKING: Log import to historique
+    if (user) {
+      console.log('📥 Tracking import:', { count: rows.length, user: user.id });
+      api.createHistorique({
+        action: 'import',
+        description: isFR ? `Import de ${rows.length} factures` : `Imported ${rows.length} invoices`,
+        data: { count: rows.length, type: 'factures' }
+      }).then(() => {
+        console.log('✅ Import tracked successfully');
+      }).catch((err) => {
+        console.error('❌ Failed to track import:', err);
+      });
+    } else {
+      console.warn('⚠️ User not authenticated, skipping tracking');
+    }
+  }, [factures, onLoadModule, isFR, user]);
 
   const processCSV = useCallback((text) => {
     try {
@@ -138,7 +155,7 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
     XLSX.writeFile(wb, 'modele_factures_SIMPLTVA.xlsx');
   };
 
-  const exportToExcel = (type) => {
+  const exportToExcel = async (type) => {
     const name = moduleName.trim() || `export_${Date.now()}`;
     const entries = type === 'factures' ? factures : [identification];
 
@@ -154,12 +171,67 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
     const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, type === 'factures' ? 'Factures' : 'Identification');
-    XLSX.writeFile(wb, `${name}.xlsx`);
+    
+    // Generate file as blob
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const fileSize = blob.size;
+    
+    // Download file
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${name}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
 
     const updated = [{ name, type, entries, savedAt: new Date().toISOString(), count: entries.length }, ...modules];
     setModules(updated); saveModules(updated, user?.id);
     showToast(isFR ? `"${name}.xlsx" exporté` : `"${name}.xlsx" exported`);
     setModuleName('');
+    
+    // TRACKING: Save export to backend with file
+    if (user) {
+      console.log('📤 Tracking export with file upload:', { filename: `${name}.xlsx`, size: fileSize });
+      
+      // Create FormData to upload file
+      const formData = new FormData();
+      formData.append('file', blob, `${name}.xlsx`);
+      formData.append('file_type', 'XLSX');
+      formData.append('reference', `EXP-${new Date().getFullYear()}-${String(Date.now()).slice(-4)}`);
+      formData.append('factures', entries.length);
+      formData.append('montant_ttc', 0);
+      
+      try {
+        await fetch(`${process.env.REACT_APP_API_URL}/generations`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token') || sessionStorage.getItem('token')}`,
+            'Accept': 'application/json'
+          },
+          body: formData,
+          credentials: 'include'
+        });
+        console.log('✅ Export file saved to backend');
+      } catch (err) {
+        console.error('❌ Failed to save export file:', err);
+      }
+      
+      // Also track in historique
+      api.createHistorique({
+        action: 'export',
+        description: isFR ? `Export de ${entries.length} ${type === 'factures' ? 'factures' : 'identifications'}` : `Exported ${entries.length} ${type === 'factures' ? 'invoices' : 'identifications'}`,
+        data: { filename: `${name}.xlsx`, count: entries.length, type, file_size: fileSize }
+      }).then(() => {
+        console.log('✅ Export tracked successfully');
+      }).catch((err) => {
+        console.error('❌ Failed to track export:', err);
+      });
+    } else {
+      console.warn('⚠️ User not authenticated, skipping tracking');
+    }
   };
 
   const handleDelete = (idx) => {
@@ -170,6 +242,22 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
   const handleLoad = (mod) => {
     onLoadModule(mod);
     showToast(isFR ? `Module "${mod.name}" chargé` : `Module "${mod.name}" loaded`);
+    
+    // TRACKING: Log module load to historique
+    if (user) {
+      console.log('📚 Tracking module load:', { module: mod.name, user: user.id });
+      api.createHistorique({
+        action: 'load_module',
+        description: isFR ? `Chargement du module "${mod.name}"` : `Loaded module "${mod.name}"`,
+        data: { module_name: mod.name, count: mod.count, type: mod.type }
+      }).then(() => {
+        console.log('✅ Module load tracked successfully');
+      }).catch((err) => {
+        console.error('❌ Failed to track module load:', err);
+      });
+    } else {
+      console.warn('⚠️ User not authenticated, skipping tracking');
+    }
   };
 
   return (

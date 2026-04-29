@@ -85,7 +85,7 @@ const ContactPage = () => {
       <Navigation />
 
       {/* Page Header */}
-      <div style={{ padding: '60px 48px 32px', maxWidth: 'none' }}>
+      <div style={{ padding: '88px 48px 32px', maxWidth: 'none' }}>
         <h1 style={{
           fontSize: 'clamp(28px, 4vw, 42px)',
           fontWeight: 900,

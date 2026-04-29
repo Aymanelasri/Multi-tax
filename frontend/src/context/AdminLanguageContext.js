@@ -140,6 +140,7 @@ const translations = {
     view: "عرض",
     companies_with_count: "الشركات ({{count}})",
     no_companies_found: "لم يتم العثور على شركات",
+    no_users_found: "لم يتم العثور على مستخدمين",
     tax_id_if: "المعرف الضريبي (IF)",
     ice_code: "رمز ICE",
   },
@@ -282,6 +283,7 @@ const translations = {
     view: "Voir",
     companies_with_count: "Sociétés ({{count}})",
     no_companies_found: "Aucune société trouvée",
+    no_users_found: "Aucun utilisateur trouvé",
     tax_id_if: "IF (Identifiant Fiscal)",
     ice_code: "ICE",
   },
@@ -424,6 +426,7 @@ const translations = {
     view: "View",
     companies_with_count: "Companies ({{count}})",
     no_companies_found: "No companies found",
+    no_users_found: "No users found",
     tax_id_if: "Tax ID (IF)",
     ice_code: "ICE Code",
   }

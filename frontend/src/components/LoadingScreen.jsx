@@ -18,7 +18,7 @@ export default function LoadingScreen() {
         <p className="loading-text">{t('auth_loading_page')}</p>
       </div>
       
-      <style jsx>{`
+      <style>{`
         .loading-screen {
           position: fixed;
           top: 0;

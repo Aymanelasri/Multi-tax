@@ -369,21 +369,7 @@ const HistoriquePage = () => {
                 Total des factures
               </div>
               <div style={{ color: '#ffffff', fontSize: '24px', fontWeight: 700 }}>
-                {generations.reduce((sum, gen) => sum + gen.factures, 0)}
-              </div>
-            </div>
-
-            <div style={{
-              background: '#141d2e',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '12px',
-              padding: '20px'
-            }}>
-              <div style={{ color: '#64748b', fontSize: '12px', marginBottom: '8px' }}>
-                Montant total TTC
-              </div>
-              <div style={{ color: '#00d4a0', fontSize: '24px', fontWeight: 700 }}>
-                {generations.reduce((sum, gen) => sum + gen.montant_ttc, 0).toFixed(2)} DH
+                {generations.reduce((sum, gen) => sum + (gen.factures || 0), 0)}
               </div>
             </div>
           </div>
