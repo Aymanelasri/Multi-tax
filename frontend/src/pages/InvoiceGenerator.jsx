@@ -287,13 +287,32 @@ const InvoiceGenerator = () => {
       URL.revokeObjectURL(url);
       addToHistory(identification, factures);
       clearAutosave();
+      
+      // Save to database
+      try {
+        const totalTTC = factures.reduce((sum, f) => sum + (parseFloat(f.ttc) || 0), 0);
+        const zipArrayBuffer = await blob.arrayBuffer();
+        const zipBase64 = btoa(String.fromCharCode(...new Uint8Array(zipArrayBuffer)));
+        
+        await api.createGeneration({
+          factures: factures.length,
+          montant_ttc: totalTTC,
+          file_type: 'ZIP',
+          file_name: `${fname}.zip`,
+          file_content: zipBase64
+        });
+      } catch (saveError) {
+        console.error('Failed to save generation:', saveError);
+        // Don't block download if save fails
+      }
+      
       toast(t('gen_zip_success').replace('{filename}', fname));
     } catch (err) {
       toast(`Erreur lors de la génération ZIP : ${err.message || 'Vérifiez votre connexion'}`);
     }
   }, [identification, factures, toast, addToHistory, clearAutosave, t]);
 
-  const handleDownloadXML = useCallback(() => {
+  const handleDownloadXML = useCallback(async () => {
     if (!generatedXML) return;
     const plainXml = generateXML(identification.identifiantFiscal, identification.annee, identification.periode, identification.regime, factures);
     const fname = `releveDeduction_IF${identification.identifiantFiscal}_${identification.annee}_P${identification.periode}.xml`;
@@ -302,6 +321,24 @@ const InvoiceGenerator = () => {
     const a = document.createElement('a');
     a.href = url; a.download = fname; a.click();
     URL.revokeObjectURL(url);
+    
+    // Save to database
+    try {
+      const totalTTC = factures.reduce((sum, f) => sum + (parseFloat(f.ttc) || 0), 0);
+      const xmlBase64 = btoa(unescape(encodeURIComponent(plainXml)));
+      
+      await api.createGeneration({
+        factures: factures.length,
+        montant_ttc: totalTTC,
+        file_type: 'XML',
+        file_name: fname,
+        file_content: xmlBase64
+      });
+    } catch (saveError) {
+      console.error('Failed to save generation:', saveError);
+      // Don't block download if save fails
+    }
+    
     toast(t('xml_downloaded').replace('{filename}', fname));
   }, [generatedXML, identification, factures, toast, t]);
 

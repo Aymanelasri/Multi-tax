@@ -20,23 +20,19 @@ export default function LoginPage() {
   const location = useLocation()
   const [searchParams] = useSearchParams()
 
-  const redirectPath = searchParams.get('redirect') || '/'
-
-  // Set page title
   useEffect(() => {
     document.title = lang === 'FR' 
       ? 'Connexion — SIMPL-TVA' 
       : 'Sign In — SIMPL-TVA'
   }, [lang])
 
-  // Redirect if already authenticated
+  // ✅ إلا كان already logged in روح لـ /admin مباشرة
   useEffect(() => {
     if (isAuthenticated) {
-      navigate(redirectPath, { replace: true })
+      navigate('/admin', { replace: true })
     }
-  }, [isAuthenticated, navigate, redirectPath])
+  }, [isAuthenticated, navigate])
 
-  // Show rejection message if coming from rejected state
   useEffect(() => {
     if (location.state?.rejectionMessage) {
       setError('rejected')
@@ -60,10 +56,17 @@ export default function LoginPage() {
       const result = await login(formData.email, formData.password, formData.remember)
       
       if (result.success) {
-        if (result.user.status === 'approved') {
-          navigate(redirectPath, { replace: true })
-        } else if (result.user.status === 'pending') {
-          navigate('/pending', { state: { user: result.user }, replace: true })
+         if (result.user.role === 'admin') {
+            navigate('/admin', { replace: true })
+          } else if (result.user.status === 'pending') {
+          // Pending user redirect to /pending
+          navigate('/pending', { replace: true })
+        } else if (result.user.status === 'approved') {
+          // Approved user redirect to /societes
+          const from = location.state?.from?.pathname || '/societes'
+          navigate(from, { replace: true })
+        } else {
+          setError('invalid_credentials')
         }
       } else {
         setError(result.error)
@@ -98,7 +101,6 @@ export default function LoginPage() {
     <>
       <AuthNavbar currentPage="login" />
       <div className="auth-layout p-0">
-        {/* Left Column - Image Only */}
         <div className="auth-left">
           <img 
             src="/images/image 1.jpg" 
@@ -107,10 +109,8 @@ export default function LoginPage() {
           />
         </div>
 
-        {/* Right Column - Form */}
         <div className="auth-right">
           <div className="form-wrapper">
-            {/* Form Header */}
             <div className="form-header">
               <h1 className="form-title">
                 {lang === 'FR' ? 'Bon retour !' : 'Welcome back!'}
@@ -123,7 +123,6 @@ export default function LoginPage() {
               </p>
             </div>
 
-            {/* Error Banner */}
             {error && (
               <div className="error-banner">
                 <span>⚠</span>
@@ -131,7 +130,6 @@ export default function LoginPage() {
               </div>
             )}
 
-            {/* Form */}
             <form className="auth-form" onSubmit={handleSubmit}>
               <div className="field-group">
                 <label htmlFor="email">EMAIL</label>
@@ -223,7 +221,6 @@ export default function LoginPage() {
               </button>
             </form>
 
-            {/* Register Link */}
             <div className="bottom-link">
               <span className="link-text">
                 {lang === 'FR' ? 'Pas encore de compte ? ' : 'Don\'t have an account? '}
@@ -253,7 +250,6 @@ export default function LoginPage() {
             to { opacity: 1; transform: translateX(0); }
           }
 
-          /* Left Column - Image Only */
           .auth-left {
             position: relative;
             overflow: hidden;
@@ -274,7 +270,6 @@ export default function LoginPage() {
             transform: scale(1.02);
           }
 
-          /* Right Column */
           .auth-right {
             background: #0a0f1a;
             display: flex;
@@ -533,7 +528,6 @@ export default function LoginPage() {
             text-decoration: underline;
           }
 
-          /* Tablet */
           @media (max-width: 900px) {
             .auth-layout {
               grid-template-columns: 1fr;
@@ -552,7 +546,6 @@ export default function LoginPage() {
             }
           }
 
-          /* Mobile */
           @media (max-width: 599px) {
             .auth-right {
               padding: 28px 20px;
@@ -601,7 +594,6 @@ export default function LoginPage() {
             }
           }
 
-          /* Small Mobile */
           @media (max-width: 380px) {
             .auth-right {
               padding: 20px 16px;

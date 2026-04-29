@@ -15,8 +15,8 @@ export default function DeclarationsPage() {
   // Set page title
   useEffect(() => {
     document.title = lang === 'FR' 
-      ? 'Mon Historique — SIMPL-TVA' 
-      : 'My History — SIMPL-TVA'
+      ? 'Historique des Sociétés — SIMPL-TVA' 
+      : 'Companies History — SIMPL-TVA'
   }, [lang])
 
   // ✅ CRITICAL: Fetch historiques from API on mount
@@ -62,12 +62,12 @@ export default function DeclarationsPage() {
           {/* Header */}
           <div className="declarations-header">
             <h1 className="page-title">
-              {lang === 'FR' ? 'Mon Historique' : 'My History'}
+              {lang === 'FR' ? 'Historique des Sociétés' : 'Companies History'}
             </h1>
             <p className="page-subtitle">
               {lang === 'FR' 
-                ? 'Consultez toutes vos actions et opérations effectuées'
-                : 'View all your actions and operations'
+                ? 'Consultez toutes vos sociétés et opérations effectuées'
+                : 'View all your companies and operations'
               }
             </p>
           </div>

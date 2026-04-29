@@ -116,6 +116,9 @@ const api = {
   deleteSociete: (id) =>
     request('DELETE', `/societes/${id}`),
 
+  incrementSocieteUsage: (id) =>
+    request('POST', `/societes/${id}/increment-usage`),
+
   // Declarations
   getDeclarations: () =>
     request('GET', '/declarations'),
@@ -158,6 +161,33 @@ const api = {
       data
     }),
 
+  // Generations
+  getGenerations: () =>
+    request('GET', '/generations'),
+
+  createGeneration: (data) =>
+    request('POST', '/generations', data),
+
+  downloadGeneration: async (id) => {
+    const token = getToken()
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+    }
+    
+    const response = await fetch(`${API_URL}/generations/${id}/download`, {
+      method: 'GET',
+      headers,
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.message || 'Download failed')
+    }
+
+    return response.blob()
+  },
+
   // Admin
   getAdminUsers: () =>
     request('GET', '/admin/users'),
@@ -197,6 +227,27 @@ const api = {
 
   deleteUser: (id) =>
     request('DELETE', `/admin/users/${id}`),
+
+  // Generic methods for flexibility (returns {data: ...} format for compatibility)
+  get: async (url) => {
+    const result = await request('GET', url)
+    return { data: result }
+  },
+
+  post: async (url, data) => {
+    const result = await request('POST', url, data)
+    return { data: result }
+  },
+
+  put: async (url, data) => {
+    const result = await request('PUT', url, data)
+    return { data: result }
+  },
+
+  delete: async (url) => {
+    const result = await request('DELETE', url)
+    return { data: result }
+  },
 }
 
 export default api

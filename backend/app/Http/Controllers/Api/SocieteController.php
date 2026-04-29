@@ -15,19 +15,19 @@ class SocieteController extends Controller
     {
         $authId = auth()->id();
         $user = auth()->user();
-        
-        \Log::info('SocieteController@index - Authentication Debug', [
+
+        Log::info('SocieteController@index - Authentication Debug', [
             'auth_id' => $authId,
             'user_id' => $user?->id,
             'user_email' => $user?->email,
             'token_user' => $request->user()?->id,
         ]);
-        
+
         $societes = Societe::where('user_id', $authId)
             ->orderBy('last_used', 'desc')
             ->get();
 
-        \Log::info('Societes Query Result', [
+        Log::info('Societes Query Result', [
             'user_id' => $authId,
             'count' => $societes->count(),
             'societes' => $societes->pluck('id', 'user_id'),
@@ -40,17 +40,17 @@ class SocieteController extends Controller
     public function myCompanies(Request $request)
     {
         $authId = auth()->id();
-        
-        \Log::info('SocieteController@myCompanies - Fetching user societes', [
+
+        Log::info('SocieteController@myCompanies - Fetching user societes', [
             'auth_id' => $authId,
         ]);
-        
+
         $societes = Societe::where('user_id', $authId)
             ->select('id', 'user_id', 'nom', 'if', 'ice', 'rc', 'adresse', 'ville')
             ->orderBy('nom', 'asc')
             ->get();
 
-        \Log::info('myCompanies Result', [
+        Log::info('myCompanies Result', [
             'auth_id' => $authId,
             'count' => $societes->count(),
         ]);
@@ -144,6 +144,30 @@ class SocieteController extends Controller
         $this->logHistorique('update', "Suppression de la Société: {$nom}", null);
 
         return response()->json(['message' => 'Societe deleted successfully']);
+    }
+
+    /**
+     * Increment usage count for a societe
+     * Called when a user uses a company in the generator
+     */
+    public function incrementUsage(Request $request, Societe $societe)
+    {
+        // ✅ Enforce ownership check
+        if ($societe->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // Increment usage count and update last_used timestamp
+        $societe->increment('usage_count');
+        $societe->update(['last_used' => now()]);
+
+        // Log action in Historiques
+        $this->logHistorique('usage', "Utilisation de la Société: {$societe->nom} dans une déclaration", $societe);
+
+        return response()->json([
+            'message' => 'Usage count incremented successfully',
+            'data' => $societe->fresh(),
+        ]);
     }
 
     // ✅ Helper method to log actions in Historiques

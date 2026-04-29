@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { useLanguage } from '../context/LanguageContext'
-import { getToken } from '../services/auth'
-import api from '../lib/api'
+import { useAdminLanguage } from '../../context/AdminLanguageContext'
+import { getToken } from '../../services/auth'
+import api from '../../lib/api'
 import { FaSignOutAlt } from 'react-icons/fa'
 import {
-  LineChart,
+  
   AreaChart,
   Area,
   PieChart,
@@ -37,7 +37,7 @@ const THEMES = {
     textMuted: '#64748b',
     border: 'rgba(255,255,255,0.06)',
     borderHover: 'rgba(255,255,255,0.12)',
-    accentGreen: '#00d4a0',
+    accentGreen: '#10b981',
     accentAmber: '#fbbf24',
     accentBlue: '#0099ff',
     accentPurple: '#8b5cf6',
@@ -116,7 +116,7 @@ function KPICard({ title, value, icon, color, trend, onClick, theme, isMobile })
 
   const getGradient = (c) => {
     const gradients = {
-      green: `linear-gradient(135deg, rgba(0,212,160,0.2), rgba(0,212,160,0.05))`,
+      green: `linear-gradient(135deg, rgba(16,185,129,0.2), rgba(16,185,129,0.05))`,
       amber: `linear-gradient(135deg, rgba(251,191,36,0.2), rgba(251,191,36,0.05))`,
       blue: `linear-gradient(135deg, rgba(0,153,255,0.2), rgba(0,153,255,0.05))`,
       purple: `linear-gradient(135deg, rgba(139,92,246,0.2), rgba(139,92,246,0.05))`
@@ -127,15 +127,17 @@ function KPICard({ title, value, icon, color, trend, onClick, theme, isMobile })
   return (
     <div
       style={{
-        background: 'rgba(255, 255, 255, 0.03)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
+        background: theme === 'light' ? '#ffffff' : 'rgba(255,255,255,0.03)',
+        border: `1px solid ${theme === 'light' ? 'rgba(15,23,42,0.08)' : 'rgba(255,255,255,0.1)'}`,
         borderRadius: 20,
         padding: 28,
         backdropFilter: 'blur(12px)',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         cursor: 'pointer',
         transform: isHovered ? 'translateY(-6px) scale(1.02)' : 'translateY(0) scale(1)',
-        boxShadow: isHovered ? `0 12px 40px rgba(129, 140, 248, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)` : 'inset 0 1px 0 rgba(255, 255, 255, 0.05)'
+        boxShadow: isHovered 
+          ? `0 20px 50px rgba(16, 185, 129, 0.15), 0 0 0 1px rgba(16, 185, 129, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)` 
+          : '0 4px 12px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.05)'
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -160,7 +162,7 @@ function KPICard({ title, value, icon, color, trend, onClick, theme, isMobile })
 // ============ MAIN COMPONENT ============
 export default function AdminDashboard() {
   // Use language context
-  const { language, t, toggleLanguage } = useLanguage()
+  const { language, t, toggleLanguage } = useAdminLanguage()
   const windowSize = useWindowSize()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   
@@ -189,14 +191,32 @@ export default function AdminDashboard() {
   const [usersWithSocietes, setUsersWithSocietes] = useState([])
   const [societesLoading, setSocietesLoading] = useState(false)
   const [societesSearchTerm, setSocietesSearchTerm] = useState('')
-  const [societesSortBy, setSocietiesSortBy] = useState('recent')
+  const [societesSortBy, setSocietesSortBy] = useState('most')
   const [expandedManagerId, setExpandedManagerId] = useState(null)
   const [selectedUserSocietes, setSelectedUserSocietes] = useState(null)
   const [showSocietesModal, setShowSocietesModal] = useState(false)
   const [showAddUserForm, setShowAddUserForm] = useState(false)
-  const [newUserData, setNewUserData] = useState({ name: '', email: '', password: '', status: 'pending', role: 'user' })
+  const [newUserData, setNewUserData] = useState({ name: '', email: '', phone: '', password: '', status: 'pending', role: 'user' })
   const [addUserLoading, setAddUserLoading] = useState(false)
+  const [showUserProfileModal, setShowUserProfileModal] = useState(false)
+  const [selectedUserProfile, setSelectedUserProfile] = useState(null)
+  const [societesSubTab, setSocietesSubTab] = useState('with-companies')
+  const [societesUserSearch, setSocietesUserSearch] = useState('')
   const pageSize = 10
+
+  // Sort societies helper function
+  const sortSocietes = (sorties) => {
+    return [...sorties].sort((a, b) => {
+      if (societesSortBy === 'recent') {
+        return new Date(b.created_at || 0) - new Date(a.created_at || 0)
+      } else if (societesSortBy === 'oldest') {
+        return new Date(a.created_at || 0) - new Date(b.created_at || 0)
+      } else if (societesSortBy === 'name') {
+        return (a.nom || '').localeCompare(b.nom || '')
+      }
+      return 0
+    })
+  }
 
   const currentTheme = THEMES[theme]
 
@@ -276,8 +296,8 @@ export default function AdminDashboard() {
       }
     }
 
-    if (activeTab === 'users') fetchUsers()
-  }, [activeTab, isAuthenticated])
+    fetchUsers()
+  }, [isAuthenticated])
 
   // Fetch Pending
   useEffect(() => {
@@ -310,7 +330,7 @@ export default function AdminDashboard() {
   const handleApprove = async (userId) => {
     try {
       await api.put(`/admin/users/${userId}/approve`)
-      showToast('Utilisateur approuvé', 'success')
+      showToast(t('user_approved'), 'success')
       setPendingUsers(pendingUsers.filter(u => u.id !== userId))
     } catch (error) {
       showToast('Erreur lors de l\'approbation', 'error')
@@ -320,7 +340,7 @@ export default function AdminDashboard() {
   const handleReject = async (userId) => {
     try {
       await api.put(`/admin/users/${userId}/reject`)
-      showToast('Utilisateur rejeté', 'success')
+      showToast(t('user_rejected'), 'success')
       setPendingUsers(pendingUsers.filter(u => u.id !== userId))
     } catch (error) {
       showToast('Erreur lors du rejet', 'error')
@@ -369,10 +389,7 @@ export default function AdminDashboard() {
     localStorage.removeItem('adminTheme')
     localStorage.removeItem('adminLang')
     // Redirect to frontend login
-    const frontendUrl = window.location.hostname.includes('netlify')
-      ? 'https://simpletax2.netlify.app/login'
-      : '/login'
-    window.location.href = frontendUrl
+    window.location.href = (process.env.REACT_APP_FRONTEND_URL || 'http://localhost:3000') + '/login'
   }
 
   // Fetch messages - FIX BUG 6
@@ -404,7 +421,7 @@ export default function AdminDashboard() {
         setUsersWithSocietes(response.data || [])
       } catch (error) {
         console.error('Error fetching users with societes:', error)
-        showToast(language === 'FR' ? 'Erreur lors du chargement des sociétés' : 'Error loading companies', 'error')
+        showToast(t('error_loading_companies'), 'error')
       } finally {
         setSocietesLoading(false)
       }
@@ -440,7 +457,7 @@ export default function AdminDashboard() {
       setEditLoading(true)
       await api.put(`/admin/users/${editingUser.id}`, editFormData)
       setUsers(users.map(u => u.id === editingUser.id ? { ...u, ...editFormData } : u))
-      showToast('Utilisateur mis à jour', 'success')
+      showToast(t('user_updated'), 'success')
       setEditingUser(null)
     } catch (error) {
       showToast('Erreur lors de la mise à jour', 'error')
@@ -450,17 +467,17 @@ export default function AdminDashboard() {
   }
 
   const handleAddUser = async () => {
-    if (!newUserData.name || !newUserData.email || !newUserData.password) {
+    if (!newUserData.name || !newUserData.email || !newUserData.phone || !newUserData.password) {
       showToast('Veuillez remplir tous les champs', 'error')
       return
     }
     try {
       setAddUserLoading(true)
       const response = await api.post('/admin/users', newUserData)
-      setUsers([...users, response.data])
-      showToast('Utilisateur créé avec succès', 'success')
+      setUsers([...users, response.data.data])
+      showToast(t('user_created'), 'success')
       setShowAddUserForm(false)
-      setNewUserData({ name: '', email: '', password: '', status: 'pending', role: 'user' })
+      setNewUserData({ name: '', email: '', phone: '', password: '', status: 'pending', role: 'user' })
     } catch (error) {
       showToast('Erreur lors de la création de l\'utilisateur', 'error')
     } finally {
@@ -487,7 +504,7 @@ export default function AdminDashboard() {
           <div style={{ fontSize: 48, marginBottom: 20 }}>🔐</div>
           <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 10 }}>Accès refusé</div>
           <div style={{ color: currentTheme.textMuted, marginBottom: 30 }}>Connectez-vous en tant qu'administrateur</div>
-          <a href={window.location.hostname.includes('netlify') ? 'https://simpletax2.netlify.app/login' : '/login'} style={{
+          <a href={(process.env.REACT_APP_FRONTEND_URL || 'http://localhost:3000') + '/login'} style={{
             display: 'inline-block',
             padding: '12px 24px',
             background: currentTheme.accentGreen,
@@ -545,12 +562,19 @@ export default function AdminDashboard() {
         }
         console.log('Stats data:', stats)
 
+        // Fallback to users list if API doesn't return lastRegisteredUser
+        const lastUser = stats.lastRegisteredUser?.firstname 
+          ? `${stats.lastRegisteredUser.firstname} ${stats.lastRegisteredUser.lastname}`
+          : users.length > 0 
+            ? (users[0].name || `${users[0].firstname || ''} ${users[0].lastname || ''}`.trim())
+            : null
+
         return (
           <div>
             {/* Page Header */}
-            <div style={{ marginBottom: '40px' }}>
-              <div style={{ fontSize: isMobile ? 20 : 42, fontWeight: 800, marginBottom: 8, color: currentTheme.textPrimary }}>{t('hello_admin')} 👋</div>
-              <div style={{ fontSize: isMobile ? 13 : 16, color: currentTheme.textMuted, marginBottom: 16 }}>{t('platform_info')}</div>
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ fontSize: isMobile ? 20 : 36, fontWeight: 800, marginBottom: 8, color: currentTheme.textPrimary }}>{t('hello_admin')} 👋</div>
+              <div style={{ fontSize: isMobile ? 13 : 15, color: currentTheme.textMuted, marginBottom: 12 }}>{t('platform_info')}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 32, flexWrap: 'wrap' }}>
                 <div style={{ fontSize: isMobile ? 20 : 28, fontWeight: 900, color: currentTheme.accentGreen }}><Clock /></div>
                 <div style={{ fontSize: isMobile ? 12 : 13, color: currentTheme.textMuted, fontWeight: 600 }}>
@@ -560,7 +584,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* KPI Cards - 4 columns on desktop, 2 on tablet, 1 on mobile */}
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : isTablet ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? 12 : 24, marginBottom: 40 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : isTablet ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? 12 : 20, marginBottom: 28 }}>
               <KPICard title={t('total_users_label')} value={stats.totalUsers || 0} icon="👥" color="green" trend={`+${stats.newUsersThisMonth || 0} ${t('this_month')}`} onClick={() => setActiveTab('users')} theme={currentTheme} isMobile={isMobile} />
               <KPICard title={t('pending_users')} value={stats.pendingUsers || 0} icon="⏳" color="amber" trend={stats.pendingUsers > 0 ? t('action_required') : t('up_to_date')} onClick={() => setActiveTab('pending')} theme={currentTheme} isMobile={isMobile} />
               <KPICard title={t('companies_label')} value={stats.totalSocietes || 0} icon="🏢" color="blue" trend={`${stats.avgSocietesPerUser?.toFixed(1) || 0} ${t('average')}`} onClick={() => setActiveTab('societes')} theme={currentTheme} isMobile={isMobile} />
@@ -568,13 +592,13 @@ export default function AdminDashboard() {
             </div>
 
             {/* Info Banner */}
-            <div style={{ background: theme === 'light' ? 'rgba(16,185,129,0.08)' : 'rgba(0,212,160,0.08)', border: `1px solid ${theme === 'light' ? 'rgba(16,185,129,0.2)' : 'rgba(0,212,160,0.2)'}`, borderRadius: 12, padding: '16px 20px', marginBottom: 40, color: currentTheme.textMuted, fontSize: 13, display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ background: theme === 'light' ? 'rgba(16,185,129,0.08)' : 'rgba(0,212,160,0.08)', border: `1px solid ${theme === 'light' ? 'rgba(16,185,129,0.2)' : 'rgba(0,212,160,0.2)'}`, borderRadius: 12, padding: '14px 16px', marginBottom: 24, color: currentTheme.textMuted, fontSize: 13, display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: 20 }}>💡</span>
-              <span>{language === 'FR' ? 'Les déclarations sont gérées directement par les utilisateurs dans leurs comptes respectifs.' : 'Declarations are managed directly by users in their respective accounts.'}</span>
+              <span>{t('declarations_managed_info')}</span>
             </div>
 
             {/* Charts Row */}
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 0.8fr', gap: 24, marginBottom: 40 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 0.8fr', gap: 20, marginBottom: 28 }}>
               {/* Line Chart */}
               <div style={{ background: currentTheme.bgCard, border: `1px solid ${currentTheme.border}`, borderRadius: 16, padding: 28, backdropFilter: 'blur(12px)', transition: 'all 0.3s ease', boxShadow: theme === 'light' ? '0 1px 3px rgba(0,0,0,0.05)' : 'none' }}>
                 <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, marginBottom: 24, color: currentTheme.textPrimary }}>📈 {t('user_evolution')}</div>
@@ -669,7 +693,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Stats Strip */}
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: 24, marginBottom: 40 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: 20, marginBottom: 28 }}>
               <div style={{ background: currentTheme.bgCard, border: `1px solid ${currentTheme.border}`, borderRadius: 16, padding: 24, backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', gap: 16, boxShadow: theme === 'light' ? '0 2px 8px rgba(0,0,0,0.08)' : '0 8px 32px rgba(0,0,0,0.1)' }}>
                 <div style={{ width: 56, height: 56, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, background: theme === 'light' ? 'rgba(16,185,129,0.1)' : 'rgba(0,212,160,0.15)' }}>📊</div>
                 <div>
@@ -680,7 +704,7 @@ export default function AdminDashboard() {
               <div style={{ background: currentTheme.bgCard, border: `1px solid ${currentTheme.border}`, borderRadius: 16, padding: 24, backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', gap: 16, boxShadow: theme === 'light' ? '0 2px 8px rgba(0,0,0,0.08)' : '0 8px 32px rgba(0,0,0,0.1)' }}>
                 <div style={{ width: 56, height: 56, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, background: theme === 'light' ? 'rgba(59,130,246,0.1)' : 'rgba(0,153,255,0.15)' }}>👤</div>
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('New Users') || 'NOUVEAUX UTILISATEURS'}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('new_users_month')}</div>
                   <div style={{ fontSize: 28, fontWeight: 900, marginTop: 4, color: currentTheme.textPrimary }}>{stats.newUsersThisMonth || 0}</div>
                   <div style={{ fontSize: 12, fontWeight: 600, marginTop: 8, color: currentTheme.accentGreen }}>+{stats.newUsersThisMonth || 0} {t('this_month')}</div>
                 </div>
@@ -689,8 +713,8 @@ export default function AdminDashboard() {
                 <div style={{ width: 56, height: 56, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, background: theme === 'light' ? 'rgba(139,92,246,0.1)' : 'rgba(139,92,246,0.15)' }}>⚡</div>
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('active_user_label')}</div>
-                  <div style={{ fontSize: 20, fontWeight: 900, marginTop: 4, color: currentTheme.textPrimary }}>{stats.lastRegisteredUser?.firstname && stats.lastRegisteredUser?.lastname ? `${stats.lastRegisteredUser.firstname} ${stats.lastRegisteredUser.lastname}` : 'Aucun'}</div>
-                  <div style={{ fontSize: 12, fontWeight: 600, marginTop: 8, color: currentTheme.textMuted }}>Dernière inscription</div>
+                  <div style={{ fontSize: 20, fontWeight: 900, marginTop: 4, color: currentTheme.textPrimary }}>{lastUser || t('none')}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, marginTop: 8, color: currentTheme.textMuted }}>{t('last_registration')}</div>
                 </div>
               </div>
             </div>
@@ -700,10 +724,10 @@ export default function AdminDashboard() {
       case 'users':
         return (
           <div>
-            <div style={{ marginBottom: 40, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
               <div>
-                <div style={{ fontSize: isMobile ? 20 : 42, fontWeight: 800, marginBottom: 8, color: currentTheme.textPrimary }}>{t('users')}</div>
-                <div style={{ fontSize: isMobile ? 13 : 16, color: currentTheme.textMuted }}>{t('manage_users')}</div>
+                <div style={{ fontSize: isMobile ? 20 : 36, fontWeight: 800, marginBottom: 6, color: currentTheme.textPrimary }}>{t('users')}</div>
+                <div style={{ fontSize: isMobile ? 13 : 15, color: currentTheme.textMuted }}>{t('manage_users')}</div>
               </div>
               <button
                 onClick={() => setShowAddUserForm(true)}
@@ -735,7 +759,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Filters */}
-            <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
               <input
                 type="text"
                 placeholder={t('search_placeholder')}
@@ -787,37 +811,45 @@ export default function AdminDashboard() {
                 <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 20, overflow: 'hidden', backdropFilter: 'blur(12px)' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
-                      <tr style={{ background: `linear-gradient(90deg, rgba(0,212,160,0.08), rgba(0,153,255,0.08))`, borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                        <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#94a3b8' }}>{t('user_label')}</th>
-                        {!isMobile && <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#94a3b8' }}>{t('email_label')}</th>}
-                        <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#94a3b8' }}>{t('status_label')}</th>
-                        {!isMobile && <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('registered_label')}</th>}
-                        <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('actions_label')}</th>
+                      <tr style={{ background: `linear-gradient(90deg, rgba(0,212,160,0.06), rgba(0,153,255,0.06))`, borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                        <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8' }}>{t('user_label')}</th>
+                        {!isMobile && <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8' }}>{t('email_label')}</th>}
+                        <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8' }}>{t('status_label')}</th>
+                        {!isMobile && <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('registered_label')}</th>}
+                        <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('actions_label')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {paginatedUsers.map(user => (
                         <tr key={user.id} style={{ borderBottom: `1px solid ${currentTheme.border}`, transition: 'all 0.2s ease' }}>
-                          <td style={{ padding: '16px 20px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                              <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #00d4a0, #0099ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14, color: currentTheme.bgMain }}>
+                          <td style={{ padding: '12px 14px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                              <div 
+                                onClick={() => {
+                                  setSelectedUserProfile(user)
+                                  setShowUserProfileModal(true)
+                                }}
+                                style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #00d4a0, #0099ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 12, color: currentTheme.bgMain, flexShrink: 0, cursor: 'pointer', transition: 'all 0.2s ease' }}
+                                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                              >
                                 {getInitials((user.firstname || '') + ' ' + (user.lastname || ''))}
                               </div>
-                              <div>
-                                <div style={{ fontSize: 14, fontWeight: 700, color: currentTheme.textPrimary }}>{user.name || (user.firstname + ' ' + user.lastname)}</div>
-                                <div style={{ fontSize: 12, color: currentTheme.textMuted }}>{user.company || '—'}</div>
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ fontSize: 13, fontWeight: 600, color: currentTheme.textPrimary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name || (user.firstname + ' ' + user.lastname)}</div>
+                                <div style={{ fontSize: 11, color: currentTheme.textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.company || '—'}</div>
                               </div>
                             </div>
                           </td>
-                          {!isMobile && <td style={{ padding: '16px 20px', color: currentTheme.textSecondary, fontSize: 14 }}>{user.email}</td>}
-                          <td style={{ padding: '16px 20px' }}>
+                          {!isMobile && <td style={{ padding: '12px 14px', color: currentTheme.textSecondary, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</td>}
+                          <td style={{ padding: '12px 14px' }}>
                             <span style={{
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: 6,
-                              padding: '6px 12px',
-                              borderRadius: 20,
-                              fontSize: 12,
+                              gap: 4,
+                              padding: '5px 10px',
+                              borderRadius: 16,
+                              fontSize: 11,
                               fontWeight: 700,
                               background: user.status === 'approved' ? 'rgba(0,212,160,0.1)' : user.status === 'pending' ? 'rgba(251,191,36,0.1)' : 'rgba(239,68,68,0.1)',
                               color: user.status === 'approved' ? currentTheme.accentGreen : user.status === 'pending' ? currentTheme.accentAmber : '#ef4444',
@@ -826,9 +858,35 @@ export default function AdminDashboard() {
                               {user.status === 'approved' ? '✓' : user.status === 'pending' ? '⏳' : '✗'} {user.status}
                             </span>
                           </td>
-                          {!isMobile && <td style={{ padding: '16px 20px', color: currentTheme.textSecondary, fontSize: 14 }}>{user.created_at ? new Date(user.created_at).toLocaleDateString('fr-FR') : '—'}</td>}
-                          <td style={{ padding: '16px 20px' }}>
+                          {!isMobile && <td style={{ padding: '12px 14px', color: currentTheme.textSecondary, fontSize: 13 }}>{user.created_at ? new Date(user.created_at).toLocaleDateString('fr-FR') : '—'}</td>}
+                          <td style={{ padding: '12px 14px' }}>
                             <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                              <button
+                                onClick={() => {
+                                  setSelectedUserProfile(user)
+                                  setShowUserProfileModal(true)
+                                }}
+                                style={{
+                                  padding: '4px 10px',
+                                  background: 'transparent',
+                                  border: '1px solid #10b981',
+                                  borderRadius: 6,
+                                  color: '#10b981',
+                                  fontWeight: 600,
+                                  cursor: 'pointer',
+                                  fontSize: 16,
+                                  fontFamily: 'inherit',
+                                  transition: 'all 0.2s ease',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                                onMouseEnter={(e) => {e.target.style.background = 'rgba(16,185,129,0.1)'}}
+                                onMouseLeave={(e) => {e.target.style.background = 'transparent'}}
+                                title={t('view_profile')}
+                              >
+                                👁
+                              </button>
                               <button
                                 onClick={() => handleEditUser(user)}
                                 style={{
@@ -853,7 +911,7 @@ export default function AdminDashboard() {
                                 onClick={() => {
                                   if (deleteUserId === user.id) {
                                     api.delete(`/admin/users/${user.id}`).then(() => {
-                                      showToast('Utilisateur supprimé', 'success')
+                                      showToast(t('user_deleted'), 'success')
                                       setUsers(users.filter(u => u.id !== user.id))
                                       setDeleteUserId(null)
                                     }).catch(() => {
@@ -956,51 +1014,51 @@ export default function AdminDashboard() {
       case 'pending':
         return (
           <div>
-            <div style={{ marginBottom: 40 }}>
-              <div style={{ fontSize: isMobile ? 20 : 42, fontWeight: 800, marginBottom: 8, color: currentTheme.textPrimary }}>{t('pending_approval')}</div>
-              <div style={{ fontSize: isMobile ? 13 : 16, color: currentTheme.textMuted }}>{t('approve_reject')}</div>
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: isMobile ? 20 : 36, fontWeight: 800, marginBottom: 6, color: currentTheme.textPrimary }}>{t('pending_approval')}</div>
+              <div style={{ fontSize: isMobile ? 13 : 15, color: currentTheme.textMuted }}>{t('approve_reject')}</div>
             </div>
 
             {/* Loading screens */}
             {loading ? (
-              <div style={{ textAlign: 'center', padding: '40px 20px', color: currentTheme.textMuted }}>{t('loading')}</div>
+              <div style={{ textAlign: 'center', padding: '32px 16px', color: currentTheme.textMuted }}>{t('loading')}</div>
             ) : pendingUsers.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '60px 20px', color: currentTheme.textMuted }}>
-                <div style={{ fontSize: 48, marginBottom: 10 }}>✅</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: currentTheme.textPrimary, marginBottom: 8 }}>{t('no_pending')}</div>
+              <div style={{ textAlign: 'center', padding: '48px 16px', color: currentTheme.textMuted }}>
+                <div style={{ fontSize: 48, marginBottom: 8 }}>✅</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: currentTheme.textPrimary, marginBottom: 6 }}>{t('no_pending')}</div>
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: 24 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
                 {pendingUsers.map(user => (
                   <div key={user.id} style={{
                     background: currentTheme.bgCard,
-                    border: `3px solid rgba(251,191,36,0.3)`,
+                    border: `2px solid rgba(251,191,36,0.3)`,
                     borderTop: '3px solid #fbbf24',
-                    borderRadius: 16,
-                    padding: 20,
+                    borderRadius: 12,
+                    padding: 18,
                     backdropFilter: 'blur(10px)',
                     transition: 'all 0.2s ease'
                   }}>
-                    <div style={{ display: 'flex', gap: 12, marginBottom: 16, paddingBottom: 16, borderBottom: `1px solid ${currentTheme.border}` }}>
-                      <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14, color: currentTheme.bgMain, flexShrink: 0 }}>
+                    <div style={{ display: 'flex', gap: 12, marginBottom: 14, paddingBottom: 14, borderBottom: `1px solid ${currentTheme.border}` }}>
+                      <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 12, color: currentTheme.bgMain, flexShrink: 0 }}>
                         {getInitials((user.first_name || '') + ' ' + (user.last_name || ''))}
                       </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 16, fontWeight: 800, color: currentTheme.textPrimary }}>{user.first_name} {user.last_name}</div>
-                        <div style={{ fontSize: 13, color: currentTheme.textMuted }}>{user.email}</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: currentTheme.textPrimary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.first_name} {user.last_name}</div>
+                        <div style={{ fontSize: 12, color: currentTheme.textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</div>
                       </div>
                     </div>
 
-                    <div style={{ marginBottom: 16 }}>
+                    <div style={{ marginBottom: 14 }}>
                       {[['Société', user.company], ['Téléphone', user.phone], ['Email vérifié', user.email_verified_at ? '✓' : '✗']].map(([label, value], idx) => (
-                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 8, color: currentTheme.textMuted }}>
+                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 6, color: currentTheme.textMuted }}>
                           <span>{label}:</span>
                           <span style={{ fontWeight: 600, color: currentTheme.textPrimary }}>{value || '—'}</span>
                         </div>
                       ))}
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                       <button
                         onClick={() => handleApprove(user.id)}
                         style={{
@@ -1047,20 +1105,20 @@ export default function AdminDashboard() {
         // FIX BUG 6: Messages tab
         return (
           <div>
-            <div style={{ marginBottom: 40 }}>
-              <div style={{ fontSize: isMobile ? 20 : 42, fontWeight: 800, marginBottom: 8, color: currentTheme.textPrimary }}>{t('messages')}</div>
-              <div style={{ fontSize: isMobile ? 13 : 16, color: currentTheme.textMuted }}>{t('contact_messages')}</div>
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: isMobile ? 20 : 36, fontWeight: 800, marginBottom: 6, color: currentTheme.textPrimary }}>{t('messages')}</div>
+              <div style={{ fontSize: isMobile ? 13 : 15, color: currentTheme.textMuted }}>{t('contact_messages')}</div>
             </div>
 
             {loading ? (
-              <div style={{ textAlign: 'center', padding: '40px 20px', color: currentTheme.textMuted }}>{t('loading')}</div>
+              <div style={{ textAlign: 'center', padding: '32px 16px', color: currentTheme.textMuted }}>{t('loading')}</div>
             ) : messages.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '60px 20px', color: currentTheme.textMuted }}>
-                <div style={{ fontSize: 48, marginBottom: 10 }}>📧</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: currentTheme.textPrimary, marginBottom: 8 }}>{t('no_messages')}</div>
+              <div style={{ textAlign: 'center', padding: '48px 16px', color: currentTheme.textMuted }}>
+                <div style={{ fontSize: 48, marginBottom: 8 }}>📧</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: currentTheme.textPrimary, marginBottom: 6 }}>{t('no_messages')}</div>
               </div>
             ) : (
-              <div style={{ display: 'grid', gap: 12 }}>
+              <div style={{ display: 'grid', gap: 10 }}>
                 {messages.map(msg => (
                   <div key={msg.id}>
                     <div
@@ -1092,7 +1150,7 @@ export default function AdminDashboard() {
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
                         <span style={{ padding: '4px 12px', borderRadius: 6, fontSize: 11, fontWeight: 600, background: msg.status === 'unread' ? `rgba(251,191,36,0.1)` : `rgba(0,212,160,0.1)`, color: msg.status === 'unread' ? currentTheme.accentAmber : currentTheme.accentGreen }}>
-                          {msg.status === 'unread' ? t('unread') : 'Lu'}
+                          {msg.status === 'unread' ? t('unread') : t('read')}
                         </span>
                         <span style={{ fontSize: 12, color: currentTheme.textMuted }}>{new Date(msg.created_at).toLocaleDateString('fr-FR')}</span>
                       </div>
@@ -1112,72 +1170,55 @@ export default function AdminDashboard() {
           </div>
         )
 
-      case 'societes':
-        // Filter users with societies by search term
+       case 'societes':
+        // Filter users WITH societies by search term
         const filteredUsersWithSocietes = usersWithSocietes.filter(user => {
-          const userName = `${user.firstname || ''} ${user.lastname || ''} ${user.email || ''}`.toLowerCase()
-          const matchesUserSearch = societesSearchTerm === '' || userName.includes(societesSearchTerm.toLowerCase())
+          const userName = `${user.firstname || ''} ${user.lastname || ''} ${user.name || ''} ${user.email || ''}`.toLowerCase()
+          const matchesUserSearch = societesUserSearch === '' || userName.includes(societesUserSearch.toLowerCase())
           
           if (!matchesUserSearch) return false
           
           // Also check if any of their societies match
           const hasSocietesMatch = user.societes?.some(s =>
-            s.nom?.toLowerCase().includes(societesSearchTerm.toLowerCase()) ||
-            s.if?.toLowerCase().includes(societesSearchTerm.toLowerCase()) ||
-            s.ice?.toLowerCase().includes(societesSearchTerm.toLowerCase())
+            s.nom?.toLowerCase().includes(societesUserSearch.toLowerCase()) ||
+            s.if?.toLowerCase().includes(societesUserSearch.toLowerCase()) ||
+            s.ice?.toLowerCase().includes(societesUserSearch.toLowerCase())
           )
           
           return matchesUserSearch || hasSocietesMatch
+        }).sort((a, b) => {
+          // Sort users by number of societies
+          const countA = a.societes?.length || 0
+          const countB = b.societes?.length || 0
+          
+          if (societesSortBy === 'most') {
+            return countB - countA  // Most societies first (descending)
+          } else if (societesSortBy === 'least') {
+            return countA - countB  // Least societies first (ascending)
+          }
+          return 0
         })
-        
-        // Sort societies within each user
-        const sortSocietes = (sorties) => {
-          return [...sorties].sort((a, b) => {
-            if (societesSortBy === 'recent') {
-              return new Date(b.created_at || 0) - new Date(a.created_at || 0)
-            } else if (societesSortBy === 'oldest') {
-              return new Date(a.created_at || 0) - new Date(b.created_at || 0)
-            } else if (societesSortBy === 'name') {
-              return (a.nom || '').localeCompare(b.nom || '')
-            }
-            return 0
-          })
-        }
         
         return (
           <div>
-            <div style={{ marginBottom: 40 }}>
-              <div style={{ fontSize: isMobile ? 24 : 42, fontWeight: 800, marginBottom: 8, color: currentTheme.textPrimary }}>
-                🏢 {language === 'FR' ? 'Utilisateurs & Sociétés' : 'Users & Companies'}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: isMobile ? 20 : 36, fontWeight: 800, marginBottom: 6, color: currentTheme.textPrimary }}>
+                🏢 {t('users_companies')}
               </div>
-              <div style={{ fontSize: isMobile ? 13 : 16, color: currentTheme.textMuted }}>
-                {language === 'FR' ? 'Gestion des sociétés par utilisateur' : 'Manage companies by user'}
+              <div style={{ fontSize: isMobile ? 13 : 15, color: currentTheme.textMuted }}>
+                {t('manage_companies_by_user')}
               </div>
             </div>
-
-            {/* Search and Sort */}
-            <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap', alignItems: 'center' }}>
+            
+            {/* Search Bar */}
+            <div style={{ marginBottom: 20 }}>
               <input
                 type="text"
-                placeholder={language === 'FR' ? 'Rechercher par utilisateur, société, IF ou ICE...' : 'Filter by user, company, IF or ICE...'}
-                value={societesSearchTerm}
-                onChange={(e) => setSocietesSearchTerm(e.target.value)}
+                placeholder="Rechercher un utilisateur..."
+                value={societesUserSearch}
+                onChange={(e) => setSocietesUserSearch(e.target.value)}
                 style={{
-                  flex: 1,
-                  minWidth: 250,
-                  padding: '12px 16px',
-                  background: currentTheme.bgCard,
-                  border: `1px solid ${currentTheme.border}`,
-                  borderRadius: 8,
-                  color: currentTheme.textPrimary,
-                  fontSize: 14,
-                  fontFamily: 'inherit'
-                }}
-              />
-              <select
-                value={societesSortBy}
-                onChange={(e) => setSocietiesSortBy(e.target.value)}
-                style={{
+                  width: '100%',
                   padding: '12px 16px',
                   background: currentTheme.bgCard,
                   border: `1px solid ${currentTheme.border}`,
@@ -1185,122 +1226,122 @@ export default function AdminDashboard() {
                   color: currentTheme.textPrimary,
                   fontSize: 14,
                   fontFamily: 'inherit',
-                  cursor: 'pointer'
+                  transition: 'all 0.2s ease'
                 }}
+              />
+            </div>
+            
+            {/* Sort Arrows */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: currentTheme.textMuted }}>{language === 'FR' ? 'Trier par:' : 'Sort by:'}</span>
+              <button
+                onClick={() => setSocietesSortBy('most')}
+                style={{
+                  padding: '8px 16px',
+                  background: 'transparent',
+                  border: `1px solid ${societesSortBy === 'most' ? currentTheme.accentGreen : currentTheme.border}`,
+                  borderRadius: 6,
+                  color: societesSortBy === 'most' ? currentTheme.accentGreen : currentTheme.textMuted,
+                  fontWeight: societesSortBy === 'most' ? 700 : 500,
+                  fontSize: 18,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  transition: 'all 0.2s ease'
+                }}
+                title={language === 'FR' ? 'Plus de sociétés' : 'Most companies'}
               >
-                <option value="recent">{language === 'FR' ? 'Plus récentes' : 'Most Recent'}</option>
-                <option value="oldest">{language === 'FR' ? 'Plus anciennes' : 'Oldest'}</option>
-                <option value="name">{language === 'FR' ? 'Nom (A-Z)' : 'Name (A-Z)'}</option>
-              </select>
+                ↑
+              </button>
+              <button
+                onClick={() => setSocietesSortBy('least')}
+                style={{
+                  padding: '8px 16px',
+                  background: 'transparent',
+                  border: `1px solid ${societesSortBy === 'least' ? currentTheme.accentGreen : currentTheme.border}`,
+                  borderRadius: 6,
+                  color: societesSortBy === 'least' ? currentTheme.accentGreen : currentTheme.textMuted,
+                  fontWeight: societesSortBy === 'least' ? 700 : 500,
+                  fontSize: 18,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  transition: 'all 0.2s ease'
+                }}
+                title={language === 'FR' ? 'Moins de sociétés' : 'Least companies'}
+              >
+                ↓
+              </button>
             </div>
 
             {/* Content */}
-            {societesLoading ? (
-              <div style={{ textAlign: 'center', padding: '60px 20px', color: currentTheme.textMuted }}>
-                <div style={{ fontSize: 16 }}>{language === 'FR' ? 'Chargement...' : 'Loading...'}</div>
-              </div>
+            {
+            societesLoading ? (
+              <div style={{ textAlign: 'center', padding: '32px 16px', color: currentTheme.textMuted }}>{t('loading')}</div>
             ) : filteredUsersWithSocietes.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '60px 20px', color: currentTheme.textMuted }}>
-                <div style={{ fontSize: 48, marginBottom: 10 }}>📭</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: currentTheme.textPrimary, marginBottom: 8 }}>
-                  {language === 'FR' ? 'Aucune donnée trouvée' : 'No data found'}
-                </div>
-                <div style={{ fontSize: 14, color: currentTheme.textMuted }}>
-                  {language === 'FR' ? 'Aucun utilisateur avec des sociétés n\'a été trouvé' : 'No users with companies found'}
-                </div>
+              <div style={{ textAlign: 'center', padding: '48px 16px', color: currentTheme.textMuted }}>
+                <div style={{ fontSize: 48, marginBottom: 8 }}>🔍</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: currentTheme.textPrimary, marginBottom: 6 }}>{t('no_users_found')}</div>
               </div>
             ) : (
-              <div style={{}}>
-                {/* Table Layout */}
-                <div style={{ overflowX: 'auto', borderRadius: 12, border: `1px solid ${currentTheme.border}`, background: currentTheme.bgCard, backdropFilter: 'blur(10px)' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'inherit' }}>
-                    <thead>
-                      <tr style={{ borderBottom: `1px solid ${currentTheme.border}`, background: `linear-gradient(90deg, rgba(0,212,160,0.08), rgba(0,153,255,0.08))` }}>
-                        <th style={{ padding: '16px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: currentTheme.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                          {language === 'FR' ? 'Utilisateur' : 'User'}
-                        </th>
-                        <th style={{ padding: '16px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: currentTheme.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                          {language === 'FR' ? 'Email' : 'Email'}
-                        </th>
-                        <th style={{ padding: '16px', textAlign: 'center', fontSize: 12, fontWeight: 700, color: currentTheme.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                          {language === 'FR' ? 'Rôle' : 'Role'}
-                        </th>
-                        <th style={{ padding: '16px', textAlign: 'center', fontSize: 12, fontWeight: 700, color: currentTheme.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                          {language === 'FR' ? 'Sociétés' : 'Companies'}
-                        </th>
-                        <th style={{ padding: '16px', textAlign: 'center', fontSize: 12, fontWeight: 700, color: currentTheme.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                          {language === 'FR' ? 'Action' : 'Action'}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredUsersWithSocietes.map((user, idx) => (
-                        <tr
-                          key={user.id}
-                          style={{
-                            borderBottom: `1px solid ${currentTheme.border}`,
-                            background: idx % 2 === 0 ? 'transparent' : `rgba(0,212,160,0.02)`,
-                            transition: 'background 0.2s ease',
-                            cursor: 'pointer'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = `rgba(0,212,160,0.05)`}
-                          onMouseLeave={(e) => e.currentTarget.style.background = idx % 2 === 0 ? 'transparent' : `rgba(0,212,160,0.02)`}
-                        >
-                          <td style={{ padding: '16px', fontSize: 14 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                              <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #00d4a0, #0099ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 12, color: currentTheme.bgMain, flexShrink: 0 }}>
-                                {getInitials(`${user.firstname || ''} ${user.lastname || ''}`)}
-                              </div>
-                              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                <div style={{ fontSize: 14, fontWeight: 600, color: currentTheme.textPrimary }}>
-                                  {user.firstname} {user.lastname}
-                                </div>
-                                <div style={{ fontSize: 12, color: currentTheme.textMuted }}>
-                                  ID: {user.id ? String(user.id).slice(0, 8) : 'N/A'}...
-                                </div>
-                              </div>
+              <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 20, overflow: 'hidden', backdropFilter: 'blur(12px)' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ background: `linear-gradient(90deg, rgba(0,212,160,0.06), rgba(0,153,255,0.06))`, borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                      <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8' }}>{t('user_label')}</th>
+                      <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8' }}>{t('companies_label')}</th>
+                      <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{language === 'FR' ? 'Créé' : 'Created'}</th>
+                      <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('actions_label')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredUsersWithSocietes.map(user => (
+                      <tr key={user.id} style={{ borderBottom: `1px solid ${currentTheme.border}`, transition: 'all 0.2s ease' }}>
+                        <td style={{ padding: '12px 14px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #00d4a0, #0099ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 12, color: currentTheme.bgMain, flexShrink: 0 }}>
+                              {getInitials(`${user.firstname || ''} ${user.lastname || ''}`)}
                             </div>
-                          </td>
-                          <td style={{ padding: '16px', fontSize: 14, color: currentTheme.textPrimary }}>
-                            {user.email}
-                          </td>
-                          <td style={{ padding: '16px', fontSize: 13, textAlign: 'center', color: currentTheme.textPrimary }}>
-                            <span style={{ padding: '4px 12px', background: `rgba(0,212,160,0.15)`, color: currentTheme.accentGreen, borderRadius: 6, fontWeight: 600, textTransform: 'capitalize' }}>
-                              {user.role || 'user'}
-                            </span>
-                          </td>
-                          <td style={{ padding: '16px', fontSize: 14, textAlign: 'center', fontWeight: 700, color: currentTheme.accentGreen }}>
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ fontSize: 13, fontWeight: 600, color: currentTheme.textPrimary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.firstname} {user.lastname}</div>
+                              <div style={{ fontSize: 11, color: currentTheme.textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ padding: '12px 14px' }}>
+                          <div style={{ fontSize: 20, fontWeight: 900, color: currentTheme.accentGreen }}>
                             {user.societes?.length || 0}
-                          </td>
-                          <td style={{ padding: '16px', textAlign: 'center' }}>
-                            <button
-                              onClick={() => {
-                                setSelectedUserSocietes(user)
-                                setShowSocietesModal(true)
-                              }}
-                              style={{
-                                padding: '8px 16px',
-                                borderRadius: 6,
-                                border: 'none',
-                                background: 'linear-gradient(135deg, rgba(0,212,160,0.3), rgba(0,153,255,0.2))',
-                                color: currentTheme.accentGreen,
-                                fontWeight: 600,
-                                fontSize: 12,
-                                cursor: 'pointer',
-                                fontFamily: 'inherit',
-                                transition: 'all 0.2s ease'
-                              }}
-                              onMouseEnter={(e) => e.currentTarget.style.background = 'linear-gradient(135deg, rgba(0,212,160,0.5), rgba(0,153,255,0.3))'}
-                              onMouseLeave={(e) => e.currentTarget.style.background = 'linear-gradient(135deg, rgba(0,212,160,0.3), rgba(0,153,255,0.2))'}
-                            >
-                              👁️ {language === 'FR' ? 'Voir' : 'View'}
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                          </div>
+                        </td>
+                        <td style={{ padding: '12px 14px', color: currentTheme.textSecondary, fontSize: 13 }}>
+                          {user.created_at ? new Date(user.created_at).toLocaleDateString(language === 'FR' ? 'fr-FR' : language === 'EN' ? 'en-US' : 'ar-MA') : '—'}
+                        </td>
+                        <td style={{ padding: '12px 14px' }}>
+                          <button
+                            onClick={() => {
+                              setSelectedUserSocietes(user)
+                              setShowSocietesModal(true)
+                            }}
+                            style={{
+                              padding: '6px 14px',
+                              background: 'transparent',
+                              border: '1px solid #0099ff',
+                              borderRadius: 6,
+                              color: '#0099ff',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              fontSize: 12,
+                              fontFamily: 'inherit',
+                              transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {e.target.style.background = 'rgba(0,153,255,0.1)'}}
+                            onMouseLeave={(e) => {e.target.style.background = 'transparent'}}
+                          >
+                            {language === 'FR' ? 'Voir' : 'View'}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
@@ -1309,48 +1350,48 @@ export default function AdminDashboard() {
       case 'settings':
         return (
           <div>
-            <div style={{ marginBottom: 40 }}>
-              <div style={{ fontSize: isMobile ? 20 : 42, fontWeight: 800, marginBottom: 8, color: currentTheme.textPrimary }}>{t('settings')}</div>
-              <div style={{ fontSize: isMobile ? 13 : 16, color: currentTheme.textMuted }}>{t('manage_account')}</div>
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: isMobile ? 20 : 36, fontWeight: 800, marginBottom: 6, color: currentTheme.textPrimary }}>{t('settings')}</div>
+              <div style={{ fontSize: isMobile ? 13 : 15, color: currentTheme.textMuted }}>{t('manage_account')}</div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: windowSize.width < 900 ? '1fr' : '1fr 1fr', gap: 32 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: windowSize.width < 900 ? '1fr' : '1fr 1fr', gap: 24 }}>
               {/* Profile Card */}
-              <div style={{ background: currentTheme.bgCard, border: `1px solid ${currentTheme.border}`, borderRadius: 16, padding: 28, backdropFilter: 'blur(12px)', boxShadow: theme === 'light' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none' }}>
-                <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 24, color: currentTheme.textPrimary }}>👤 {t('admin_profile')}</div>
-                <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted, marginBottom: 8 }}>{t('full_name')}</label>
+              <div style={{ background: currentTheme.bgCard, border: `1px solid ${currentTheme.border}`, borderRadius: 12, padding: 22, backdropFilter: 'blur(12px)', boxShadow: theme === 'light' ? '0 1px 3px rgba(0,0,0,0.05)' : 'none' }}>
+                <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 18, color: currentTheme.textPrimary }}>👤 {t('admin_profile')}</div>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: currentTheme.textMuted, marginBottom: 6 }}>{t('full_name')}</label>
                   <input
                     type="text"
                     value={profileData.name}
                     onChange={e => setProfileData({ ...profileData, name: e.target.value })}
                     style={{
                       width: '100%',
-                      padding: '12px 16px',
+                      padding: '10px 12px',
                       background: currentTheme.bgMain,
                       border: `1px solid ${currentTheme.border}`,
-                      borderRadius: 8,
+                      borderRadius: 6,
                       color: currentTheme.textPrimary,
-                      fontSize: 14,
+                      fontSize: 13,
                       fontFamily: 'inherit',
                       transition: 'all 0.2s ease'
                     }}
                   />
                 </div>
-                <div style={{ marginBottom: 24 }}>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted, marginBottom: 8 }}>{t('email_label')}</label>
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: currentTheme.textMuted, marginBottom: 6 }}>{t('email_label')}</label>
                   <input
                     type="email"
                     value={profileData.email}
                     onChange={e => setProfileData({ ...profileData, email: e.target.value })}
                     style={{
                       width: '100%',
-                      padding: '12px 16px',
+                      padding: '10px 12px',
                       background: currentTheme.bgMain,
                       border: `1px solid ${currentTheme.border}`,
-                      borderRadius: 8,
+                      borderRadius: 6,
                       color: currentTheme.textPrimary,
-                      fontSize: 14,
+                      fontSize: 13,
                       fontFamily: 'inherit',
                       transition: 'all 0.2s ease'
                     }}
@@ -1361,18 +1402,18 @@ export default function AdminDashboard() {
                   disabled={profileLoading}
                   style={{
                     width: '100%',
-                    padding: '12px 24px',
+                    padding: '10px 16px',
                     background: theme === 'light' ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #00d4a0, #0099ff)',
                     border: 'none',
-                    borderRadius: 8,
+                    borderRadius: 6,
                     color: 'white',
-                    fontWeight: 800,
-                    fontSize: 14,
+                    fontWeight: 700,
+                    fontSize: 13,
                     cursor: profileLoading ? 'not-allowed' : 'pointer',
                     fontFamily: 'inherit',
                     opacity: profileLoading ? 0.7 : 1,
                     transition: 'all 0.2s ease',
-                    boxShadow: theme === 'light' ? '0 4px 12px rgba(16,185,129,0.2)' : '0 4px 12px rgba(0,212,160,0.2)'
+                    boxShadow: theme === 'light' ? '0 2px 8px rgba(16,185,129,0.15)' : '0 2px 8px rgba(0,212,160,0.15)'
                   }}
                 >
                   {profileLoading ? '⏳ ' + t('save') : '💾 ' + t('save')}
@@ -1524,7 +1565,7 @@ export default function AdminDashboard() {
                         e.target.style.boxShadow = 'none'
                       }}
                     >
-                      {language === 'FR' ? 'English (EN)' : 'Français (FR)'}
+                      {language === 'FR' ? 'English (EN)' : language === 'EN' ? 'العربية (AR)' : 'Français (FR)'}
                     </button>
                   </div>
                 </div>
@@ -1571,8 +1612,7 @@ export default function AdminDashboard() {
       fontFamily: "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       transition: 'all 0.3s ease',
       position: 'relative',
-      overflow: 'hidden',
-      paddingTop: isMobile ? '64px' : '0'
+      overflow: 'hidden'
     }}>
       {/* Dark Overlay for Mobile Sidebar */}
       {isMobile && sidebarOpen && (
@@ -1659,11 +1699,19 @@ export default function AdminDashboard() {
                 width: 36,
                 height: 36,
                 borderRadius: 6,
-                background: 'transparent',
-                border: `1px solid ${currentTheme.border}`,
-                color: currentTheme.textSecondary,
+                background: language === 'AR'
+                  ? 'linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.05))'
+                  : language === 'EN'
+                  ? 'linear-gradient(135deg, rgba(59,130,246,0.15), rgba(59,130,246,0.05))'
+                  : 'linear-gradient(135deg, rgba(139,92,246,0.15), rgba(139,92,246,0.05))',
+                border: `1px solid ${language === 'AR' ? 'rgba(16,185,129,0.3)' : language === 'EN' ? 'rgba(59,130,246,0.3)' : 'rgba(139,92,246,0.3)'}`,
+                color: language === 'AR'
+                  ? currentTheme.accentGreen
+                  : language === 'EN'
+                  ? currentTheme.accentBlue
+                  : currentTheme.accentPurple,
                 cursor: 'pointer',
-                fontSize: 12,
+                fontSize: 16,
                 fontWeight: 700,
                 fontFamily: 'inherit',
                 display: 'flex',
@@ -1673,7 +1721,7 @@ export default function AdminDashboard() {
               }}
               title="Language toggle"
             >
-              {language === 'FR' ? 'EN' : 'FR'}
+              {language === 'FR' ? '🇫🇷' : language === 'EN' ? '🇬🇧' : '🇲🇦'}
             </button>
             <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #00d4a0, #0099ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 12, color: currentTheme.bgMain }}>
               {getInitials(adminName)}
@@ -1710,44 +1758,46 @@ export default function AdminDashboard() {
       {/* Sidebar - Premium Floating Design */}
       <aside style={{
         position: isMobile ? 'fixed' : 'fixed',
-        top: isMobile ? 64 : '16px',
+        top: isMobile ? 64 : 0,
         left: 0,
-        width: isMobile ? 280 : isTablet ? 80 : 280,
-        height: isMobile ? 'calc(100vh - 64px)' : 'calc(100vh - 32px)',
-        background: theme === 'light' ? 'rgba(255, 255, 255, 0.95)' : 'rgba(15, 23, 42, 0.95)',
-        backdropFilter: 'blur(16px)',
-        border: isMobile ? `1px solid ${currentTheme.border}` : `1px solid ${theme === 'light' ? 'rgba(15,23,42,0.08)' : 'rgba(255, 255, 255, 0.1)'}`,
-        borderRadius: isMobile ? 0 : 32,
+        width: isMobile ? 280 : isTablet ? 70 : 220,
+        height: isMobile ? 'calc(100vh - 64px)' : 'calc(100vh)',
+        background: theme === 'light' ? 'rgba(255, 255, 255, 0.97)' : 'rgba(13, 23, 40, 0.97)',
+        backdropFilter: 'blur(8px)',
+        border: isMobile ? `1px solid ${currentTheme.border}` : `1px solid ${theme === 'light' ? 'rgba(15,23,42,0.06)' : 'rgba(255, 255, 255, 0.08)'}`,
+        borderRadius: isMobile ? 0 : '0 16px 16px 0',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-start',
         alignItems: 'stretch',
-        padding: isMobile ? '16px 0' : isTablet ? '20px 12px' : '24px 20px',
+        padding: isMobile ? '12px 0' : isTablet ? '16px 8px' : '16px 12px',
         zIndex: isMobile ? (sidebarOpen ? 250 : -1) : 1000,
         transform: isMobile ? (sidebarOpen ? 'translateX(0)' : 'translateX(-100%)') : 'translateX(0)',
         transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), z-index 0.3s ease',
         opacity: isMobile && !sidebarOpen ? 0 : 1,
         pointerEvents: isMobile && !sidebarOpen ? 'none' : 'auto',
-        overflowY: 'auto'
+        overflowY: 'auto',
+        boxShadow: 'inset -1px 0 0 rgba(0,0,0,0.05)'
       }}>
         {/* Header */}
         {!isMobile && (
           <div style={{
-            padding: isTablet ? '0 12px 12px' : '0 20px 24px',
+            padding: isTablet ? '0 8px 12px' : '0 12px 16px',
             borderBottom: `1px solid ${currentTheme.border}`,
             display: 'flex',
             alignItems: 'center',
-            gap: 12,
+            gap: 10,
             width: '100%',
-            justifyContent: isTablet ? 'center' : 'flex-start'
+            justifyContent: isTablet ? 'center' : 'flex-start',
+            marginBottom: '4px'
           }}>
-            <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg, #00d4a0, #0099ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 18, color: currentTheme.bgMain }}>
+            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #00d4a0, #0099ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 16, color: currentTheme.bgMain, flexShrink: 0 }}>
               {getInitials(adminName)}
             </div>
             {!isTablet && (
-              <div>
-                <div style={{ fontWeight: 800, fontSize: 13, color: currentTheme.textPrimary }}>{adminName}</div>
-                <div style={{ display: 'inline-block', background: 'rgba(0, 212, 160, 0.15)', color: '#00d4a0', fontSize: 10, fontWeight: 700, padding: '4px 8px', borderRadius: 4, marginTop: 4, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Admin</div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: 12, color: currentTheme.textPrimary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{adminName}</div>
+                <div style={{ display: 'inline-block', background: 'rgba(0, 212, 160, 0.12)', color: '#00d4a0', fontSize: 9, fontWeight: 700, padding: '3px 6px', borderRadius: 3, marginTop: 3, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Admin</div>
               </div>
             )}
           </div>
@@ -1758,8 +1808,8 @@ export default function AdminDashboard() {
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          gap: 8,
-          padding: isMobile ? '0 12px' : '0 12px',
+          gap: 4,
+          padding: isMobile ? '0 8px' : '8px 0',
           overflowY: 'auto',
           width: '100%',
           justifyContent: 'flex-start'
@@ -1775,35 +1825,49 @@ export default function AdminDashboard() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'flex-start',
-                gap: 12,
-                padding: isMobile ? '12px 16px' : isTablet ? '8px' : '12px 16px',
+                gap: 10,
+                padding: isMobile ? '10px 14px' : isTablet ? '8px 4px' : '10px 12px',
                 width: '100%',
                 height: 'auto',
-                background: activeTab === item.id ? 'linear-gradient(135deg, rgba(0,212,160,0.2), rgba(0,153,255,0.1))' : 'transparent',
-                borderLeft: activeTab === item.id ? '3px solid #00d4a0' : 'none',
-                borderRadius: 12,
-                color: activeTab === item.id ? '#00d4a0' : currentTheme.textSecondary,
+                background: activeTab === item.id ? 'linear-gradient(135deg, rgba(16,185,129,0.12), rgba(16,185,129,0.03))' : 'transparent',
+                borderLeft: activeTab === item.id ? '2px solid #10b981' : 'none',
+                borderRadius: 10,
+                color: activeTab === item.id ? '#10b981' : currentTheme.textSecondary,
                 cursor: 'pointer',
-                fontSize: 14,
-                fontWeight: 600,
+                fontSize: 13,
+                fontWeight: activeTab === item.id ? 700 : 500,
                 fontFamily: 'inherit',
-                transition: 'all 0.2s ease',
-                position: 'relative'
+                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                position: 'relative',
+                border: 'none'
+              }}
+              onMouseEnter={(e) => {
+                if (activeTab !== item.id) {
+                  e.currentTarget.style.background = 'rgba(16,185,129,0.04)'
+                  e.currentTarget.style.color = currentTheme.textSecondary
+                  e.currentTarget.style.transform = 'translateX(2px)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== item.id) {
+                  e.currentTarget.style.background = 'transparent'
+                  e.currentTarget.style.transform = 'translateX(0)'
+                }
               }}
             >
-              <span style={{ fontSize: 16 }}>{item.emoji}</span>
-              {!isTablet && <span>{item.label}</span>}
+              <span style={{ fontSize: 14, flexShrink: 0 }}>{item.emoji}</span>
+              {!isTablet && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.label}</span>}
               {item.badge && (
                 <div style={{
                   position: 'absolute',
-                  top: isMobile ? -4 : 'auto',
-                  right: isMobile ? -4 : 'auto',
-                  width: 20,
-                  height: 20,
+                  top: isMobile ? -2 : 'auto',
+                  right: isMobile ? -2 : 'auto',
+                  width: 18,
+                  height: 18,
                   borderRadius: '50%',
                   background: '#ef4444',
                   color: 'white',
-                  fontSize: 10,
+                  fontSize: 9,
                   fontWeight: 700,
                   display: 'flex',
                   alignItems: 'center',
@@ -1822,29 +1886,31 @@ export default function AdminDashboard() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'flex-start',
-                gap: 12,
-                padding: '12px 16px',
+                gap: 10,
+                padding: '10px 14px',
                 width: '100%',
                 marginTop: 'auto',
-                background: 'linear-gradient(135deg, rgba(239,68,68,0.2), rgba(239,68,68,0.1))',
-                borderLeft: '3px solid #ef4444',
-                borderRadius: 12,
+                background: 'linear-gradient(135deg, rgba(239,68,68,0.15), rgba(239,68,68,0.08))',
+                borderLeft: '2px solid #ef4444',
+                borderRadius: 10,
                 color: '#ef4444',
                 cursor: 'pointer',
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: 700,
                 fontFamily: 'inherit',
                 transition: 'all 0.2s ease',
                 border: 'none'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(239,68,68,0.3), rgba(239,68,68,0.2))'
+                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(239,68,68,0.25), rgba(239,68,68,0.15))'
+                e.currentTarget.style.transform = 'translateX(2px)'
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(239,68,68,0.2), rgba(239,68,68,0.1))'
+                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(239,68,68,0.15), rgba(239,68,68,0.08))'
+                e.currentTarget.style.transform = 'translateX(0)'
               }}
             >
-              <FaSignOutAlt />
+              <FaSignOutAlt style={{ fontSize: 12 }} />
               <span>{t('logout')}</span>
             </button>
           )}
@@ -1853,13 +1919,13 @@ export default function AdminDashboard() {
         {/* Footer */}
         {!isMobile && (
           <div style={{
-            padding: '0 12px',
+            padding: '0 8px',
             borderTop: `1px solid ${currentTheme.border}`,
             marginTop: 'auto',
-            paddingTop: 16,
+            paddingTop: 12,
             display: 'flex',
             flexDirection: 'column',
-            gap: 8,
+            gap: 6,
             width: '100%',
             justifyContent: 'flex-end'
           }}>
@@ -1869,13 +1935,13 @@ export default function AdminDashboard() {
                 <button
                   onClick={handleToggleTheme}
                   style={{
-                    padding: isTablet ? '8px' : '10px 16px',
+                    padding: isTablet ? '7px' : '9px 12px',
                     background: currentTheme.bgCard,
                     border: `1px solid ${currentTheme.border}`,
                     borderRadius: 8,
                     color: currentTheme.textSecondary,
                     cursor: 'pointer',
-                    fontSize: isTablet ? 14 : 12,
+                    fontSize: isTablet ? 12 : 11,
                     fontWeight: 600,
                     fontFamily: 'inherit',
                     transition: 'all 0.2s ease',
@@ -1889,17 +1955,25 @@ export default function AdminDashboard() {
                 >
                   {isTablet ? (theme === 'dark' ? '☀️' : '🌙') : (theme === 'dark' ? '☀️ Light' : '🌙 Dark')}
                 </button>
-                {/* FIX BUG 2: Language toggle */}
                 <button
                   onClick={toggleLanguage}
+                  title="Changer la langue"
                   style={{
-                    padding: isTablet ? '8px' : '10px 16px',
-                    background: currentTheme.bgCard,
-                    border: `1px solid ${currentTheme.border}`,
+                    padding: isTablet ? '7px' : '9px 12px',
+                    background: language === 'AR'
+                      ? 'linear-gradient(135deg, rgba(16,185,129,0.12), rgba(16,185,129,0.03))'
+                      : language === 'EN'
+                      ? 'linear-gradient(135deg, rgba(59,130,246,0.12), rgba(59,130,246,0.03))'
+                      : 'linear-gradient(135deg, rgba(139,92,246,0.12), rgba(139,92,246,0.03))',
+                    border: `1px solid ${language === 'AR' ? 'rgba(16,185,129,0.25)' : language === 'EN' ? 'rgba(59,130,246,0.25)' : 'rgba(139,92,246,0.25)'}`,
                     borderRadius: 8,
-                    color: currentTheme.textSecondary,
+                    color: language === 'AR'
+                      ? currentTheme.accentGreen
+                      : language === 'EN'
+                      ? currentTheme.accentBlue
+                      : currentTheme.accentPurple,
                     cursor: 'pointer',
-                    fontSize: isTablet ? 14 : 12,
+                    fontSize: isTablet ? 12 : 11,
                     fontWeight: 600,
                     fontFamily: 'inherit',
                     transition: 'all 0.2s ease',
@@ -1907,11 +1981,21 @@ export default function AdminDashboard() {
                     height: isTablet ? '32px' : 'auto',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    gap: 4
                   }}
-                  title="Language toggle"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-1px)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)'
+                  }}
                 >
-                  {isTablet ? '🌐' : (language === 'FR' ? '🌐 English' : '🌐 Français')}
+                  {isTablet ? '🌐' : (
+                    language === 'FR' ? '🇫🇷 FR'
+                    : language === 'EN' ? '🇬🇧 EN'
+                    : '🇲🇦 AR'
+                  )}
                 </button>
               </>
             )}
@@ -1919,13 +2003,13 @@ export default function AdminDashboard() {
             <button
               onClick={handleLogout}
               style={{
-                padding: isTablet ? '8px' : '10px 16px',
+                padding: isTablet ? '7px' : '9px 12px',
                 background: 'linear-gradient(135deg, #ef4444, #dc2626)',
                 border: `1px solid #ef4444`,
                 borderRadius: 8,
                 color: 'white',
                 cursor: 'pointer',
-                fontSize: isTablet ? 14 : 12,
+                fontSize: isTablet ? 12 : 11,
                 fontWeight: 700,
                 fontFamily: 'inherit',
                 transition: 'all 0.2s ease',
@@ -1934,14 +2018,14 @@ export default function AdminDashboard() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 4px 12px rgba(239,68,68,0.2)'
+                boxShadow: '0 2px 8px rgba(239,68,68,0.15)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(239,68,68,0.3)'
-                e.currentTarget.style.transform = 'translateY(-2px)'
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(239,68,68,0.25)'
+                e.currentTarget.style.transform = 'translateY(-1px)'
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(239,68,68,0.2)'
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(239,68,68,0.15)'
                 e.currentTarget.style.transform = 'translateY(0)'
               }}
             >
@@ -1956,22 +2040,26 @@ export default function AdminDashboard() {
         flex: 1,
         overflowY: 'auto',
         overflowX: 'hidden',
-        marginLeft: isMobile ? 0 : isTablet ? 120 : 320,
-        marginTop: isMobile ? 0 : 0,
-        paddingBottom: isMobile ? 32 : 32,
-        padding: isMobile ? '16px 16px 32px 16px' : isTablet ? '32px 24px' : '40px 48px',
+        marginLeft: isMobile ? 0 : isTablet ? 86 : 244,
+        marginTop: isMobile ? 64 : 0,
+        paddingBottom: isMobile ? 24 : 24,
+        padding: isMobile ? '12px 12px 24px 12px' : isTablet ? '24px 16px' : '28px 32px',
         background: theme === 'light' ? '#f8fafc' : '#020617',
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        display: 'flex',
+        flexDirection: 'column'
       }}>
         {/* Breadcrumb */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: isMobile ? 16 : 24, fontSize: isMobile ? 11 : 13, color: currentTheme.textMuted }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: isMobile ? 12 : 16, fontSize: isMobile ? 10 : 12, color: currentTheme.textMuted }}>
           <span style={{ cursor: 'pointer', fontWeight: 500, transition: 'all 0.2s', color: currentTheme.textMuted }}>Admin</span>
           <span>/</span>
-          <span style={{ fontWeight: 500, color: currentTheme.accentGreen }}>{navItems.find(item => item.id === activeTab)?.label}</span>
+          <span style={{ fontWeight: 600, color: currentTheme.accentGreen }}>{navItems.find(item => item.id === activeTab)?.label}</span>
         </div>
 
         {/* Content */}
-        {renderContent()}
+        <div style={{ maxWidth: '1600px', width: '100%', margin: '0 auto' }}>
+          {renderContent()}
+        </div>
       </main>
 
       {/* Add User Modal */}
@@ -2070,6 +2158,27 @@ export default function AdminDashboard() {
             </div>
 
             <div style={{ marginBottom: 20 }}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted, marginBottom: 8 }}>Phone</label>
+              <input
+                type="tel"
+                value={newUserData.phone}
+                onChange={(e) => setNewUserData({ ...newUserData, phone: e.target.value })}
+                placeholder="Enter phone number"
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  background: currentTheme.bgMain,
+                  border: `1px solid ${currentTheme.border}`,
+                  borderRadius: 8,
+                  color: currentTheme.textPrimary,
+                  fontSize: 14,
+                  fontFamily: 'inherit',
+                  transition: 'all 0.2s ease'
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
               <label style={{ display: 'block', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted, marginBottom: 8 }}>{t('status')}</label>
               <select
                 value={newUserData.status}
@@ -2152,7 +2261,7 @@ export default function AdminDashboard() {
                   transition: 'all 0.2s ease'
                 }}
               >
-                {language === 'FR' ? 'Fermer' : 'Close'}
+                {t('close')}
               </button>
             </div>
           </div>
@@ -2221,17 +2330,17 @@ export default function AdminDashboard() {
             {/* Content */}
             <div style={{ marginBottom: 24 }}>
               <div style={{ fontSize: 18, fontWeight: 700, color: currentTheme.textPrimary, marginBottom: 20 }}>
-                🏢 {language === 'FR' ? `Sociétés (${selectedUserSocietes.societes?.length || 0})` : `Companies (${selectedUserSocietes.societes?.length || 0})`}
+                🏢 {t('companies_with_count', { count: selectedUserSocietes.societes?.length || 0 })}
               </div>
 
               {!selectedUserSocietes.societes || selectedUserSocietes.societes.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '40px 20px', color: currentTheme.textMuted }}>
                   <div style={{ fontSize: 36, marginBottom: 12 }}>📭</div>
-                  <div style={{ fontSize: 14 }}>{language === 'FR' ? 'Aucune société trouvée' : 'No companies found'}</div>
+                  <div style={{ fontSize: 14 }}>{t('no_companies_found')}</div>
                 </div>
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
-                  {selectedUserSocietes.societes.map((societe) => (
+                  {sortSocietes(selectedUserSocietes.societes).map((societe) => (
                     <div
                       key={societe.id}
                       style={{
@@ -2256,14 +2365,14 @@ export default function AdminDashboard() {
                         </div>
                         <div style={{ fontSize: 13, color: currentTheme.textMuted }}>
                           {societe.ville && `${societe.ville} • `}
-                          {societe.created_at && new Date(societe.created_at).toLocaleDateString(language === 'FR' ? 'fr-FR' : 'en-US')}
+                          {societe.created_at && new Date(societe.created_at).toLocaleDateString(language === 'FR' ? 'fr-FR' : language === 'EN' ? 'en-US' : 'ar-MA')}
                         </div>
                       </div>
 
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
                         <div>
                           <div style={{ fontSize: 11, fontWeight: 600, color: currentTheme.textMuted, textTransform: 'uppercase', marginBottom: 4, letterSpacing: '0.05em' }}>
-                            {language === 'FR' ? 'IF (Identifiant Fiscal)' : 'Tax ID (IF)'}
+                            {t('tax_id_if')}
                           </div>
                           <div style={{ fontSize: 14, fontWeight: 700, fontFamily: 'monospace', color: currentTheme.accentGreen, wordBreak: 'break-all' }}>
                             {societe.if || '—'}
@@ -2271,7 +2380,7 @@ export default function AdminDashboard() {
                         </div>
                         <div>
                           <div style={{ fontSize: 11, fontWeight: 600, color: currentTheme.textMuted, textTransform: 'uppercase', marginBottom: 4, letterSpacing: '0.05em' }}>
-                            {language === 'FR' ? 'ICE' : 'ICE Code'}
+                            {t('ice_code')}
                           </div>
                           <div style={{ fontSize: 14, fontWeight: 700, fontFamily: 'monospace', color: currentTheme.accentBlue, wordBreak: 'break-all' }}>
                             {societe.ice || '—'}
@@ -2328,7 +2437,7 @@ export default function AdminDashboard() {
                   e.currentTarget.style.borderColor = currentTheme.border
                 }}
               >
-                {language === 'FR' ? 'Fermer' : 'Close'}
+                {t('close')}
               </button>
             </div>
           </div>
@@ -2364,11 +2473,11 @@ export default function AdminDashboard() {
           onClick={(e) => e.stopPropagation()}
           >
             <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 24, color: currentTheme.textPrimary }}>
-              ✏️ Modifier l'utilisateur
+              ✏️ {t('edit_user_title')}
             </div>
 
             <div style={{ marginBottom: 20 }}>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted, marginBottom: 8 }}>Nom complet</label>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted, marginBottom: 8 }}>{t('full_name')}</label>
               <input
                 type="text"
                 value={editFormData.name}
@@ -2388,7 +2497,7 @@ export default function AdminDashboard() {
             </div>
 
             <div style={{ marginBottom: 20 }}>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted, marginBottom: 8 }}>Email</label>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted, marginBottom: 8 }}>{t('email')}</label>
               <input
                 type="email"
                 value={editFormData.email}
@@ -2408,7 +2517,7 @@ export default function AdminDashboard() {
             </div>
 
             <div style={{ marginBottom: 20 }}>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted, marginBottom: 8 }}>Statut</label>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted, marginBottom: 8 }}>{t('status')}</label>
               <select
                 value={editFormData.status}
                 onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
@@ -2424,14 +2533,14 @@ export default function AdminDashboard() {
                   cursor: 'pointer'
                 }}
               >
-                <option value="pending">En attente</option>
-                <option value="approved">Approuvé</option>
-                <option value="rejected">Rejeté</option>
+                <option value="pending">{t('pending')}</option>
+                <option value="approved">{t('approved')}</option>
+                <option value="rejected">{t('rejected')}</option>
               </select>
             </div>
 
             <div style={{ marginBottom: 24 }}>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted, marginBottom: 8 }}>Rôle</label>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted, marginBottom: 8 }}>{t('role')}</label>
               <select
                 value={editFormData.role}
                 onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value })}
@@ -2447,8 +2556,8 @@ export default function AdminDashboard() {
                   cursor: 'pointer'
                 }}
               >
-                <option value="user">Utilisateur</option>
-                <option value="admin">Administrateur</option>
+                <option value="user">{t('user_role')}</option>
+                <option value="admin">{t('admin_role')}</option>
               </select>
             </div>
 
@@ -2472,7 +2581,7 @@ export default function AdminDashboard() {
                   boxShadow: theme === 'light' ? '0 4px 12px rgba(16,185,129,0.2)' : '0 4px 12px rgba(0,212,160,0.2)'
                 }}
               >
-                {editLoading ? '⏳ Enregistrement...' : '💾 Enregistrer'}
+                {editLoading ? '⏳ ' + t('saving') : '💾 ' + t('save')}
               </button>
               <button
                 onClick={() => setEditingUser(null)}
@@ -2490,7 +2599,220 @@ export default function AdminDashboard() {
                   transition: 'all 0.2s ease'
                 }}
               >
-                Annuler
+                {t('cancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+       )}
+
+      {/* User Profile Modal */}
+      {showUserProfileModal && selectedUserProfile && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.6)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 3000,
+          padding: '20px'
+        }}
+        onClick={() => setShowUserProfileModal(false)}
+        >
+          <div style={{
+            background: currentTheme.bgCard,
+            border: `1px solid ${currentTheme.border}`,
+            borderRadius: 20,
+            padding: 32,
+            maxWidth: 500,
+            width: '100%',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            backdropFilter: 'blur(16px)',
+            boxShadow: theme === 'light' ? '0 25px 60px rgba(0,0,0,0.2)' : '0 25px 60px rgba(0,0,0,0.4)'
+          }}
+          onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 28, paddingBottom: 20, borderBottom: `1px solid ${currentTheme.border}` }}>
+              <div style={{ 
+                width: 80, 
+                height: 80, 
+                borderRadius: '50%', 
+                background: 'linear-gradient(135deg, #00d4a0, #0099ff)', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                fontWeight: 800, 
+                fontSize: 28, 
+                color: currentTheme.bgMain, 
+                flexShrink: 0 
+              }}>
+                {getInitials(`${selectedUserProfile.firstname || ''} ${selectedUserProfile.lastname || ''}`)}
+                
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: currentTheme.textPrimary }}>
+                  {selectedUserProfile.firstname} {selectedUserProfile.lastname}
+                 </div>
+              </div>
+              <button
+                onClick={() => setShowUserProfileModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: 24,
+                  cursor: 'pointer',
+                  color: currentTheme.textMuted,
+                  padding: '8px',
+                  transition: 'color 0.2s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.color = currentTheme.accentGreen}
+                onMouseLeave={(e) => e.currentTarget.style.color = currentTheme.textMuted}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Content */}
+            <div style={{ marginBottom: 16 }}>
+              {/* Email */}
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted, marginBottom: 6 }}>
+                  {t('email_label')}
+                </div>
+                <div style={{ fontSize: 16, fontWeight: 600, color: currentTheme.textPrimary }}>
+                  {selectedUserProfile.email || '—'}
+                </div>
+              </div>
+
+              {/* Phone */}
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted, marginBottom: 6 }}>
+                  Phone
+                </div>
+                <div style={{ fontSize: 16, fontWeight: 600, color: currentTheme.textPrimary }}>
+                  {selectedUserProfile.phone || '—'}
+                </div>
+                
+              </div>
+              
+
+              {/* Role */}
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted, marginBottom: 6 }}>
+                  {t('role')}
+                </div>
+                <span style={{ 
+                  padding: '6px 14px', 
+                  borderRadius: 6, 
+                  fontSize: 14, 
+                  fontWeight: 700, 
+                  background: `rgba(0,212,160,0.15)`, 
+                  color: currentTheme.accentGreen,
+                  textTransform: 'capitalize'
+                }}>
+                  {selectedUserProfile.role || 'user'}
+                </span>
+              </div>
+
+              {/* Status */}
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted, marginBottom: 6 }}>
+                  {t('status_label')}
+                </div>
+                <span style={{ 
+                  padding: '6px 14px', 
+                  borderRadius: 6, 
+                  fontSize: 14, 
+                  fontWeight: 700, 
+                  background: selectedUserProfile.status === 'approved' ? 'rgba(0,212,160,0.15)' : selectedUserProfile.status === 'pending' ? 'rgba(251,191,36,0.15)' : 'rgba(239,68,68,0.15)', 
+                  color: selectedUserProfile.status === 'approved' ? currentTheme.accentGreen : selectedUserProfile.status === 'pending' ? currentTheme.accentAmber : '#ef4444',
+                  textTransform: 'capitalize'
+                }}>
+                  {selectedUserProfile.status}
+                </span>
+              </div>
+
+              {/* Registration Date */}
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted, marginBottom: 6 }}>
+                  {t('registered_label')}
+                </div>
+                <div style={{ fontSize: 16, fontWeight: 600, color: currentTheme.textPrimary }}>
+                  {selectedUserProfile.created_at ? new Date(selectedUserProfile.created_at).toLocaleDateString(language === 'FR' ? 'fr-FR' : language === 'EN' ? 'en-US' : 'ar-MA', { year: 'numeric', month: 'long', day: 'numeric' }) : '—'}
+                </div>
+              </div>
+
+              {/* Number of Sociétés */}
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted, marginBottom: 6 }}>
+                  {t('companies_label')}
+                </div>
+                <div style={{ fontSize: 32, fontWeight: 900, color: currentTheme.accentGreen }}>
+                  {selectedUserProfile.societes?.length || selectedUserProfile.nb_societes || selectedUserProfile.num_societes || 0}
+                </div>
+                <div style={{ fontSize: 13, color: currentTheme.textMuted }}>
+                  {selectedUserProfile.societes?.length || selectedUserProfile.nb_societes || selectedUserProfile.num_societes || 0} {t('companies').toLowerCase()}
+                  
+                </div>
+              </div>
+            </div>
+          
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', gap: 10, paddingTop: 20, borderTop: `1px solid ${currentTheme.border}` }}>
+              <button
+                onClick={() => {
+                  handleEditUser(selectedUserProfile);
+                  setShowUserProfileModal(false);
+                }}
+                style={{
+                  flex: 1,
+                  padding: '12px 20px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                  color: 'white',
+                  fontWeight: 700,
+                  fontSize: 14,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(59,130,246,0.3)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = 'none'
+                }}
+              >
+                ✏️ {t('edit_user')}
+              </button>
+              <button
+                onClick={() => setShowUserProfileModal(false)}
+                style={{
+                  flex: 1,
+                  padding: '12px 20px',
+                  borderRadius: 8,
+                  border: `1px solid ${currentTheme.border}`,
+                  background: 'transparent',
+                  color: currentTheme.textPrimary,
+                  fontWeight: 700,
+                  fontSize: 14,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(0,212,160,0.1)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent'
+                }}
+              >
+                {t('close')}
               </button>
             </div>
           </div>
@@ -2529,5 +2851,6 @@ export default function AdminDashboard() {
         * { box-sizing: border-box; }
       `}</style>
     </div>
-  )
+
+  );
 }

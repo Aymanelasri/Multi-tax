@@ -8,14 +8,11 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  // Computed states
   const isAuthenticated = !!user
   const isApproved = user && user.status === 'approved'
   const isPending = user && user.status === 'pending'
   const isAdmin = user && user.role === 'admin'
 
-  // Check for existing token on app load
-  // CSRF token will be fetched automatically before first API call
   useEffect(() => {
     const storedToken = localStorage.getItem('token') || sessionStorage.getItem('token')
     if (storedToken) {
@@ -31,12 +28,10 @@ export const AuthProvider = ({ children }) => {
       setLoading(false)
       return
     }
-
     try {
       const userData = await api.getUser(authToken)
       setUser(userData.data)
     } catch (error) {
-      // Token is invalid, clear it
       clearAuth()
     } finally {
       setLoading(false)
@@ -50,29 +45,30 @@ export const AuthProvider = ({ children }) => {
       if (response.status === 'success') {
         const { token: newToken, user: userData } = response
         
-        // Store token based on remember preference
-        if (remember) {
+        // ✅ admin دايما يتخزن فـ localStorage
+        if (userData.role === 'admin') {
           localStorage.setItem('token', newToken)
+          localStorage.setItem('user', JSON.stringify(userData))
           sessionStorage.removeItem('token')
+          sessionStorage.removeItem('user')
+        } else if (remember) {
+          localStorage.setItem('token', newToken)
+          localStorage.setItem('user', JSON.stringify(userData))
+          sessionStorage.removeItem('token')
+          sessionStorage.removeItem('user')
         } else {
           sessionStorage.setItem('token', newToken)
+          sessionStorage.setItem('user', JSON.stringify(userData))
           localStorage.removeItem('token')
+          localStorage.removeItem('user')
         }
         
         setToken(newToken)
         setUser(userData)
         
-        // SOLUTION 2: If user is admin, redirect to dashboard with token and user data
-        if (userData.role === 'admin') {
-          const encodedUser = encodeURIComponent(JSON.stringify(userData))
-          window.location.href = `${process.env.REACT_APP_DASHBOARD_URL || '/admin'}?token=${newToken}&user=${encodedUser}`
-          return { success: true, user: userData, redirected: true }
-        }
-        
         return { success: true, user: userData }
       }
     } catch (error) {
-      // Handle different error cases
       if (error.message.includes('email_not_verified')) {
         return { success: false, error: 'email_not_verified' }
       }
@@ -96,14 +92,26 @@ export const AuthProvider = ({ children }) => {
         data.password,
         data.password_confirmation
       )
-      
       if (response.status === 'success') {
         return { success: true, message: 'registered' }
       }
     } catch (error) {
-      if (error.message.includes('email')) {
+      // Check for specific error messages
+      const errorMessage = error.message.toLowerCase()
+      
+      // Check for email-related errors
+      if (errorMessage.includes('email')) {
+        if (errorMessage.includes('already taken') || errorMessage.includes('already been taken')) {
+          return { success: false, error: 'email_exists' }
+        }
         return { success: false, error: 'email_exists' }
       }
+      
+      // Check for password confirmation mismatch
+      if (errorMessage.includes('password')) {
+        return { success: false, error: 'password_mismatch' }
+      }
+      
       return { success: false, error: error.message }
     }
   }
@@ -122,7 +130,9 @@ export const AuthProvider = ({ children }) => {
 
   const clearAuth = () => {
     localStorage.removeItem('token')
+    localStorage.removeItem('user')
     sessionStorage.removeItem('token')
+    sessionStorage.removeItem('user')
     setToken(null)
     setUser(null)
   }

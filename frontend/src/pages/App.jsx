@@ -7,6 +7,7 @@ import ContactPage from './ContactPage';
 import SocietesPage from './SocietesPage';
 import ProfilePage from './ProfilePage';
 import DeclarationsPage from './DeclarationsPage';
+import HistoriquePage from './HistoriquePage';
 import LegalPage from './LegalPage';
 import LoginPage from './auth/LoginPage';
 import RegisterPage from './auth/RegisterPage';
@@ -15,8 +16,11 @@ import VerifyEmailPage from './auth/VerifyEmailPage';
 import EmailVerificationLink from './auth/EmailVerificationLink';
 import ResetPasswordPage from './auth/ResetPasswordPage';
 import PendingPage from './PendingPage';
+import AdminDashboard from './admin/AdminDashboard';
+import AdminSocietes from './admin/AdminSocietes';
 import { ProtectedRoute } from '../components/ProtectedRoute';
-import { AdminRoute } from '../components/AdminRoute';
+import { AdminRoute } from '../components/ProtectedRoute';
+import { AdminLanguageProvider } from '../context/AdminLanguageContext';
 
 function App() {
   return (
@@ -59,7 +63,28 @@ function App() {
             <DeclarationsPage />
           </ProtectedRoute>
         } />
+        <Route path="/historique" element={
+          <ProtectedRoute requireApproved={true}>
+            <HistoriquePage />
+          </ProtectedRoute>
+        } />
         <Route path="/contact" element={<ContactPage />} />
+
+        {/* Admin Routes */}
+        <Route path="/admin" element={
+          <AdminRoute>
+            <AdminLanguageProvider>
+              <AdminDashboard />
+            </AdminLanguageProvider>
+          </AdminRoute>
+        } />
+        <Route path="/admin/societes" element={
+          <AdminRoute>
+            <AdminLanguageProvider>
+              <AdminSocietes />
+            </AdminLanguageProvider>
+          </AdminRoute>
+        } />
 
         {/* Admin users are automatically redirected to dashboard during login */}
       </Routes>

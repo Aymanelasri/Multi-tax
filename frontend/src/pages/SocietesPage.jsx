@@ -49,14 +49,14 @@ const Modal = ({ societe, onClose, onSave, t }) => {
           <div key={ri} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
             {row.map(({ key, label, required }) => {
               const placeholders = {
-                if: '33006240',
-                nom: 'ONEE',
-                ice: '001234567890123',
-                rc: 'RC123456',
-                adresse: '123 Rue de la Paix',
-                ville: 'Casablanca',
-                tel: '+212 5XX XXX XXX',
-                email: 'contact@example.com'
+                if: 'Ex: 12345678',
+                nom: 'Ex: Société ',
+                ice: 'Ex: 000123456789123',
+                rc: 'Ex: RC123456',
+                adresse: '',
+                ville: '',
+                tel: '',
+                email: ''
               };
               return (
                 <div key={key}>
@@ -188,7 +188,17 @@ const SocietesPage = () => {
     setShowOnboarding(false);
   };
 
-  const handleUse = (s) => {
+  const handleUse = async (s) => {
+    // Increment usage count in database
+    try {
+      const response = await api.incrementSocieteUsage(s.id);
+      // Update local state with fresh data from server
+      setSocietes(societes.map(soc => soc.id === s.id ? response.data : soc));
+    } catch (err) {
+      console.error('Failed to increment usage:', err);
+      // Continue anyway - don't block the user
+    }
+
     // Pre-fill the IF from company if available
     setStartDeclForm({
       identifiantFiscal: s.if || '',
@@ -358,13 +368,13 @@ const SocietesPage = () => {
                   {s.rc && <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>RC: <span style={{ color: '#cbd5e1' }}>{s.rc}</span></div>}
                   {s.ice && <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>ICE: <span style={{ color: '#cbd5e1' }}>{s.ice}</span></div>}
                   {s.ville && <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>📍 <span style={{ color: '#cbd5e1' }}>{s.ville}</span></div>}
-                  {s.lastUsed && <div style={{ fontSize: '0.7rem', color: '#475569', marginTop: 2 }}>Dernière utilisation: {new Date(s.lastUsed).toLocaleDateString('fr-MA')}</div>}
+                  {s.last_used && <div style={{ fontSize: '0.7rem', color: '#475569', marginTop: 2 }}>Dernière utilisation: {new Date(s.last_used).toLocaleDateString('fr-MA')}</div>}
                 </div>
 
                 {/* Card footer */}
                 <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                   <span style={{ fontSize: '0.7rem', color: '#475569', fontWeight: 500 }}>
-                    {t('societes_used_count')} {s.usageCount || 0}x
+                    {t('societes_used_count')} {s.usage_count || 0}x
                   </span>
 
                   {confirmId === s.id ? (

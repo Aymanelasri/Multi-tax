@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\ModuleController;
 use App\Http\Controllers\Api\HistoriqueController;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\GenerationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -54,6 +55,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Societes endpoints (require approval)
     Route::middleware('is-approved')->apiResource('societes', SocieteController::class);
     Route::middleware('is-approved')->get('/societes/my-companies', [SocieteController::class, 'myCompanies']);
+    Route::middleware('is-approved')->post('/societes/{societe}/increment-usage', [SocieteController::class, 'incrementUsage']);
 
     // Declarations endpoints (require approval)
     Route::middleware('is-approved')->apiResource('declarations', DeclarationController::class);
@@ -64,6 +66,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // Historique endpoints (require approval)
     Route::middleware('is-approved')->apiResource('historique', HistoriqueController::class);
 
+    // Generations endpoints (require approval)
+    Route::middleware('is-approved')->get('/generations', [GenerationController::class, 'index']);
+    Route::middleware('is-approved')->post('/generations', [GenerationController::class, 'store']);
+    Route::middleware('is-approved')->get('/generations/{id}/download', [GenerationController::class, 'download']);
+
     // Admin routes (require admin role)
     Route::middleware('is-admin')->group(function () {
         // Dashboard stats
@@ -71,6 +78,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // User management
         Route::get('/admin/users', [AdminController::class, 'users']);
+        Route::post('/admin/users', [AdminController::class, 'store']);
         Route::get('/admin/users/pending', [AdminController::class, 'pendingUsers']);
         Route::get('/admin/users-with-societes', [AdminController::class, 'usersWithSocietes']);
         Route::get('/admin/users/{user}/societes', [AdminController::class, 'userSocietes']);

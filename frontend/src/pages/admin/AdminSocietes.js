@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { useLanguage } from '../context/LanguageContext'
-import api from '../lib/api'
+import { useLanguage } from '../../context/LanguageContext'
+import api from '../../lib/api'
 
 export default function AdminSocietes({ showToast }) {
   const { t } = useLanguage()

@@ -235,8 +235,45 @@ class AdminController extends Controller
         ]);
     }
 
-    /**
-     * Delete a user
+    /**     * Create a new user (admin only)
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'phone' => 'required|string|max:20',
+            'password' => 'required|string|min:6',
+            'status' => 'sometimes|in:pending,approved,rejected',
+            'role' => 'sometimes|in:user,admin'
+        ]);
+
+        try {
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'password' => Hash::make($validated['password']),
+                'status' => $validated['status'] ?? 'pending',
+                'role' => $validated['role'] ?? 'user',
+                'email_verified_at' => now(), // Admin-created users are pre-verified
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'User created successfully',
+                'data' => $user
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to create user',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**     * Delete a user
      */
     public function deleteUser(Request $request, User $user)
     {

@@ -135,6 +135,8 @@ html {
 }
 
 body {
+  margin: 0;
+  padding: 0;
   background: var(--bg-primary);
   color: var(--text-primary);
   font-family: var(--font-sans);
@@ -144,7 +146,6 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   text-rendering: optimizeLegibility;
-  padding-top: 56px;
 }
 
 /* Clear Bootstrap defaults */

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -68,6 +69,14 @@ class AuthController extends Controller
                     'name' => $fullName,
                 ],
             ], 201);
+        } catch (ValidationException $e) {
+            // Handle validation errors (e.g., duplicate email, invalid format)
+            return response()->json([
+                'status' => 'error',
+                'code' => 422,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
         } catch (\Exception $e) {
             Log::error('Registration error: ' . $e->getMessage(), [
                 'exception' => $e,

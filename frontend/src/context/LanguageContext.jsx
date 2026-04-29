@@ -45,3 +45,6 @@ export const useLang = () => {
   }
   return context;
 };
+
+// Alias for compatibility with dashboard code
+export const useLanguage = useLang;

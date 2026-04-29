@@ -427,11 +427,12 @@ const Navigation = () => {
   // Define fixed navigation links based on auth state
   const getNavLinks = () => {
     if (isAuthenticated && isApproved) {
-      // Logged in and approved: [Accueil, Sociétés, Générateur, Contact]
+      // Logged in and approved: [Accueil, Sociétés, Générateur, Historique, Contact]
       return [
         { label: t('nav_home'), path: '/', type: 'route' },
         { label: t('nav_societes'), path: '/societes', type: 'route' },
         { label: t('nav_generator'), path: '/generateur', type: 'route', hasTooltip: true },
+        { label: t('nav_historique') || 'Historique', path: '/historique', type: 'route' },
         { label: t('nav_contact'), path: '/contact', type: 'route' }
       ];
     } else {
@@ -508,7 +509,7 @@ const Navigation = () => {
 
         <div className="sidebar-body">
           {navLinks.map((link, index) => {
-            const icon = index === 0 ? '🏠' : index === 1 ? (isApproved ? '🏢' : '🛠') : index === 2 ? (isApproved ? '⚡' : '📖') : '📞';
+            const icon = index === 0 ? '🏠' : index === 1 ? (isApproved ? '🏢' : '🛠') : index === 2 ? (isApproved ? '⚡' : '📖') : index === 3 ? (isApproved ? '📋' : '📞') : '📞';
             
             if (link.type === 'hash') {
               return (
@@ -582,13 +583,22 @@ const Navigation = () => {
             {navLinks.map((link, index) => {
               if (link.type === 'hash') {
                 return (
-                  <a 
+                  <button 
                     key={index}
-                    href={link.path} 
                     className={`nav-link${isActive(link.path) ? ' active' : ''}`}
+                    onClick={() => {
+                      if (location.pathname !== '/') {
+                        navigate('/');
+                        setTimeout(() => {
+                          document.querySelector(link.path)?.scrollIntoView({ behavior: 'smooth' });
+                        }, 100);
+                      } else {
+                        document.querySelector(link.path)?.scrollIntoView({ behavior: 'smooth' });
+                      }
+                    }}
                   >
                     {link.label}
-                  </a>
+                  </button>
                 );
               } else if (link.hasTooltip) {
                 return (
@@ -705,7 +715,19 @@ const Navigation = () => {
                         <path d="M3 2h10a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" fill="currentColor"/>
                         <path d="M5 4h6M5 7h6M5 10h4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
                       </svg>
-                      {t('nav_history')}
+                      {t('nav_declarations')}
+                    </button>
+                    <button className="dropdown-item" onClick={() => {
+                      setShowDropdown(false);
+                      navigate('/historique');
+                    }}>
+                      <svg width="16" height="16" viewBox="0 0 16 16">
+                        <path d="M2 3h12a1 1 0 011 1v9a1 1 0 01-1 1H2a1 1 0 01-1-1V4a1 1 0 011-1z" fill="currentColor" opacity="0.3"/>
+                        <path d="M5 6h6M5 9h4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                        <circle cx="12" cy="12" r="3" fill="#00d4a0"/>
+                        <path d="M12 10.5v1.5l1 1" stroke="#0a0f1a" strokeWidth="1" fill="none" strokeLinecap="round"/>
+                      </svg>
+                      {t('nav_historique_societes') || 'Historique des Sociétés'}
                     </button>
                     <div className="dropdown-divider"></div>
                     <button className="dropdown-item logout-item" onClick={async () => {
