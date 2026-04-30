@@ -400,7 +400,7 @@ export default function AdminDashboard() {
     localStorage.removeItem('adminTheme')
     localStorage.removeItem('adminLang')
     // Redirect to frontend login
-    window.location.href = (process.env.REACT_APP_FRONTEND_URL || 'http://localhost:3000') + '/login'
+    window.location.href = (process.env.REACT_APP_FRONTEND_URL || 'https://taxtva20.netlify.app') + '/login'
   }
 
   // Fetch messages - FIX BUG 6
@@ -513,7 +513,7 @@ export default function AdminDashboard() {
           <div style={{ fontSize: 48, marginBottom: 20 }}>🔐</div>
           <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 10 }}>Accès refusé</div>
           <div style={{ color: currentTheme.textMuted, marginBottom: 30 }}>Connectez-vous en tant qu'administrateur</div>
-          <a href={(process.env.REACT_APP_FRONTEND_URL || 'http://localhost:3000') + '/login'} style={{
+          <a href={(process.env.REACT_APP_FRONTEND_URL || 'https://taxtva20.netlify.app') + '/login'} style={{
             display: 'inline-block',
             padding: '12px 24px',
             background: currentTheme.accentGreen,
