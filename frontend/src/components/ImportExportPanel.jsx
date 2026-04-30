@@ -75,8 +75,9 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
       return;
     }
     const newFactures = rows.map((r, i) => rowToFacture(r, i));
-    // Always replace existing invoices
-    onLoadModule({ type: 'factures', entries: newFactures });
+    // Always add (merge) new invoices to existing ones
+    const merged = [...factures, ...newFactures].map((f, i) => ({ ...f, id: i + 1, ord: String(i + 1) }));
+    onLoadModule({ type: 'factures', entries: merged });
     showToast(isFR ? `${rows.length} factures importées depuis le fichier` : `${rows.length} invoices imported from file`);
     
     // TRACKING: Log import to historique
