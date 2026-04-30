@@ -75,14 +75,8 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
       return;
     }
     const newFactures = rows.map((r, i) => rowToFacture(r, i));
-    const confirmMsg = isFR ? 'Remplacer les factures existantes ?' : 'Replace existing invoices?';
-    const replace = factures.length === 0 || window.confirm(confirmMsg);
-    if (replace) {
-      onLoadModule({ type: 'factures', entries: newFactures });
-    } else {
-      const merged = [...factures, ...newFactures].map((f, i) => ({ ...f, id: i + 1, ord: String(i + 1) }));
-      onLoadModule({ type: 'factures', entries: merged });
-    }
+    // Always replace existing invoices
+    onLoadModule({ type: 'factures', entries: newFactures });
     showToast(isFR ? `${rows.length} factures importées depuis le fichier` : `${rows.length} invoices imported from file`);
     
     // TRACKING: Log import to historique
