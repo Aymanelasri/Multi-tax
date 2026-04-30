@@ -13,9 +13,7 @@ class VerifyCsrfToken extends Middleware
      */
     protected $except = [
         // Public API endpoints - no CSRF needed for Sanctum token auth
-        'api/login',
-        'api/register',
-        'api/password/*',
-        'api/email/*',
+        'api/*',
+        'sanctum/csrf-cookie',
     ];
 }
