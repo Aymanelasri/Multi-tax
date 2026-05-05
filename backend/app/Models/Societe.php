@@ -15,6 +15,8 @@ class Societe extends Model
         'if',
         'rc',
         'ice',
+        'tp',
+        'cnss',
         'adresse',
         'ville',
         'tel',

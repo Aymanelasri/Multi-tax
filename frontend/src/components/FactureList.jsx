@@ -24,7 +24,15 @@ const FactureList = ({ factures, onChange, onAddFacture, onRemoveFacture, onDupl
       ) : (
         <div className="facture-list">
           {factures.map((f) => (
-            <FactureItem key={f.id} id={f.id} data={f} onChange={(newData) => handleChange(f.id, newData)} onRemove={onRemoveFacture} onDuplicate={onDuplicateFacture} />
+            <FactureItem 
+              key={f.id} 
+              id={f.id} 
+              data={f} 
+              onChange={(newData) => handleChange(f.id, newData)} 
+              onRemove={onRemoveFacture} 
+              onDuplicate={onDuplicateFacture}
+              allFactures={factures}
+            />
           ))}
         </div>
       )}

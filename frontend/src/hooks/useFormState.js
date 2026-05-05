@@ -5,7 +5,7 @@ const EMPTY_FACTURE = (ord) => ({
   id: ord, ord: String(ord),
   num: '', des: '', mht: '', tva: '', ttc: '',
   if: '', nom: '', ice: '',
-  tx: '20.00', prorata: '100', mp: '1', dpai: '', dfac: '',
+  tx: '', prorata: '100', mp: '', dpai: '', dfac: '',
 });
 
 const useFormState = () => {

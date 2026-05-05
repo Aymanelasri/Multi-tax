@@ -15,10 +15,12 @@ return new class extends Migration
             $table->string('if');
             $table->string('rc');
             $table->string('ice');
+            $table->string('tp')->nullable();
+            $table->string('cnss')->nullable();
             $table->string('adresse');
             $table->string('ville');
-            $table->string('tel');
-            $table->string('email');
+            $table->string('tel')->nullable();
+            $table->string('email')->nullable();
             $table->text('notes')->nullable();
             $table->integer('usage_count')->default(0);
             $table->timestamp('last_used')->nullable();

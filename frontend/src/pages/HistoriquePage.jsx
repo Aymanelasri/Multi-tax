@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { HiDownload, HiDocumentText, HiFolder, HiTable } from 'react-icons/hi';
 import Navigation from '../components/Navigation';
 import Toast from '../components/ui/Toast';
 import { useLang } from '../context/LanguageContext';
@@ -80,10 +81,10 @@ const HistoriquePage = () => {
 
   const getFileIcon = (fileType) => {
     switch (fileType) {
-      case 'XML': return '📄';
-      case 'ZIP': return '📦';
-      case 'CSV': return '📊';
-      default: return '📁';
+      case 'XML': return <HiDocumentText size={24} color="#3b82f6" />;
+      case 'ZIP': return <HiFolder size={24} color="#8b5cf6" />;
+      case 'CSV': return <HiTable size={24} color="#10b981" />;
+      default: return <HiDocumentText size={24} color="#64748b" />;
     }
   };
 
@@ -252,7 +253,7 @@ const HistoriquePage = () => {
                 onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
                 {/* Icon */}
-                <div style={{ fontSize: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {getFileIcon(gen.file_type)}
                 </div>
 
@@ -329,7 +330,7 @@ const HistoriquePage = () => {
                       }
                     }}
                   >
-                    {downloading === gen.id ? '⏳' : '↓'} Télécharger
+                    {downloading === gen.id ? '⏳' : <HiDownload size={16} />} Télécharger
                   </button>
                 </div>
               </div>

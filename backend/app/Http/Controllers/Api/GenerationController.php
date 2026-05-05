@@ -10,6 +10,56 @@ use Illuminate\Support\Facades\Storage;
 class GenerationController extends Controller
 {
     /**
+     * Get recent generations for current user
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function recent(Request $request)
+    {
+        try {
+            $userId = auth()->id();
+            $limit = $request->input('limit', 5);
+            $fileType = $request->input('file_type');
+
+            $query = Generation::where('user_id', $userId)
+                ->orderBy('created_at', 'desc')
+                ->limit($limit);
+
+            if ($fileType) {
+                $query->where('file_type', strtoupper($fileType));
+            }
+
+            $generations = $query->get()->map(function ($gen) {
+                return [
+                    'id' => $gen->id,
+                    'reference' => $gen->reference,
+                    'factures' => $gen->factures,
+                    'montant_ttc' => number_format($gen->montant_ttc, 2, '.', ''),
+                    'statut' => $gen->statut,
+                    'file_type' => $gen->file_type,
+                    'file_name' => $gen->file_name,
+                    'file_path' => $gen->file_path,
+                    'created_at' => $gen->created_at->toIso8601String(),
+                    'formatted_date' => $gen->created_at->format('d/m/Y H:i'),
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $generations,
+                'count' => $generations->count()
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch recent generations',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Get the last 50 generations for the authenticated user
      * 
      * @return \Illuminate\Http\JsonResponse

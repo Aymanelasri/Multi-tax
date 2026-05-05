@@ -6,7 +6,7 @@ const XMLOutput = ({ xml, onDownload, onCopy, onGenerate, onPrev }) => {
   return (
     <div className="panel active" id="panel3">
       <div className="panel-title">
-        <span className="icon">⚡</span> Génération du Fichier XML EDI
+        <span className="icon">📄</span> Génération du Fichier XML EDI
       </div>
       <p className="panel-subtitle">
         Vérifiez le résumé et générez votre fichier XML prêt à être compressé en{' '}

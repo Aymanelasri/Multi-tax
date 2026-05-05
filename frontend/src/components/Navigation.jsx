@@ -709,7 +709,7 @@ const Navigation = () => {
                     </button>
                     <button className="dropdown-item" onClick={() => {
                       setShowDropdown(false);
-                      navigate('/declarations');
+                      navigate('/historique');
                     }}>
                       <svg width="16" height="16" viewBox="0 0 16 16">
                         <path d="M3 2h10a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" fill="currentColor"/>
@@ -719,7 +719,7 @@ const Navigation = () => {
                     </button>
                     <button className="dropdown-item" onClick={() => {
                       setShowDropdown(false);
-                      navigate('/historique');
+                      navigate('/declarations');
                     }}>
                       <svg width="16" height="16" viewBox="0 0 16 16">
                         <path d="M2 3h12a1 1 0 011 1v9a1 1 0 01-1 1H2a1 1 0 01-1-1V4a1 1 0 011-1z" fill="currentColor" opacity="0.3"/>

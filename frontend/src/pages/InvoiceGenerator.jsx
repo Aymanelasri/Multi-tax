@@ -7,7 +7,9 @@ import IdentificationForm from '../components/IdentificationForm';
 import FactureList from '../components/FactureList';
 import SummaryGrid from '../components/SummaryGrid';
 import ValidationErrors from '../components/ValidationErrors';
+import ValidationSummary from '../components/ValidationSummary';
 import ImportExportPanel from '../components/ImportExportPanel';
+import RecentGenerations from '../components/RecentGenerations';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Toast from '../components/ui/Toast';
@@ -23,18 +25,38 @@ const fmt = (n) => n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximum
 
 const TotalsBar = ({ factures, t }) => {
   const ht  = factures.reduce((s, f) => s + (parseFloat(f.mht) || 0), 0);
-  const tva = factures.reduce((s, f) => s + (parseFloat(f.tva) || 0), 0);
+  const tvaBrute = factures.reduce((s, f) => s + (parseFloat(f.tva) || 0), 0);
+  const tvaRecuperable = factures.reduce((s, f) => {
+    const tva = parseFloat(f.tva) || 0;
+    const prorata = parseFloat(f.prorata) || 100;
+    return s + (tva * prorata / 100);
+  }, 0);
   const ttc = factures.reduce((s, f) => s + (parseFloat(f.ttc) || 0), 0);
   if (!factures.length) return null;
+  
+  const hasProrata = factures.some(f => parseFloat(f.prorata || 100) < 100);
+  
   return (
     <div style={{ background: '#0f2744', borderRadius: 10, padding: '14px 20px', marginBottom: 14, display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'center', border: '1px solid #1e3a5f' }}>
       <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginRight: 4 }}>{t('totals_label')}</span>
-      {[[t('label_ht'), ht, '#60A5FA'], [t('label_tva_short'), tva, '#F59E0B'], [t('label_ttc_short'), ttc, '#34D399']].map(([label, val, color]) => (
-        <div key={label} style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-          <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>{label}</span>
-          <span style={{ fontSize: '0.92rem', fontWeight: 700, color, fontFamily: 'var(--mono)' }}>{fmt(val)}</span>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+        <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>{t('label_ht')}</span>
+        <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#60A5FA', fontFamily: 'var(--mono)' }}>{fmt(ht)}</span>
+      </div>
+      {hasProrata && (
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+          <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>TVA brute</span>
+          <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#94a3b8', fontFamily: 'var(--mono)' }}>{fmt(tvaBrute)}</span>
         </div>
-      ))}
+      )}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+        <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>{hasProrata ? 'TVA récup' : t('label_tva_short')}</span>
+        <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#00d4a0', fontFamily: 'var(--mono)' }}>{fmt(tvaRecuperable)}</span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+        <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>{t('label_ttc_short')}</span>
+        <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#34D399', fontFamily: 'var(--mono)' }}>{fmt(ttc)}</span>
+      </div>
     </div>
   );
 };
@@ -183,6 +205,7 @@ const InvoiceGenerator = () => {
   const [showToast, setShowToast] = useState(false);
   const [showSocietesModal, setShowSocietesModal] = useState(false);
   const [societes, setSocietes] = useState([]);
+  const [refreshGenerations, setRefreshGenerations] = useState(0);
   const xmlPanelRef = useRef(null);
   const prefillProcessedRef = useRef(false);
   const societesModalShownRef = useRef(false);
@@ -307,6 +330,9 @@ const InvoiceGenerator = () => {
           file_name: `${fname}.zip`,
           file_content: zipBase64
         });
+        
+        // Refresh recent generations widget
+        setRefreshGenerations(prev => prev + 1);
       } catch (saveError) {
         console.error('Failed to save generation:', saveError);
         // Don't block download if save fails
@@ -350,6 +376,9 @@ const InvoiceGenerator = () => {
         file_name: fname,
         file_content: xmlBase64
       });
+      
+      // Refresh recent generations widget
+      setRefreshGenerations(prev => prev + 1);
     } catch (saveError) {
       console.error('Failed to save generation:', saveError);
       // Don't block download if save fails
@@ -468,18 +497,8 @@ const InvoiceGenerator = () => {
               </p>
               <SummaryGrid factures={factures} identification={identification} regimes={REGIMES} />
               <TotalsBar factures={factures} t={t} />
+              <ValidationSummary identification={identification} factures={factures} />
               <ValidationErrors errors={xmlErrors} isVisible={showValidationErrors && xmlErrors.length > 0} />
-              <Card title={t('gen_instructions_title')}>
-                <ol style={{ paddingLeft: 18, lineHeight: 2.1, color: '#94a3b8', fontSize: '14px' }}>
-                  <li>{t('gen_instruction_1')} <strong style={{ color: '#00d4a0' }}>{t('btn_download_zip')}</strong></li>
-                  <li>{t('gen_instruction_2')} <strong style={{ color: '#00d4a0' }}>SIMPL-TVA</strong>
-                    <a href="https://www.tax.gov.ma" target="_blank" rel="noreferrer" style={{ color: '#00d4a0' }}>www.tax.gov.ma</a>
-                  </li>
-                  <li>{t('gen_instruction_3')}: <strong style={{ color: '#ffffff' }}>Rédacteur</strong></li>
-                  <li>{t('gen_instruction_4')} <code style={{ color: '#00d4a0', fontFamily: 'var(--mono)', fontSize: '12px' }}>.zip</code></li>
-                  <li>{t('gen_instruction_5')}</li>
-                </ol>
-              </Card>
               <Button variant="secondary" onClick={() => handleStepChange(2)} style={{ marginTop: 8 }}>{t('btn_back')}</Button>
             </div>
           </div>
@@ -504,41 +523,12 @@ const InvoiceGenerator = () => {
         </div>
       )}
 
-      <div style={{ marginTop: 48, paddingTop: 28, borderTop: '1px solid var(--border)' }}>
-        <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-          {t('history_title')}
-          {history.length > 0 && (
-            <span style={{ fontSize: '0.68rem', padding: '2px 8px', borderRadius: 20, background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-3)' }}>
-              {history.length}
-            </span>
-          )}
+      {/* Recent Generations - Only visible in Step 3 */}
+      {currentStep === 3 && (
+        <div style={{ marginTop: 48, paddingTop: 28, borderTop: '1px solid var(--border)' }}>
+          <RecentGenerations onRefresh={refreshGenerations} limit={5} />
         </div>
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
-          <div className="hist-header">
-            <span>{t('history_col_ref')}</span><span>{t('history_col_date')}</span><span className="hist-hide">{t('history_col_invoices')}</span><span>{t('history_col_amount')}</span><span>{t('history_col_status')}</span>
-          </div>
-          {history.length === 0 ? (
-            <div style={{ padding: '28px 18px', textAlign: 'center', color: 'var(--text-3)', fontSize: '0.81rem' }}>
-              {t('history_empty')}
-            </div>
-          ) : (
-            history.map((row) => (
-              <div key={row.id} className="hist-row"
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--blue-tint)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-              >
-                <span style={{ fontSize: '0.76rem', color: 'var(--text)', fontFamily: 'var(--mono)' }}>{row.num}</span>
-                <span style={{ fontSize: '0.76rem', color: 'var(--text-2)' }}>{row.date}</span>
-                <span className="hist-hide" style={{ fontSize: '0.76rem', color: 'var(--text-2)' }}>{row.nbFactures}</span>
-                <span style={{ fontSize: '0.76rem', color: 'var(--text)', fontWeight: 600 }}>{row.amount}</span>
-                <span style={{ fontSize: '0.67rem', padding: '3px 9px', borderRadius: 6, background: 'var(--green-tint)', color: 'var(--green)', border: '1px solid var(--green-border)', fontWeight: 600 }}>
-                  {t('history_status_generated')}
-                </span>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
+      )}
 
       <Toast message={toastMsg} isVisible={showToast} />
     </div>

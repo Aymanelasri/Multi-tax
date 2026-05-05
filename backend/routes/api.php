@@ -68,6 +68,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('is-approved')->apiResource('historique', HistoriqueController::class);
 
     // Generations endpoints (require approval)
+    Route::middleware('is-approved')->get('/generations/recent', [GenerationController::class, 'recent']);
     Route::middleware('is-approved')->get('/generations', [GenerationController::class, 'index']);
     Route::middleware('is-approved')->post('/generations', [GenerationController::class, 'store']);
     Route::middleware('is-approved')->get('/generations/{id}/download', [GenerationController::class, 'download']);

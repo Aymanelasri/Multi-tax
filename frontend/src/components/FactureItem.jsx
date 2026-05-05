@@ -4,6 +4,7 @@ import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { useSocietes } from '../hooks/useSocietes';
 import { TVA_RATES, PAYMENT_MODES } from '../utils/constants';
+import { validateInvoice } from '../utils/dgiValidation';
 import { Copy, Pencil, Trash2 } from 'lucide-react';
 
 const getSocietesKey = (userId) => userId ? `edi_societes_user_${userId}` : 'edi_societes';
@@ -34,7 +35,7 @@ const ActionBtn = ({ onClick, title, color = '#94a3b8', children }) => (
   </button>
 );
 
-const FactureItem = ({ id, data, onChange, onRemove, onDuplicate }) => {
+const FactureItem = ({ id, data, onChange, onRemove, onDuplicate, allFactures }) => {
   const { t, lang } = useLang();
   const { user } = useAuth();
   const { societes: apiSocietes, loading: loadingSocietes } = useSocietes();
@@ -44,28 +45,89 @@ const FactureItem = ({ id, data, onChange, onRemove, onDuplicate }) => {
   const [societes] = useState(loadSocietes);
   const set = (field, value) => onChange({ ...data, [field]: value });
 
+  // Detect next invoice number based on pattern
+  const detectNextNum = () => {
+    const existingInvoices = allFactures.filter(f => f.id !== id && f.num && f.num.trim() !== '');
+    
+    if (existingInvoices.length === 0) {
+      return `FAC-${new Date().getFullYear()}-001`;
+    }
+    
+    const lastNum = existingInvoices[existingInvoices.length - 1]?.num;
+    if (!lastNum) return `FAC-${new Date().getFullYear()}-001`;
+    
+    // Extract: PREFIX + NUMBER + SUFFIX
+    const match = lastNum.match(/^(.*?)(\d+)([^\d]*)$/);
+    
+    if (!match) return lastNum + '-1';
+    
+    const prefix = match[1];
+    const numPart = match[2];
+    const suffix = match[3];
+    
+    const nextNum = parseInt(numPart) + 1;
+    const padded = String(nextNum).padStart(numPart.length, '0');
+    
+    return `${prefix}${padded}${suffix}`;
+  };
+
+  // Check for duplicate invoice number
+  const isDuplicate = allFactures.some(f => 
+    f.id !== id && f.num && data.num && 
+    f.num.trim().toLowerCase() === data.num.trim().toLowerCase()
+  );
+
   useEffect(() => {
     const mht = parseFloat(data.mht) || 0;
     const tx  = parseFloat(data.tx)  || 0;
-    const tva = parseFloat((mht * tx / 100).toFixed(2));
-    const ttc = parseFloat((mht + tva).toFixed(2));
-    if (
-      tva.toFixed(2) !== (parseFloat(data.tva) || 0).toFixed(2) ||
-      ttc.toFixed(2) !== (parseFloat(data.ttc) || 0).toFixed(2)
-    ) onChange({ ...data, tva: tva.toFixed(2), ttc: ttc.toFixed(2) });
+    const prorata = parseFloat(data.prorata) || 100;
+    
+    if (mht > 0 && tx > 0) {
+      const tvaRaw = parseFloat((mht * tx / 100).toFixed(2));
+      const tvaRecuperable = parseFloat((tvaRaw * prorata / 100).toFixed(2));
+      const ttc = parseFloat((mht + tvaRecuperable).toFixed(2));
+      
+      if (
+        tvaRaw.toFixed(2) !== (parseFloat(data.tva) || 0).toFixed(2) ||
+        ttc.toFixed(2) !== (parseFloat(data.ttc) || 0).toFixed(2)
+      ) onChange({ ...data, tva: tvaRaw.toFixed(2), ttc: ttc.toFixed(2) });
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data.mht, data.tx]);
+  }, [data.mht, data.tx, data.prorata]);
 
   useEffect(() => {
     const mht = parseFloat(data.mht) || 0;
-    const tva = parseFloat(data.tva) || 0;
-    const ttc = (mht + tva).toFixed(2);
+    const tvaRaw = parseFloat(data.tva) || 0;
+    const prorata = parseFloat(data.prorata) || 100;
+    const tvaRecuperable = parseFloat((tvaRaw * prorata / 100).toFixed(2));
+    const ttc = (mht + tvaRecuperable).toFixed(2);
     if (ttc !== data.ttc) onChange({ ...data, ttc });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data.tva]);
+  }, [data.tva, data.prorata]);
 
   const ifValid  = !data.if  || /^\d{1,8}$/.test(data.if.trim());
   const iceValid = !data.ice || /^\d{15}$/.test(data.ice.trim());
+
+  // RULE 1: Espèces limit (warning)
+  const mht = parseFloat(data.mht) || 0;
+  const tvaRaw = parseFloat(data.tva) || 0;
+  const prorata = parseFloat(data.prorata) || 100;
+  const tvaRecuperable = (tvaRaw * prorata / 100);
+  const ttc = mht + tvaRecuperable;
+  const cashWarning = String(data.mp) === '1' && ttc > 5000;
+
+  // RULE 2: TVA recovery deadline (blocking error)
+  const getTvaDeadlineError = () => {
+    if (!data.dfac || !data.dpai) return null;
+    const invoiceDate = new Date(data.dfac);
+    const paymentDate = new Date(data.dpai);
+    const diffMonths = (paymentDate - invoiceDate) / (1000 * 60 * 60 * 24 * 30);
+    if (diffMonths > 12) {
+      return { diffMonths: Math.round(diffMonths) };
+    }
+    return null;
+  };
+  const tvaDeadlineError = getTvaDeadlineError();
 
   const sectionLabel = {
     fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-3)',
@@ -74,37 +136,199 @@ const FactureItem = ({ id, data, onChange, onRemove, onDuplicate }) => {
   };
   const sectionBar = { display: 'inline-block', width: 2, height: 10, background: 'var(--green)', borderRadius: 2 };
 
+  const getStatus = (inv) => {
+    const validation = validateInvoice(inv, 0, { annee: '', periode: '', regime: '1' });
+    
+    if (validation.errors.length > 0) return 'error';
+    if (validation.warnings.length > 0) return 'warning';
+    
+    const required = [
+      inv.num, inv.nom, inv.ice, 
+      inv.mht, inv.tva, inv.dpai, inv.dfac
+    ];
+    const filled = required.filter(v => 
+      v && String(v).trim() !== ''
+    ).length;
+    
+    if (filled === 0) return 'empty';
+    if (filled === required.length) return 'complete';
+    return 'partial';
+  };
+
+  const getPaymentModeLabel = (mpId) => {
+    const modes = {
+      '1': 'Espèces', '2': 'Chèque', '3': 'Prélèvement',
+      '4': 'Virement', '5': 'Effet', '6': 'Compensation', '7': 'Autres'
+    };
+    return modes[mpId] || '';
+  };
+
+  const status = getStatus(data);
+  const statusColor = status === 'complete' ? '#00d4a0' : (status === 'partial' || status === 'warning') ? '#fbbf24' : '#ef4444';
+
   return (
     <div className="facture-item" style={{ padding: 0, overflow: 'hidden' }}>
 
       {/* ── Collapsed header row ── */}
       <div
         style={{
-          display: 'flex', alignItems: 'center', gap: 10,
-          padding: '14px 20px', cursor: 'pointer',
+          display: 'flex', alignItems: 'center',
+          padding: '12px 16px', gap: 12, flexWrap: 'wrap',
           borderBottom: open ? '1px solid rgba(74,222,128,0.1)' : 'none',
         }}
-        onClick={() => { if (!confirmDelete) setOpen(o => !o); }}
       >
-        {/* chevron */}
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="2.5"
-          style={{ flexShrink: 0, transition: 'transform 0.2s', transform: open ? 'rotate(90deg)' : 'rotate(0deg)', display: 'block' }}>
-          <path d="M9 18l6-6-6-6"/>
-        </svg>
+        {/* LEFT SECTION */}
+        <div style={{ flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={() => { if (!confirmDelete) setOpen(o => !o); }}>
+          {/* Row 1 - main info */}
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+            {/* Badge */}
+            <span style={{
+              background: 'rgba(0,212,160,0.12)', color: '#00d4a0',
+              fontSize: '11px', fontWeight: 700, padding: '3px 8px',
+              borderRadius: 20, flexShrink: 0
+            }}>
+              #{data.ord || id}
+            </span>
 
-        <span className="facture-num-badge">#{data.ord || id}</span>
+            {/* Invoice number */}
+            <span style={{
+              fontSize: '13px',
+              fontWeight: 600,
+              color: data.num ? '#ffffff' : '#475569'
+            }}>
+              {data.num || (lang === 'FR' ? 'Nouvelle facture' : 'New invoice')}
+            </span>
 
-        <span style={{ fontSize: '0.82rem', color: 'var(--text-2)', fontWeight: 500, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {data.num || (lang === 'FR' ? 'Nouvelle facture' : 'New invoice')}
-        </span>
+            {/* Separator */}
+            {data.nom && <span style={{ color: '#334155' }}>·</span>}
 
-        {data.mht && (
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-3)', fontFamily: 'var(--mono)', flexShrink: 0 }}>
-            {parseFloat(data.ttc || 0).toLocaleString('fr-MA', { minimumFractionDigits: 2 })} MAD
-          </span>
-        )}
+            {/* Supplier name */}
+            {data.nom && (
+              <span style={{ fontSize: '13px', color: '#94a3b8' }}>
+                {data.nom}
+              </span>
+            )}
+          </div>
 
-        {/* CRUD buttons */}
+          {/* Row 2 - secondary info pills */}
+          {(data.if || data.ice || data.dfac || data.tx || data.mp) && (
+            <div style={{ display: 'flex', gap: 12, marginTop: 6, flexWrap: 'wrap' }}>
+              {/* IF pill */}
+              {data.if && (
+                <span style={{
+                  background: 'rgba(59,130,246,0.08)',
+                  border: '1px solid rgba(59,130,246,0.2)',
+                  color: '#93c5fd', fontSize: '10px', fontWeight: 600,
+                  padding: '2px 8px', borderRadius: 12
+                }}>
+                  IF: {data.if}
+                </span>
+              )}
+
+              {/* ICE pill */}
+              {data.ice && (
+                <span style={{
+                  background: 'rgba(59,130,246,0.08)',
+                  border: '1px solid rgba(59,130,246,0.2)',
+                  color: '#93c5fd', fontSize: '10px', fontWeight: 600,
+                  padding: '2px 8px', borderRadius: 12
+                }}>
+                  ICE: {data.ice}
+                </span>
+              )}
+
+              {/* Date facture pill */}
+              {data.dfac && (
+                <span style={{
+                  background: 'rgba(139,92,246,0.08)',
+                  border: '1px solid rgba(139,92,246,0.2)',
+                  color: '#c4b5fd', fontSize: '10px',
+                  padding: '2px 8px', borderRadius: 12,
+                  display: 'flex', alignItems: 'center', gap: 4
+                }}>
+                  📅 {data.dfac}
+                  {tvaDeadlineError && <span style={{ color: '#ef4444' }}>✗</span>}
+                </span>
+              )}
+
+              {/* TVA rate pill */}
+              {data.tx && (
+                <span style={{
+                  background: 'rgba(251,191,36,0.08)',
+                  border: '1px solid rgba(251,191,36,0.2)',
+                  color: '#fcd34d', fontSize: '10px',
+                  padding: '2px 8px', borderRadius: 12,
+                  display: window.innerWidth <= 640 ? 'none' : 'inline'
+                }}>
+                  TVA {data.tx}%
+                </span>
+              )}
+
+              {/* Prorata pill - only if < 100 */}
+              {parseFloat(data.prorata || 100) < 100 && (
+                <span style={{
+                  background: 'rgba(139,92,246,0.08)',
+                  border: '1px solid rgba(139,92,246,0.2)',
+                  color: '#c4b5fd', fontSize: '10px',
+                  padding: '2px 8px', borderRadius: 12
+                }}>
+                  {data.prorata}%
+                </span>
+              )}
+
+              {/* Payment mode pill */}
+              {data.mp && (
+                <span style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#94a3b8', fontSize: '10px',
+                  padding: '2px 8px', borderRadius: 12,
+                  display: window.innerWidth <= 640 ? 'none' : 'inline'
+                }}>
+                  {getPaymentModeLabel(data.mp)}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT SECTION */}
+        <div style={{ flexShrink: 0, textAlign: 'right', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div>
+            {/* TTC amount */}
+            <div style={{
+              fontSize: parseFloat(data.ttc || 0) > 0 ? '14px' : '13px',
+              fontWeight: parseFloat(data.ttc || 0) > 0 ? 700 : 400,
+              color: parseFloat(data.ttc || 0) > 0 ? '#ffffff' : '#334155',
+              display: 'flex', alignItems: 'center', gap: 4
+            }}>
+              {parseFloat(data.ttc || 0).toLocaleString('fr-MA', { minimumFractionDigits: 2 })} MAD
+              {cashWarning && <span style={{ color: '#fbbf24', fontSize: '12px' }}>⚠</span>}
+            </div>
+
+            {/* HT/TVA sub-line */}
+            {parseFloat(data.mht || 0) > 0 && window.innerWidth > 640 && (() => {
+              const mht = parseFloat(data.mht || 0);
+              const tvaRaw = parseFloat(data.tva || 0);
+              const prorata = parseFloat(data.prorata || 100);
+              const tvaRecup = prorata < 100 ? (tvaRaw * prorata / 100).toFixed(2) : tvaRaw.toFixed(2);
+              const label = prorata < 100 ? 'TVA récup' : 'TVA';
+              return (
+                <div style={{ fontSize: '10px', color: '#475569', marginTop: 2 }}>
+                  HT: {mht.toFixed(2)} · {label}: {tvaRecup}
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Status dot */}
+          <div style={{
+            width: 8, height: 8, borderRadius: '50%',
+            background: statusColor, flexShrink: 0
+          }} />
+        </div>
+
+        {/* ACTION BUTTONS */}
         <div style={{ display: 'flex', gap: 5, flexShrink: 0 }} onClick={e => e.stopPropagation()}>
           {confirmDelete ? (
             <>
@@ -142,12 +366,45 @@ const FactureItem = ({ id, data, onChange, onRemove, onDuplicate }) => {
           <div style={sectionLabel}><span style={sectionBar}/>{t('block_facture')}</div>
           <div className="form-grid cols3" style={{ marginBottom: 16 }}>
             <FormGroup label={t('field_num')} required>
-              <input type="text" value={data.num || ''} onChange={e => set('num', e.target.value)} placeholder="FAC-2024-001" />
+              <input 
+                type="text" 
+                value={data.num || ''} 
+                onChange={e => set('num', e.target.value)} 
+                placeholder={detectNextNum()}
+                className={isDuplicate ? 'invalid' : ''}
+              />
+              {isDuplicate && (
+                <span className="field-error">
+                  {lang === 'FR' ? 'Ce numéro existe déjà' : 'This number already exists'}
+                </span>
+              )}
             </FormGroup>
             <FormGroup label={t('field_dfac')} required>
               <div className="date-wrap">
                 <input type="date" value={data.dfac || ''} onChange={e => set('dfac', e.target.value)} />
               </div>
+              {tvaDeadlineError && (
+                <div style={{
+                  background: 'rgba(239,68,68,0.08)',
+                  border: '1px solid rgba(239,68,68,0.25)',
+                  borderRadius: 8,
+                  padding: '8px 12px',
+                  fontSize: '12px',
+                  color: '#fca5a5',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  marginTop: 8
+                }}>
+                  <span>✗</span>
+                  <span>
+                    {lang === 'FR' 
+                      ? `Délai dépassé — La TVA ne peut pas être récupérée après 12 mois. Date facture : ${data.dfac}, Date paiement : ${data.dpai} (${tvaDeadlineError.diffMonths} mois d'écart)`
+                      : `Deadline exceeded — VAT cannot be recovered after 12 months. Invoice: ${data.dfac}, Payment: ${data.dpai} (${tvaDeadlineError.diffMonths} months apart)`
+                    }
+                  </span>
+                </div>
+              )}
             </FormGroup>
             <FormGroup label={t('field_designation')} required>
               <input type="text" value={data.des || ''} onChange={e => set('des', e.target.value)} placeholder={lang === 'FR' ? 'ex: Achat matériel' : 'e.g. Equipment purchase'} />
@@ -230,7 +487,7 @@ const FactureItem = ({ id, data, onChange, onRemove, onDuplicate }) => {
             <FormGroup label={t('field_nom_rs')} required>
               <input type="text" value={data.nom || ''} onChange={e => set('nom', e.target.value)} placeholder="ex: Société ABC" />
             </FormGroup>
-            <FormGroup label="ICE" help={t('hint_ice')}>
+            <FormGroup label="ICE" >
               <input type="text" value={data.ice || ''} onChange={e => set('ice', e.target.value)} placeholder="000123456789013" className={data.ice && !iceValid ? 'invalid' : ''} />
               {data.ice && !iceValid && <span className="field-error">15 {lang === 'FR' ? 'chiffres requis' : 'digits required'}</span>}
             </FormGroup>
@@ -242,24 +499,74 @@ const FactureItem = ({ id, data, onChange, onRemove, onDuplicate }) => {
           <div style={sectionLabel}><span style={sectionBar}/>{lang === 'FR' ? 'PAIEMENT' : 'PAYMENT'}</div>
           <div className="form-grid cols3" style={{ marginBottom: 16 }}>
             <FormGroup label={t('field_taux_tva')} required>
-              <select value={data.tx || '20.00'} onChange={e => set('tx', e.target.value)}>
+              <select value={data.tx || ''} onChange={e => set('tx', e.target.value)}>
+                <option value="" disabled>── {lang === 'FR' ? 'Sélectionner le taux TVA' : 'Select VAT rate'} ──</option>
                 {TVA_RATES.map(r => <option key={r} value={r}>{parseFloat(r)}%</option>)}
               </select>
             </FormGroup>
             <FormGroup label={t('field_mp')} required>
-              <select value={data.mp || '1'} onChange={e => set('mp', e.target.value)}>
+              <select value={data.mp || ''} onChange={e => set('mp', e.target.value)}>
+                <option value="" disabled>── {lang === 'FR' ? 'Sélectionner le mode de paiement' : 'Select payment mode'} ──</option>
                 {PAYMENT_MODES.map(m => <option key={m.value} value={m.value}>{t(`mp_${m.value}`)}</option>)}
               </select>
+              {cashWarning && (
+                <div style={{
+                  background: 'rgba(251,191,36,0.08)',
+                  border: '1px solid rgba(251,191,36,0.25)',
+                  borderRadius: 8,
+                  padding: '8px 12px',
+                  fontSize: '12px',
+                  color: '#fcd34d',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  marginTop: 8
+                }}>
+                  <span>⚠</span>
+                  <span>
+                    {lang === 'FR'
+                      ? `Paiement en espèces limité à 5 000 MAD selon la réglementation DGI. TTC actuel : ${ttc.toFixed(2)} MAD`
+                      : `Cash payment limited to 5,000 MAD per DGI regulations. Current total: ${ttc.toFixed(2)} MAD`
+                    }
+                  </span>
+                </div>
+              )}
             </FormGroup>
             <FormGroup label={t('field_dpai')} required>
               <div className="date-wrap">
                 <input type="date" value={data.dpai || ''} onChange={e => set('dpai', e.target.value)} />
               </div>
             </FormGroup>
-            <FormGroup label={t('field_prorata')} help={t('hint_prorata')}>
+            <FormGroup label={t('field_prorata')}>
               <div className="number-wrap">
                 <input type="number" min="0" max="100" value={data.prorata || '100'} onChange={e => set('prorata', e.target.value)} placeholder="100" />
               </div>
+              {parseFloat(data.prorata || 100) < 100 && parseFloat(data.tva || 0) > 0 && (() => {
+                const tvaRaw = parseFloat(data.tva) || 0;
+                const prorata = parseFloat(data.prorata) || 100;
+                const tvaRecuperable = (tvaRaw * prorata / 100).toFixed(2);
+                const tvaPerdue = (tvaRaw - tvaRecuperable).toFixed(2);
+                return (
+                  <div style={{
+                    background: 'rgba(59,130,246,0.08)',
+                    border: '1px solid rgba(59,130,246,0.2)',
+                    borderRadius: 8,
+                    padding: '10px 14px',
+                    marginTop: 8,
+                    fontSize: '12px'
+                  }}>
+                    <div style={{ color: '#93c5fd', marginBottom: 4 }}>
+                      ℹ Calcul prorata ({prorata}%)
+                    </div>
+                    <div style={{ color: '#ffffff' }}>
+                      TVA récupérable: <strong style={{ color: '#00d4a0' }}>{tvaRecuperable} MAD</strong>
+                    </div>
+                    <div style={{ color: '#94a3b8', marginTop: 2 }}>
+                      TVA non récupérable: {tvaPerdue} MAD
+                    </div>
+                  </div>
+                );
+              })()}
             </FormGroup>
           </div>
 

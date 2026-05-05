@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { Upload, Download, Copy as LucideCopy, FolderOpen } from 'lucide-react';
@@ -8,8 +8,6 @@ import api from '../lib/api';
 const getModulesKey = (userId) => userId ? `simpl_tva_modules_user_${userId}` : 'simpl_tva_modules';
 const loadModules = (userId) => { try { return JSON.parse(localStorage.getItem(getModulesKey(userId)) || '[]'); } catch { return []; } };
 const saveModules = (m, userId) => localStorage.setItem(getModulesKey(userId), JSON.stringify(m));
-
-const COLS = ['num','des','mht','tva','fIf','fNom','fIce','tx','prorata','mpId','dpai','dfac'];
 
 const rowToFacture = (row, idx) => ({
   id: idx + 1, ord: String(idx + 1),
@@ -107,7 +105,7 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
         const obj = {};
         headers.forEach((h, i) => { obj[h] = vals[i] || ''; });
         return obj;
-      }).filter(r => r.num || r.des);
+      }).filter(r => r.num || r.des || r.fNom); // Skip empty rows
       handleImportRows(rows);
     } catch {
       showToast(isFR ? 'Format invalide. Vérifiez les colonnes.' : 'Invalid format. Please check the columns.');
@@ -118,10 +116,112 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
     try {
       const wb = XLSX.read(buffer, { type: 'array' });
       const ws = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
-      if (!rows.length) throw new Error();
+      const rawRows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      if (!rawRows.length) throw new Error();
+      
+      // Payment mode name to ID mapping
+      const paymentModeMap = {
+        'Espèces': '1',
+        'especes': '1',
+        'cash': '1',
+        'Chèque': '2',
+        'cheque': '2',
+        'check': '2',
+        'Prélèvement': '3',
+        'prelevement': '3',
+        'debit': '3',
+        'Virement': '4',
+        'virement': '4',
+        'transfer': '4',
+        'Effet': '5',
+        'effet': '5',
+        'bill': '5',
+        'Compensation': '6',
+        'compensation': '6',
+        'offset': '6',
+        'Autres': '7',
+        'autres': '7',
+        'other': '7',
+        'others': '7'
+      };
+      
+      // Map headers - support both French and English headers
+      const HEADER_MAP = {
+        // French headers (from export)
+        'Numéro de Facture': 'num',
+        'Désignation / Description': 'des',
+        'Montant Hors Taxe (MAD)': 'mht',
+        'Montant TVA (MAD)': 'tva',
+        'Identifiant Fiscal Fournisseur': 'fIf',
+        'Nom / Raison Sociale Fournisseur': 'fNom',
+        'ICE Fournisseur': 'fIce',
+        'Taux TVA (%)': 'tx',
+        'Prorata (%)': 'prorata',
+        'Mode de Paiement': 'mpId',
+        'Date de Paiement': 'dpai',
+        'Date de Facture': 'dfac',
+        // English headers (alternative)
+        'Invoice Number': 'num',
+        'Description': 'des',
+        'Amount Excl. Tax (MAD)': 'mht',
+        'VAT Amount (MAD)': 'tva',
+        'Supplier Tax ID': 'fIf',
+        'Supplier Name': 'fNom',
+        'Supplier ICE': 'fIce',
+        'VAT Rate (%)': 'tx',
+        'Prorata (%)': 'prorata',
+        'Payment Mode': 'mpId',
+        'Payment Date': 'dpai',
+        'Invoice Date': 'dfac',
+        // Short field names (direct mapping)
+        'num': 'num',
+        'des': 'des',
+        'mht': 'mht',
+        'tva': 'tva',
+        'fIf': 'fIf',
+        'fNom': 'fNom',
+        'fIce': 'fIce',
+        'tx': 'tx',
+        'prorata': 'prorata',
+        'mpId': 'mpId',
+        'dpai': 'dpai',
+        'dfac': 'dfac'
+      };
+      
+      const rows = rawRows
+        .map(row => {
+          const mapped = {};
+          Object.keys(row).forEach(key => {
+            const fieldName = HEADER_MAP[key] || key;
+            let value = row[key];
+            
+            // Convert dates from Excel serial numbers to YYYY-MM-DD
+            if ((fieldName === 'dpai' || fieldName === 'dfac') && typeof value === 'number') {
+              const excelEpoch = new Date(1899, 11, 30);
+              const date = new Date(excelEpoch.getTime() + value * 86400000);
+              value = date.toISOString().split('T')[0];
+            }
+            
+            // Convert payment mode names to IDs
+            if (fieldName === 'mpId' && typeof value === 'string') {
+              const lowerValue = value.toLowerCase().trim();
+              value = paymentModeMap[lowerValue] || paymentModeMap[value] || value;
+            }
+            
+            // Ensure numeric fields are strings
+            if (['mht', 'tva', 'tx', 'prorata', 'mpId'].includes(fieldName)) {
+              value = String(value || '');
+            }
+            
+            mapped[fieldName] = value;
+          });
+          return mapped;
+        })
+        .filter(row => row.num || row.des || row.fNom); // Skip empty rows
+      
       handleImportRows(rows);
-    } catch {
+    } catch (err) {
+      console.error('Excel import error:', err);
       showToast(isFR ? 'Format invalide. Vérifiez les colonnes.' : 'Invalid format. Please check the columns.');
     }
   }, [handleImportRows, isFR]);
@@ -143,11 +243,99 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
   }, [processCSV, processExcel, isFR]);
 
   const downloadTemplate = () => {
-    const example = ['FAC-2024-001', 'Achat matériel informatique', 10000, 2000, '12345678', 'Fournisseur SARL', '001234567890123', 20, 100, 2, '2024-03-15', '2024-03-10'];
-    const ws = XLSX.utils.aoa_to_sheet([COLS, example]);
+    const headers = [
+      'Numéro de Facture',
+      'Désignation / Description',
+      'Montant Hors Taxe (MAD)',
+      'Montant TVA (MAD)',
+      'Identifiant Fiscal Fournisseur',
+      'Nom / Raison Sociale Fournisseur',
+      'ICE Fournisseur',
+      'Taux TVA (%)',
+      'Prorata (%)',
+      'Mode de Paiement',
+      'Date de Paiement',
+      'Date de Facture'
+    ];
+    const example = [
+      'FAC-2024-001', 
+      'Achat matériel informatique', 
+      10000, 
+      2000, 
+      '12345678', 
+      'Fournisseur SARL', 
+      '012345678910123', 
+      20, 
+      100, 
+      'Chèque',
+      '2024-03-15', 
+      '2024-03-10'
+    ];
+    
+    const ws = XLSX.utils.aoa_to_sheet([headers, example]);
+    
+    // ✅ LARGE COLUMN WIDTHS
+    ws['!cols'] = [
+      { wch: 25 },  // Numéro de Facture
+      { wch: 40 },  // Désignation
+      { wch: 28 },  // Montant HT
+      { wch: 25 },  // Montant TVA
+      { wch: 32 },  // IF Fournisseur
+      { wch: 40 },  // Nom Fournisseur
+      { wch: 30 },  // ICE
+      { wch: 18 },  // Taux TVA
+      { wch: 16 },  // Prorata
+      { wch: 25 },  // Mode Paiement
+      { wch: 22 },  // Date Paiement
+      { wch: 22 },  // Date Facture
+    ];
+    
+    // ✅ TALL ROW HEIGHTS
+    ws['!rows'] = [
+      { hpt: 40 },  // Header row
+      { hpt: 28 },  // Example row
+    ];
+    
+    // ✅ HEADER STYLING
+    const headerCells = ['A1','B1','C1','D1','E1','F1','G1','H1','I1','J1','K1','L1'];
+    headerCells.forEach(cell => {
+      if (!ws[cell]) return;
+      ws[cell].s = {
+        fill: { fgColor: { rgb: '0f2744' } },
+        font: { color: { rgb: 'FFFFFF' }, bold: true, sz: 12 },
+        alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+        border: {
+          top: { style: 'medium', color: { rgb: '1e3a5f' } },
+          bottom: { style: 'medium', color: { rgb: '1e3a5f' } },
+          left: { style: 'medium', color: { rgb: '1e3a5f' } },
+          right: { style: 'medium', color: { rgb: '1e3a5f' } }
+        }
+      };
+    });
+    
+    // ✅ EXAMPLE ROW STYLING
+    const exampleCells = ['A2','B2','C2','D2','E2','F2','G2','H2','I2','J2','K2','L2'];
+    exampleCells.forEach(cell => {
+      if (!ws[cell]) return;
+      ws[cell].s = {
+        fill: { fgColor: { rgb: 'e0f2fe' } },
+        font: { color: { rgb: '1e293b' }, sz: 11 },
+        alignment: { 
+          vertical: 'center',
+          horizontal: cell.startsWith('C') || cell.startsWith('D') || cell.startsWith('H') || cell.startsWith('I') ? 'right' : 'left'
+        },
+        border: {
+          top: { style: 'thin', color: { rgb: 'cbd5e1' } },
+          bottom: { style: 'thin', color: { rgb: 'cbd5e1' } },
+          left: { style: 'thin', color: { rgb: 'cbd5e1' } },
+          right: { style: 'thin', color: { rgb: 'cbd5e1' } }
+        }
+      };
+    });
+    
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Factures');
-    XLSX.writeFile(wb, 'modele_factures_SIMPLTVA.xlsx');
+    XLSX.writeFile(wb, 'modele_factures_SIMPLTVA.xlsx', { cellStyles: true });
   };
 
   const exportToExcel = async (type) => {
@@ -156,19 +344,156 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
 
     let rows, headers;
     if (type === 'factures') {
-      headers = COLS;
-      rows = entries.map(f => [f.num, f.des, f.mht, f.tva, f.if, f.nom, f.ice, f.tx, f.prorata, f.mp, f.dpai, f.dfac]);
+      headers = [
+        'Numéro de Facture',
+        'Désignation / Description',
+        'Montant Hors Taxe (MAD)',
+        'Montant TVA (MAD)',
+        'Identifiant Fiscal Fournisseur',
+        'Nom / Raison Sociale Fournisseur',
+        'ICE Fournisseur',
+        'Taux TVA (%)',
+        'Prorata (%)',
+        'Mode de Paiement',
+        'Date de Paiement',
+        'Date de Facture'
+      ];
+      
+      // Payment mode mapping
+      const paymentModes = {
+        '1': 'Espèces',
+        '2': 'Chèque',
+        '3': 'Prélèvement',
+        '4': 'Virement',
+        '5': 'Effet',
+        '6': 'Compensation',
+        '7': 'Autres'
+      };
+      
+      rows = entries.map(f => [
+        f.num, 
+        f.des, 
+        f.mht, 
+        f.tva, 
+        f.if, 
+        f.nom, 
+        f.ice, 
+        f.tx, 
+        f.prorata, 
+        paymentModes[f.mp] || f.mp || 'Espèces',  // Convert to name
+        f.dpai, 
+        f.dfac
+      ]);
     } else {
       headers = ['identifiantFiscal', 'annee', 'regime', 'periode'];
       rows = entries.map(e => [e.identifiantFiscal, e.annee, e.regime, e.periode]);
     }
 
     const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, type === 'factures' ? 'Factures' : 'Identification');
     
-    // Generate file as blob
-    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    // ✅ ADD STYLING
+    
+    // 1. Column widths
+    if (type === 'factures') {
+      ws['!cols'] = [
+        { wch: 22 },  // Numéro de Facture
+        { wch: 32 },  // Désignation
+        { wch: 24 },  // Montant HT
+        { wch: 22 },  // Montant TVA
+        { wch: 28 },  // IF Fournisseur
+        { wch: 32 },  // Nom Fournisseur
+        { wch: 28 },  // ICE
+        { wch: 16 },  // Taux TVA
+        { wch: 14 },  // Prorata
+        { wch: 34 },  // Mode Paiement
+        { wch: 26 },  // Date Paiement
+        { wch: 26 },  // Date Facture
+      ];
+    }
+    
+    // 2. Row heights
+    ws['!rows'] = [
+      { hpt: 35 },  // header row — tall
+      ...rows.map(() => ({ hpt: 22 }))  // data rows
+    ];
+    
+    // 3. Header row style (row 1)
+    const headerCells = [
+      'A1','B1','C1','D1','E1','F1',
+      'G1','H1','I1','J1','K1','L1'
+    ];
+    
+    headerCells.forEach(cell => {
+      if (!ws[cell]) return;
+      ws[cell].s = {
+        fill: { fgColor: { rgb: '0f2744' } },
+        font: { 
+          color: { rgb: 'FFFFFF' }, 
+          bold: true, 
+          sz: 11 
+        },
+        alignment: { 
+          horizontal: 'center', 
+          vertical: 'center', 
+          wrapText: true 
+        },
+        border: {
+          top:    { style: 'thin', color: { rgb: '1e3a5f' } },
+          bottom: { style: 'thin', color: { rgb: '1e3a5f' } },
+          left:   { style: 'thin', color: { rgb: '1e3a5f' } },
+          right:  { style: 'thin', color: { rgb: '1e3a5f' } }
+        }
+      };
+    });
+    
+    // 4. Data rows style (alternating colors)
+    rows.forEach((_, rowIdx) => {
+      const excelRow = rowIdx + 2; // row 1 is header
+      const isEven = rowIdx % 2 === 0;
+      const bgColor = isEven ? 'f8fafc' : 'f0f7ff';
+      
+      const dataCells = [
+        `A${excelRow}`,`B${excelRow}`,`C${excelRow}`,
+        `D${excelRow}`,`E${excelRow}`,`F${excelRow}`,
+        `G${excelRow}`,`H${excelRow}`,`I${excelRow}`,
+        `J${excelRow}`,`K${excelRow}`,`L${excelRow}`
+      ];
+      
+      dataCells.forEach(cell => {
+        if (!ws[cell]) return;
+        ws[cell].s = {
+          fill: { fgColor: { rgb: bgColor } },
+          font: { color: { rgb: '1e293b' }, sz: 10 },
+          alignment: { 
+            vertical: 'center',
+            horizontal: cell.startsWith('C') || 
+                        cell.startsWith('D') || 
+                        cell.startsWith('H') || 
+                        cell.startsWith('I') 
+                        ? 'right' : 'left'
+          },
+          border: {
+            top:    { style: 'thin', color: { rgb: 'e2e8f0' } },
+            bottom: { style: 'thin', color: { rgb: 'e2e8f0' } },
+            left:   { style: 'thin', color: { rgb: 'e2e8f0' } },
+            right:  { style: 'thin', color: { rgb: 'e2e8f0' } }
+          }
+        };
+      });
+    });
+    
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(
+      wb, ws, 
+      type === 'factures' ? 'Factures SIMPL-TVA' : 'Identification'
+    );
+    
+    // Generate file as blob with cellStyles enabled
+    const wbout = XLSX.write(wb, { 
+      bookType: 'xlsx', 
+      type: 'array',
+      cellStyles: true
+    });
     const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const fileSize = blob.size;
     
@@ -260,8 +585,8 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
       <div className="card-title" style={{ fontSize: '1rem', fontWeight: 700, color: '#f0f4f8', marginBottom: 20 }}>📊 {isFR ? 'Import / Export' : 'Import / Export'}</div>
 
       <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: 18, gap: 0 }}>
-        <Tab label={isFR ? 'Importer' : 'Import'} icon={Upload} active={tab === 'import'} onClick={() => setTab('import')} />
-        <Tab label={isFR ? 'Exporter CSV' : 'Export CSV'} icon={Download} active={tab === 'export'} onClick={() => setTab('export')} />
+        <Tab label={isFR ? 'Importer' : 'Import'} icon={Download} active={tab === 'import'} onClick={() => setTab('import')} />
+        <Tab label={isFR ? 'Exporter CSV' : 'Export CSV'} icon={Upload} active={tab === 'export'} onClick={() => setTab('export')} />
         <Tab label={`${isFR ? 'Copier' : 'Copy'} (${modules.length})`} icon={LucideCopy} active={tab === 'saved'} onClick={() => setTab('saved')} />
       </div>
 

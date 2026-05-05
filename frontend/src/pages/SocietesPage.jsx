@@ -9,7 +9,7 @@ const AVATAR_COLORS = ['#00d4a0','#3b82f6','#f59e0b','#8b5cf6','#ef4444','#06b6d
 const avatarColor = (nom) => AVATAR_COLORS[(nom?.charCodeAt(0) || 0) % AVATAR_COLORS.length];
 const initials = (nom) => (nom || '?').slice(0, 2).toUpperCase();
 
-const EMPTY = { if: '', nom: '', rc: '', ice: '', adresse: '', ville: '', tel: '', email: '' };
+const EMPTY = { if: '', nom: '', rc: '', ice: '', tp: '', cnss: '', adresse: '', ville: '', tel: '', email: '' };
 
 const inputStyle = {
   background: '#0d1728', border: '1px solid rgba(255,255,255,0.12)',
@@ -18,21 +18,93 @@ const inputStyle = {
   transition: 'border-color 0.2s',
 };
 
-const Modal = ({ societe, onClose, onSave, t }) => {
+const Modal = ({ societe, onClose, onSave, t, allSocietes }) => {
   const [form, setForm] = useState(societe ? { ...societe } : { ...EMPTY });
-  const [err, setErr] = useState('');
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const [errors, setErrors] = useState({});
+  const set = (k, v) => {
+    setForm(f => ({ ...f, [k]: v }));
+    // Clear error for this field when user types
+    if (errors[k]) {
+      setErrors(prev => ({ ...prev, [k]: '' }));
+    }
+  };
+
+  const validateICE = (ice) => {
+    if (!ice || ice.trim() === '') return t('error_ice_required');
+    if (!/^\d+$/.test(ice)) return t('error_ice_numeric');
+    if (ice.length !== 15) return t('error_ice_length');
+    return '';
+  };
 
   const handleSave = () => {
-    if (!form.nom.trim()) { setErr(t('field_nom_rs') + ' requis'); return; }
+    const newErrors = {};
+    
+    // Required fields validation
+    if (!form.nom?.trim()) newErrors.nom = t('field_nom_rs') + ' requis';
+    if (!form.if?.trim()) newErrors.if = t('field_if') + ' requis';
+    if (!form.rc?.trim()) newErrors.rc = t('field_rc') + ' requis';
+    if (!form.adresse?.trim()) newErrors.adresse = t('field_adresse') + ' requis';
+    if (!form.ville?.trim()) newErrors.ville = t('field_ville') + ' requis';
+    if (!form.tp?.trim()) newErrors.tp = t('error_tp_required');
+    if (!form.cnss?.trim()) newErrors.cnss = t('error_cnss_required');
+    
+    // ICE validation (required + 15 digits)
+    const iceError = validateICE(form.ice);
+    if (iceError) newErrors.ice = iceError;
+    
+    // Uniqueness validation
+    const editingId = societe?.id;
+    allSocietes.forEach(s => {
+      if (s.id === editingId) return;
+      
+      // ICE - unique always
+      if (form.ice && s.ice && form.ice.trim() === s.ice.trim()) {
+        newErrors.ice = 'ICE déjà utilisé';
+      }
+      
+      // IF - unique always
+      if (form.if && s.if && form.if.trim() === s.if.trim()) {
+        newErrors.if = 'IF déjà utilisé';
+      }
+      
+      // CNSS - unique always
+      if (form.cnss && s.cnss && form.cnss.trim() === s.cnss.trim()) {
+        newErrors.cnss = 'CNSS déjà utilisé';
+      }
+      
+      // RC - unique per city
+      if (form.rc && s.rc && form.rc.trim() === s.rc.trim()) {
+        const sameVille = form.ville && s.ville && 
+          form.ville.toLowerCase().trim() === s.ville.toLowerCase().trim();
+        const noVille = !form.ville || !s.ville;
+        
+        if (sameVille) {
+          newErrors.rc = 'RC déjà utilisé dans cette ville';
+        } else if (noVille) {
+          newErrors.rc_warning = 'RC potentiellement en doublon — précisez la ville';
+        }
+      }
+    });
+    
+    if (Object.keys(newErrors).filter(k => k !== 'rc_warning').length > 0) {
+      setErrors(newErrors);
+      // Scroll to first error
+      setTimeout(() => {
+        const firstErrorField = document.querySelector('[data-error="true"]');
+        if (firstErrorField) firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 50);
+      return;
+    }
+    
     onSave(form);
   };
 
   const fields = [
-    [{ key: 'nom', label: t('field_nom_rs'), required: true }, { key: 'if', label: t('field_if') }],
-    [{ key: 'rc', label: t('field_rc') }, { key: 'ice', label: 'ICE' }],
-    [{ key: 'adresse', label: t('field_adresse') }, { key: 'ville', label: t('field_ville') }],
-    [{ key: 'tel', label: t('field_tel') }, { key: 'email', label: 'Email' }],
+    [{ key: 'nom', label: t('field_nom_rs'), required: true }, { key: 'if', label: t('field_if'), required: true }],
+    [{ key: 'rc', label: t('field_rc'), required: true }, { key: 'ice', label: t('field_ice_required'), required: true, hint: t('hint_ice_digits'), maxLength: 15, numeric: true }],
+    [{ key: 'tp', label: t('field_tp'), required: true }, { key: 'cnss', label: t('field_cnss'), required: true }],
+    [{ key: 'adresse', label: t('field_adresse'), required: true }, { key: 'ville', label: t('field_ville'), required: true }],
+    [{ key: 'tel', label: t('field_tel_optional') }, { key: 'email', label: t('field_email_optional') }],
   ];
 
   return (
@@ -46,44 +118,128 @@ const Modal = ({ societe, onClose, onSave, t }) => {
         </div>
 
         {fields.map((row, ri) => (
-          <div key={ri} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
-            {row.map(({ key, label, required }) => {
+          <div key={ri} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 14, alignItems: 'start' }}>
+            {row.map(({ key, label, required, hint, maxLength, numeric }) => {
               const placeholders = {
                 if: 'Ex: 12345678',
                 nom: 'Ex: Société ',
-                ice: 'Ex: 000123456789123',
-                rc: 'Ex: RC123456',
+                ice: 'Ex: 000123456789012',
+                rc: '',
+                tp: '',
+                cnss: '',
                 adresse: '',
                 ville: '',
-                tel: '',
+                tel: '+212 6XX XXX XXX',
                 email: ''
               };
+              
+              const iceLength = key === 'ice' ? (form[key] || '').length : 0;
+              const iceBorderColor = key === 'ice' 
+                ? (iceLength === 0 ? 'rgba(255,255,255,0.08)' : iceLength === 15 ? '#00d4a0' : '#ef4444')
+                : errors[key] ? '#ef4444' : 'rgba(255,255,255,0.08)';
+              
               return (
-                <div key={key}>
-                  <label style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 5 }}>
-                    {label}{required && <span style={{ color: '#00d4a0', marginLeft: 2 }}>*</span>}
-                  </label>
+                <div key={key} data-error={errors[key] ? 'true' : 'false'} style={{ display: 'flex', flexDirection: 'column' }}>
+                  {/* Label row - fixed height */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, height: 20, marginBottom: 6 }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                      {label}
+                    </span>
+                    {hint && (
+                      <span style={{ 
+                        fontSize: '10px', 
+                        color: '#475569', 
+                        fontWeight: 400, 
+                        textTransform: 'none',
+                        letterSpacing: 0,
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}>
+                        ({hint})
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Input - fixed height */}
                   <input
                     value={form[key] || ''}
-                    onChange={e => set(key, e.target.value)}
+                    onChange={e => {
+                      let val = e.target.value;
+                      if (numeric) val = val.replace(/\D/g, '');
+                      if (maxLength && val.length > maxLength) val = val.slice(0, maxLength);
+                      set(key, val);
+                    }}
                     placeholder={placeholders[key] || ''}
-                    style={{...inputStyle, color: form[key] ? '#f0f4f8' : '#64748b'}}
-                    onFocus={e => e.target.style.borderColor = '#00d4a0'}
-                    onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'}
+                    maxLength={maxLength}
+                    style={{
+                      ...inputStyle, 
+                      color: form[key] ? '#f0f4f8' : '#64748b', 
+                      borderColor: iceBorderColor, 
+                      transition: 'border-color 0.2s',
+                      width: '100%',
+                      boxSizing: 'border-box'
+                    }}
+                    onFocus={e => { if (key !== 'ice') e.target.style.borderColor = '#00d4a0'; }}
+                    onBlur={e => { if (key !== 'ice') e.target.style.borderColor = errors[key] ? '#ef4444' : 'rgba(255,255,255,0.08)'; }}
                   />
+                  
+                  {/* ICE counter */}
+                  {key === 'ice' && (
+                    <div style={{ fontSize: '11px', marginTop: 4, color: iceLength === 15 ? '#00d4a0' : iceLength > 0 ? '#ef4444' : '#64748b', minHeight: 0 }}>
+                      {iceLength} / 15 chiffres
+                    </div>
+                  )}
+                  
+                  {/* Error message */}
+                  {errors[key] && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '11px', color: '#fca5a5', marginTop: 4, animation: 'fadeIn 0.15s ease', minHeight: 0 }}>
+                      ✗ {errors[key]}
+                    </div>
+                  )}
+                  
+                  {/* Warning message for RC */}
+                  {key === 'rc' && errors.rc_warning && !errors.rc && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '11px', color: '#fcd34d', marginTop: 4, animation: 'fadeIn 0.15s ease', minHeight: 0 }}>
+                      ⚠ {errors.rc_warning}
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
         ))}
+        <style>{`
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
 
-        {err && <div style={{ color: '#ef4444', fontSize: '0.78rem', marginBottom: 14 }}>⚠ {err}</div>}
+
 
         <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
           <button onClick={onClose} style={{ padding: '10px 20px', borderRadius: 8, background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#94a3b8', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'inherit' }}>
             {t('societes_cancel')}
           </button>
-          <button onClick={handleSave} style={{ padding: '10px 24px', borderRadius: 8, background: 'linear-gradient(135deg,#10b981,#34d399)', border: 'none', color: '#000', fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'inherit' }}>
+          <button 
+            onClick={handleSave} 
+            disabled={errors.ice || errors.if || errors.cnss || errors.rc}
+            style={{ 
+              padding: '10px 24px', 
+              borderRadius: 8, 
+              background: (errors.ice || errors.if || errors.cnss || errors.rc) 
+                ? 'rgba(100,116,139,0.3)' 
+                : 'linear-gradient(135deg,#10b981,#34d399)', 
+              border: 'none', 
+              color: (errors.ice || errors.if || errors.cnss || errors.rc) ? '#64748b' : '#000', 
+              fontWeight: 700, 
+              cursor: (errors.ice || errors.if || errors.cnss || errors.rc) ? 'not-allowed' : 'pointer', 
+              fontSize: '0.85rem', 
+              fontFamily: 'inherit',
+              opacity: (errors.ice || errors.if || errors.cnss || errors.rc) ? 0.6 : 1
+            }}
+          >
             {t('societes_save')}
           </button>
         </div>
@@ -167,7 +323,17 @@ const SocietesPage = () => {
       }
       setModal(null);
     } catch (err) {
-      setError(err.message);
+      // Check if it's a validation error from backend
+      if (err.response?.status === 422 && err.response?.data?.errors) {
+        // Backend returned validation errors - show them in modal
+        const backendErrors = err.response.data.errors;
+        const errorMessages = Object.entries(backendErrors)
+          .map(([field, messages]) => `${field.toUpperCase()}: ${messages.join(', ')}`)
+          .join(' | ');
+        setError(errorMessages);
+      } else {
+        setError(err.message);
+      }
     }
   };
 
@@ -362,6 +528,8 @@ const SocietesPage = () => {
                 <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 12, marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 5 }}>
                   {s.rc && <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>RC: <span style={{ color: '#cbd5e1' }}>{s.rc}</span></div>}
                   {s.ice && <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>ICE: <span style={{ color: '#cbd5e1' }}>{s.ice}</span></div>}
+                  {s.tp && <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>TP: <span style={{ color: '#cbd5e1' }}>{s.tp}</span></div>}
+                  {s.cnss && <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>CNSS: <span style={{ color: '#cbd5e1' }}>{s.cnss}</span></div>}
                   {s.ville && <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>📍 <span style={{ color: '#cbd5e1' }}>{s.ville}</span></div>}
                   {s.last_used && <div style={{ fontSize: '0.7rem', color: '#475569', marginTop: 2 }}>Dernière utilisation: {new Date(s.last_used).toLocaleDateString('fr-MA')}</div>}
                 </div>
@@ -415,6 +583,7 @@ const SocietesPage = () => {
           onClose={() => setModal(null)}
           onSave={handleSave}
           t={t}
+          allSocietes={societes}
         />
       )}
 
