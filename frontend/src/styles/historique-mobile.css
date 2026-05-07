@@ -1,0 +1,361 @@
+/* HistoriquePage Mobile Responsive Styles */
+
+/* Mobile: 302px - 768px */
+@media (max-width: 768px) {
+  /* Page header */
+  .historique-page-header {
+    padding: 80px 16px 24px !important;
+    overflow-x: hidden !important;
+  }
+
+  .historique-page-title {
+    font-size: clamp(1.4rem, 5vw, 2rem) !important;
+    line-height: 1.2 !important;
+  }
+
+  .historique-page-subtitle {
+    font-size: 14px !important;
+  }
+
+  .historique-back-btn {
+    font-size: 13px !important;
+    padding: 7px 14px !important;
+  }
+
+  /* Content area */
+  .historique-content {
+    padding: 0 16px 60px !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Table container */
+  .historique-content > div {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+  }
+
+  /* Table - Convert to card layout */
+  .historique-table-header {
+    display: none !important;
+  }
+
+  .historique-table-row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    padding: 12px !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    border-radius: 12px !important;
+    margin-bottom: 12px !important;
+    background: #141d2e !important;
+    overflow: hidden !important;
+    gap: 8px !important;
+    grid-template-columns: none !important;
+  }
+
+  /* Force override grid display */
+  .historique-table-row[style*="grid"] {
+    display: flex !important;
+  }
+
+  /* Icon */
+  .historique-icon {
+    flex: 0 0 28px !important;
+    width: 28px !important;
+    height: 28px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .historique-icon svg {
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  /* File info - takes remaining space */
+  .historique-file-info {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    max-width: calc(100% - 140px) !important;
+  }
+
+  .historique-file-name {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    margin-bottom: 3px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    max-width: 100% !important;
+  }
+
+  .historique-file-ref {
+    font-size: 10px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  /* Type badge - fixed width */
+  .historique-table-row > div:nth-child(3) {
+    flex: 0 0 auto !important;
+    order: 3 !important;
+  }
+
+  .historique-type-badge {
+    padding: 3px 8px !important;
+    font-size: 9px !important;
+    white-space: nowrap !important;
+  }
+
+  /* Size - hide on mobile */
+  .historique-table-row > div:nth-child(4) {
+    display: none !important;
+  }
+
+  /* Date - hide on mobile */
+  .historique-table-row > div:nth-child(5) {
+    display: none !important;
+  }
+
+  /* Download button - new row, full width */
+  .historique-table-row > div:last-child {
+    flex: 1 1 100% !important;
+    order: 10 !important;
+    margin-top: 8px !important;
+  }
+
+  .historique-download-btn {
+    width: 100% !important;
+    padding: 11px 14px !important;
+    font-size: 13px !important;
+    justify-content: center !important;
+    display: flex !important;
+  }
+
+  .historique-download-btn svg {
+    width: 15px !important;
+    height: 15px !important;
+  }
+
+  /* Stats */
+  .historique-stats {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+  }
+
+  .historique-stat-card {
+    padding: 16px !important;
+  }
+
+  .historique-stat-label {
+    font-size: 11px !important;
+  }
+
+  .historique-stat-value {
+    font-size: 20px !important;
+  }
+}
+
+/* Small Mobile: 302px - 460px */
+@media (max-width: 460px) {
+  .historique-page-header {
+    padding: 80px 12px 20px !important;
+  }
+
+  .historique-page-title {
+    font-size: clamp(1.2rem, 4.5vw, 1.6rem) !important;
+  }
+
+  .historique-page-subtitle {
+    font-size: 12px !important;
+  }
+
+  .historique-content {
+    padding: 0 12px 50px !important;
+  }
+
+  .historique-table-row {
+    padding: 10px !important;
+    gap: 6px !important;
+  }
+
+  .historique-icon {
+    flex: 0 0 24px !important;
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  .historique-icon svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .historique-file-info {
+    max-width: calc(100% - 100px) !important;
+  }
+
+  .historique-file-name {
+    font-size: 12px !important;
+    max-width: 140px !important;
+  }
+
+  .historique-file-ref {
+    font-size: 9px !important;
+  }
+
+  .historique-type-badge {
+    padding: 2px 6px !important;
+    font-size: 8px !important;
+  }
+
+  .historique-download-btn {
+    padding: 10px 12px !important;
+    font-size: 12px !important;
+  }
+
+  .historique-download-btn svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .historique-stats {
+    gap: 10px !important;
+  }
+
+  .historique-stat-card {
+    padding: 14px !important;
+  }
+
+  .historique-stat-label {
+    font-size: 10px !important;
+  }
+
+  .historique-stat-value {
+    font-size: 18px !important;
+  }
+}
+
+/* Ultra Small: 302px - 380px */
+@media (max-width: 380px) {
+  .historique-page-header {
+    padding: 80px 10px 18px !important;
+  }
+
+  .historique-page-title {
+    font-size: clamp(1.1rem, 4vw, 1.4rem) !important;
+  }
+
+  .historique-page-subtitle {
+    font-size: 11px !important;
+  }
+
+  .historique-back-btn {
+    font-size: 12px !important;
+    padding: 6px 12px !important;
+  }
+
+  .historique-content {
+    padding: 0 10px 40px !important;
+  }
+
+  .historique-table-row {
+    padding: 8px !important;
+  }
+
+  .historique-icon {
+    flex: 0 0 22px !important;
+    width: 22px !important;
+    height: 22px !important;
+  }
+
+  .historique-icon svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .historique-file-info {
+    max-width: calc(100% - 90px) !important;
+  }
+
+  .historique-file-name {
+    font-size: 11px !important;
+    max-width: 120px !important;
+  }
+
+  .historique-file-ref {
+    font-size: 8px !important;
+  }
+
+  .historique-type-badge {
+    font-size: 7px !important;
+    padding: 2px 5px !important;
+  }
+
+  .historique-download-btn {
+    padding: 9px 10px !important;
+    font-size: 11px !important;
+  }
+
+  .historique-stat-value {
+    font-size: 16px !important;
+  }
+}
+
+/* Tiny: 302px - 320px */
+@media (max-width: 320px) {
+  .historique-page-title {
+    font-size: clamp(1rem, 3.5vw, 1.2rem) !important;
+  }
+
+  .historique-page-subtitle {
+    font-size: 10px !important;
+  }
+
+  .historique-table-row {
+    padding: 8px !important;
+  }
+
+  .historique-icon {
+    flex: 0 0 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .historique-icon svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .historique-file-info {
+    max-width: calc(100% - 80px) !important;
+  }
+
+  .historique-file-name {
+    font-size: 10px !important;
+    max-width: 100px !important;
+  }
+
+  .historique-file-ref {
+    font-size: 7px !important;
+  }
+
+  .historique-type-badge {
+    font-size: 7px !important;
+    padding: 2px 4px !important;
+  }
+
+  .historique-download-btn {
+    padding: 8px 8px !important;
+    font-size: 10px !important;
+  }
+
+  .historique-stats {
+    grid-template-columns: 1fr !important;
+  }
+
+  .historique-stat-value {
+    font-size: 14px !important;
+  }
+}

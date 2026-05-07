@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { HiDownload, HiDocumentText, HiTable, HiExternalLink } from 'react-icons/hi';
 import api from '../lib/api';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const RecentGenerations = ({ onRefresh = 0, limit = 5 }) => {
   const [generations, setGenerations] = useState([]);
@@ -155,38 +156,41 @@ const RecentGenerations = ({ onRefresh = 0, limit = 5 }) => {
   }
 
   return (
-    <div style={{
-      background: '#0a0f1a',
-      border: '1px solid #1e3a5f',
-      borderRadius: 12,
-      padding: '20px'
+    <div className="recent-gen-container" style={{
+      background: 'linear-gradient(135deg, #0a0f1a 0%, #0d1420 100%)',
+      border: '1px solid rgba(0,212,160,0.2)',
+      borderRadius: 16,
+      padding: '24px',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
     }}>
       {/* Header */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginBottom: 16,
-        paddingBottom: 12,
-        borderBottom: '1px solid #1e3a5f'
+        marginBottom: 20,
+        paddingBottom: 16,
+        borderBottom: '2px solid rgba(0,212,160,0.15)'
       }}>
         <div style={{
-          fontSize: '16px',
-          fontWeight: 700,
-          color: '#e2e8f0',
+          fontSize: '18px',
+          fontWeight: 800,
+          color: '#ffffff',
           display: 'flex',
           alignItems: 'center',
-          gap: 8
+          gap: 10,
+          letterSpacing: '-0.5px'
         }}>
           📋 Générations récentes
           {generations.length > 0 && (
             <span style={{
               fontSize: '12px',
-              fontWeight: 600,
-              color: '#64748b',
-              background: 'rgba(255,255,255,0.05)',
-              padding: '2px 8px',
-              borderRadius: 12
+              fontWeight: 700,
+              color: '#00d4a0',
+              background: 'rgba(0,212,160,0.15)',
+              padding: '3px 10px',
+              borderRadius: 20,
+              border: '1px solid rgba(87, 170, 149, 0.3)'
             }}>
               {generations.length}
             </span>
@@ -227,79 +231,77 @@ const RecentGenerations = ({ onRefresh = 0, limit = 5 }) => {
           <div>Aucune génération récente</div>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div className="d-flex flex-column gap-2">
           {generations.map((gen) => {
             const statusConfig = getStatusConfig(gen.statut);
             
             return (
               <div
                 key={gen.id}
+                className="d-flex align-items-center p-3 border rounded"
                 style={{
-                  background: 'rgba(255,255,255,0.02)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  borderRadius: 10,
-                  padding: '12px 14px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  transition: 'all 0.2s',
-                  cursor: 'default'
+                  background: 'linear-gradient(135deg, rgba(17,24,39,0.6) 0%, rgba(26,34,54,0.4) 100%)',
+                  borderColor: 'rgba(30,58,95,0.5) !important',
+                  gap: '12px',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer',
+                  borderRadius: '12px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-                  e.currentTarget.style.borderColor = 'rgba(0,212,160,0.3)';
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(0,212,160,0.08) 0%, rgba(0,136,255,0.05) 100%)';
+                  e.currentTarget.style.borderColor = 'rgba(0,212,160,0.5)';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,212,160,0.15)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
-                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(17,24,39,0.6) 0%, rgba(26,34,54,0.4) 100%)';
+                  e.currentTarget.style.borderColor = 'rgba(30,58,95,0.5)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
                 }}
               >
                 {/* File Icon */}
-                <div style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 8,
-                  background: 'rgba(0,212,160,0.1)',
+                <div className="flex-shrink-0" style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 12,
+                  background: 'linear-gradient(135deg, rgba(0,212,160,0.2) 0%, rgba(0,136,255,0.15) 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  flexShrink: 0,
-                  color: '#00d4a0'
+                  color: '#00ffcc',
+                  border: '1px solid rgba(0,212,160,0.3)',
+                  boxShadow: '0 4px 12px rgba(0,212,160,0.2)'
                 }}>
                   {getFileIcon(gen.file_type)}
                 </div>
 
                 {/* Content */}
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="flex-grow-1 overflow-hidden" style={{ minWidth: 0 }}>
                   {/* Reference & Date */}
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    marginBottom: 4
-                  }}>
-                    <span style={{
-                      fontSize: '13px',
-                      fontWeight: 700,
+                  <div className="d-flex align-items-center flex-wrap" style={{ gap: '4px', marginBottom: 4 }}>
+                    <span className="fw-bold text-truncate" style={{
+                      fontSize: '14px',
                       color: '#ffffff',
-                      fontFamily: 'var(--mono)'
+                      fontFamily: 'var(--mono)',
+                      maxWidth: '120px',
+                      letterSpacing: '0.5px'
                     }}>
                       {gen.reference}
                     </span>
-                    <span style={{ color: '#334155' }}>•</span>
-                    <span style={{
+                    <span className="d-none d-sm-inline" style={{ color: '#334155', fontSize: '11px' }}>•</span>
+                    <span className="text-truncate" style={{
                       fontSize: '11px',
                       color: '#64748b'
                     }}>
                       {formatDate(gen.created_at)}
                     </span>
-                    <span style={{ color: '#334155' }}>•</span>
-                    <span style={{
+                    <span className="d-none d-sm-inline" style={{ color: '#334155', fontSize: '11px' }}>•</span>
+                    <span className="d-flex align-items-center" style={{
                       fontSize: '11px',
                       color: '#00d4a0',
                       fontWeight: 600,
-                      display: 'flex',
-                      alignItems: 'center',
                       gap: 4
                     }}>
                       {gen.file_type === 'XML' && <HiDocumentText size={14} />}
@@ -310,21 +312,16 @@ const RecentGenerations = ({ onRefresh = 0, limit = 5 }) => {
                   </div>
 
                   {/* Details */}
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    fontSize: '12px',
-                    color: '#94a3b8'
-                  }}>
-                    <span>
+                  <div className="d-flex align-items-center flex-wrap" style={{ gap: '8px', fontSize: '12px', color: '#94a3b8' }}>
+                    <span className="text-nowrap">
                       {gen.factures} {gen.factures === 1 ? 'facture' : 'factures'}
                     </span>
-                    <span style={{ color: '#334155' }}>•</span>
-                    <span style={{
-                      fontWeight: 600,
-                      color: '#00d4a0',
-                      fontFamily: 'var(--mono)'
+                    <span className="d-none d-sm-inline" style={{ color: '#334155' }}>•</span>
+                    <span className="fw-semibold text-nowrap" style={{
+                      color: '#00ffcc',
+                      fontFamily: 'var(--mono)',
+                      fontSize: '13px',
+                      fontWeight: 700
                     }}>
                       {parseFloat(gen.montant_ttc).toLocaleString('fr-FR', {
                         minimumFractionDigits: 2,
@@ -335,14 +332,15 @@ const RecentGenerations = ({ onRefresh = 0, limit = 5 }) => {
                 </div>
 
                 {/* Status Badge */}
-                <div style={{
-                  padding: '4px 10px',
+                <div className="flex-shrink-0 badge text-nowrap" style={{
+                  padding: '6px 12px',
                   borderRadius: 20,
                   background: statusConfig.bg,
                   color: statusConfig.color,
                   fontSize: '11px',
-                  fontWeight: 700,
-                  flexShrink: 0
+                  fontWeight: 800,
+                  border: `1px solid ${statusConfig.color}40`,
+                  boxShadow: `0 2px 8px ${statusConfig.color}20`
                 }}>
                   {statusConfig.label}
                 </div>
@@ -350,31 +348,35 @@ const RecentGenerations = ({ onRefresh = 0, limit = 5 }) => {
                 {/* Download Button */}
                 {gen.file_path && (
                   <button
+                    className="btn btn-sm flex-shrink-0 p-0"
                     onClick={() => handleDownload(gen.id, gen.file_name)}
                     style={{
-                      width: 45,
-                      height: 45,
-                      borderRadius: 6,
-                      border: 'none',
-                      background: '#0d1728',
+                      width: 44,
+                      height: 44,
+                      borderRadius: 10,
+                      border: '1px solid rgba(0,212,160,0.3)',
+                      background: 'linear-gradient(135deg, rgba(0,212,160,0.1) 0%, rgba(0,136,255,0.08) 100%)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      cursor: 'pointer',
-                      flexShrink: 0,
-                      transition: 'all 0.2s'
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 2px 8px rgba(0,212,160,0.15)'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#1a2236';
-                      e.currentTarget.style.transform = 'scale(1.05)';
+                      e.currentTarget.style.background = 'linear-gradient(135deg, rgba(0,212,160,0.25) 0%, rgba(0,136,255,0.2) 100%)';
+                      e.currentTarget.style.transform = 'scale(1.1) rotate(5deg)';
+                      e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,212,160,0.4)';
+                      e.currentTarget.style.borderColor = 'rgba(0,255,204,0.6)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = '#0d1728';
-                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.background = 'linear-gradient(135deg, rgba(0,212,160,0.1) 0%, rgba(0,136,255,0.08) 100%)';
+                      e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,212,160,0.15)';
+                      e.currentTarget.style.borderColor = 'rgba(0,212,160,0.3)';
                     }}
                     title="Télécharger"
                   >
-                    <HiDownload size={26} color="#00ffcc" style={{ strokeWidth: 2 }} />
+                    <HiDownload size={22} color="#00ffcc" style={{ strokeWidth: 2 }} />
                   </button>
                 )}
               </div>

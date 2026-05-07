@@ -18,11 +18,8 @@ export default function AdminSocietes({ showToast }) {
   const fetchUsers = async () => {
     try {
       setLoading(true)
-      console.log('📤 Fetching users with sociétés...')
       
       const response = await api.get('/admin/users-with-societes')
-      console.log('📥 Full Response:', response)
-      console.log('📥 Response Data:', response.data)
       
       let userData = []
       if (Array.isArray(response.data)) {
@@ -33,16 +30,8 @@ export default function AdminSocietes({ showToast }) {
         userData = Object.values(response.data).filter(item => typeof item === 'object')
       }
       
-      console.log('✅ Processed Users:', userData)
-      console.log('📊 User Count:', userData.length)
-      
       setUsers(userData)
-      
-      if (userData.length === 0) {
-        console.log('⚠️ No users with sociétés found')
-      }
     } catch (error) {
-      console.error('❌ Error fetching users:', error)
       showToast('Erreur lors du chargement des utilisateurs', 'error')
       setUsers([])
     } finally {
@@ -58,10 +47,8 @@ export default function AdminSocietes({ showToast }) {
 
     try {
       setLoadingSocietes(prev => ({ ...prev, [userId]: true }))
-      console.log('📤 Fetching sociétés for user:', userId)
       
       const response = await api.get(`/admin/users/${userId}/societes`)
-      console.log('📥 Sociétés Response:', response.data)
       
       let societesData = []
       if (Array.isArray(response.data)) {
@@ -70,8 +57,6 @@ export default function AdminSocietes({ showToast }) {
         societesData = response.data.data
       }
       
-      console.log('✅ Processed Sociétés:', societesData)
-      
       setUserSocietes(prev => ({
         ...prev,
         [userId]: societesData
@@ -79,7 +64,6 @@ export default function AdminSocietes({ showToast }) {
       
       setExpandedUser(expandedUser === userId ? null : userId)
     } catch (error) {
-      console.error('❌ Error fetching sociétés:', error)
       showToast('Erreur lors du chargement des sociétés', 'error')
       setUserSocietes(prev => ({
         ...prev,

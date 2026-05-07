@@ -120,6 +120,9 @@ class GenerationController extends Controller
                 'file_content' => 'nullable|string', // Base64 encoded file content
                 'file' => 'nullable|file|max:10240', // File upload (max 10MB)
                 'reference' => 'nullable|string',
+                'regime' => 'nullable|string',
+                'annee' => 'nullable|string',
+                'periode' => 'nullable|string',
             ]);
 
             $fileContent = null;
@@ -159,6 +162,9 @@ class GenerationController extends Controller
                 'file_name' => $fileName,
                 'file_path' => $filePath,
                 'file_size' => $fileSize,
+                'regime' => $validated['regime'] ?? null,
+                'annee' => $validated['annee'] ?? null,
+                'periode' => $validated['periode'] ?? null,
             ]);
 
             return response()->json([

@@ -24,22 +24,25 @@ class HistoriqueController extends Controller
     {
         $validated = $request->validate([
             'societe_id' => 'nullable|exists:societes,id',
-            'action' => 'required|in:creation,update,generation,export,import,load_module',
+            'action' => 'required|string',
             'description' => 'required|string',
             'data' => 'nullable|array',
         ]);
 
         // ✅ If societe_id provided, verify ownership
-        if ($validated['societe_id']) {
+        if (isset($validated['societe_id']) && $validated['societe_id']) {
             $societe = Societe::find($validated['societe_id']);
-            if ($societe->user_id !== auth()->id()) {
+            if ($societe && $societe->user_id !== auth()->id()) {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
         }
 
         $historique = Historique::create([
-            ...$validated,
             'user_id' => auth()->id(),
+            'societe_id' => $validated['societe_id'] ?? null,
+            'action' => $validated['action'],
+            'description' => $validated['description'],
+            'data' => $validated['data'] ?? null,
         ]);
 
         return response()->json([

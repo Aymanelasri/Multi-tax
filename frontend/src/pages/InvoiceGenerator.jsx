@@ -320,15 +320,29 @@ const InvoiceGenerator = () => {
       // Save to database
       try {
         const totalTTC = factures.reduce((sum, f) => sum + (parseFloat(f.ttc) || 0), 0);
-        const zipArrayBuffer = await blob.arrayBuffer();
-        const zipBase64 = btoa(String.fromCharCode(...new Uint8Array(zipArrayBuffer)));
+        const reference = `GEN-${identification.annee}-${String(Date.now()).slice(-4)}`;
         
-        await api.createGeneration({
-          factures: factures.length,
-          montant_ttc: totalTTC,
-          file_type: 'ZIP',
-          file_name: `${fname}.zip`,
-          file_content: zipBase64
+        // Create FormData for file upload
+        const formData = new FormData();
+        formData.append('file', blob, `${fname}.zip`);
+        formData.append('file_type', 'ZIP');
+        formData.append('reference', reference);
+        formData.append('factures', factures.length);
+        formData.append('montant_ttc', totalTTC);
+        formData.append('regime', identification.regime);
+        formData.append('annee', identification.annee);
+        formData.append('periode', identification.periode);
+        
+        // Send to backend
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        await fetch(`${process.env.REACT_APP_API_URL}/generations`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          },
+          body: formData,
+          credentials: 'include'
         });
         
         // Refresh recent generations widget
@@ -367,14 +381,30 @@ const InvoiceGenerator = () => {
     // Save to database
     try {
       const totalTTC = factures.reduce((sum, f) => sum + (parseFloat(f.ttc) || 0), 0);
-      const xmlBase64 = btoa(unescape(encodeURIComponent(plainXml)));
+      const reference = `GEN-${identification.annee}-${String(Date.now()).slice(-4)}`;
       
-      await api.createGeneration({
-        factures: factures.length,
-        montant_ttc: totalTTC,
-        file_type: 'XML',
-        file_name: fname,
-        file_content: xmlBase64
+      // Create FormData for file upload
+      const xmlBlob = new Blob([plainXml], { type: 'text/xml' });
+      const formData = new FormData();
+      formData.append('file', xmlBlob, fname);
+      formData.append('file_type', 'XML');
+      formData.append('reference', reference);
+      formData.append('factures', factures.length);
+      formData.append('montant_ttc', totalTTC);
+      formData.append('regime', identification.regime);
+      formData.append('annee', identification.annee);
+      formData.append('periode', identification.periode);
+      
+      // Send to backend
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      await fetch(`${process.env.REACT_APP_API_URL}/generations`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        },
+        body: formData,
+        credentials: 'include'
       });
       
       // Refresh recent generations widget

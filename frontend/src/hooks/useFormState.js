@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import api from '../lib/api';
 
 const EMPTY_FACTURE = (ord) => ({
   id: ord, ord: String(ord),
@@ -8,14 +9,22 @@ const EMPTY_FACTURE = (ord) => ({
   tx: '', prorata: '100', mp: '', dpai: '', dfac: '',
 });
 
+// Debounce utility
+const useDebounce = (callback, delay) => {
+  const timeoutRef = useRef(null);
+  
+  return useCallback((...args) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => {
+      callback(...args);
+    }, delay);
+  }, [callback, delay]);
+};
+
 const useFormState = () => {
   const { user } = useAuth();
-  
-  // Build user-specific localStorage key
-  const getStorageKey = () => {
-    if (!user?.id) return null;
-    return `edi_autosave_user_${user.id}`;
-  };
 
   const [currentStep, setCurrentStep] = useState(1);
   const [identification, setIdentification] = useState({
@@ -23,64 +32,108 @@ const useFormState = () => {
     annee: new Date().getFullYear().toString(),
     regime: '1',
     periode: '',
+    declarationType: 'Normal',
   });
   const [factures, setFactures] = useState([]);
   const [history, setHistory] = useState([]);
   const [autosaveBadge, setAutosaveBadge] = useState(false);
   const [restoreBanner, setRestoreBanner] = useState(false);
   const savedDraft = useRef(null);
+  const isLoadingDraft = useRef(false);
 
-  // Check for existing autosave on mount (only if user is logged in)
+  // Load draft from API on mount
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id || isLoadingDraft.current) return;
 
-    try {
-      const storageKey = getStorageKey();
-      const raw = localStorage.getItem(storageKey);
-      if (raw) {
-        const draft = JSON.parse(raw);
-        if (draft?.identification || draft?.factures?.length) {
+    const loadDraft = async () => {
+      try {
+        isLoadingDraft.current = true;
+        const response = await api.loadDraft();
+        
+        if (response.success && response.data) {
+          const draft = response.data;
+          // Ensure declarationType exists
+          if (draft.data.identification && !draft.data.identification.declarationType) {
+            draft.data.identification.declarationType = 'Normal';
+          }
           savedDraft.current = draft;
           setRestoreBanner(true);
         }
+      } catch (error) {
+        console.error('Failed to load draft:', error);
+      } finally {
+        isLoadingDraft.current = false;
       }
-    } catch { /* ignore */ }
+    };
+
+    loadDraft();
   }, [user?.id]);
 
-  // Auto-save every 30s (only if user is logged in)
-  useEffect(() => {
+  // Auto-save to API (debounced 2 seconds)
+  const saveDraftToAPI = useCallback(async (step, ident, facts) => {
     if (!user?.id) return;
 
-    const id = setInterval(() => {
-      try {
-        const storageKey = getStorageKey();
-        localStorage.setItem(storageKey, JSON.stringify({ identification, factures }));
-        setAutosaveBadge(true);
-        setTimeout(() => setAutosaveBadge(false), 2000);
-      } catch { /* ignore */ }
-    }, 30000);
-    return () => clearInterval(id);
-  }, [identification, factures, user?.id]);
-
-  const restoreDraft = useCallback(() => {
-    if (!savedDraft.current) return;
-    if (savedDraft.current.identification) setIdentification(savedDraft.current.identification);
-    if (savedDraft.current.factures?.length) setFactures(savedDraft.current.factures);
-    setRestoreBanner(false);
-  }, []);
-
-  const dismissRestore = useCallback(() => {
-    setRestoreBanner(false);
-    if (user?.id) {
-      const storageKey = getStorageKey();
-      localStorage.removeItem(storageKey);
+    try {
+      await api.saveDraft(step, {
+        identification: ident,
+        factures: facts,
+      });
+      
+      // Show badge
+      setAutosaveBadge(true);
+      setTimeout(() => setAutosaveBadge(false), 2000);
+    } catch (error) {
+      console.error('Failed to save draft:', error);
     }
   }, [user?.id]);
 
-  const clearAutosave = useCallback(() => {
+  const debouncedSave = useDebounce(saveDraftToAPI, 2000);
+
+  // Trigger auto-save on data change
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    // Don't save if form is empty
+    if (!identification.identifiantFiscal && factures.length === 0) return;
+    
+    debouncedSave(currentStep, identification, factures);
+  }, [identification, factures, currentStep, user?.id, debouncedSave]);
+
+  const restoreDraft = useCallback(() => {
+    if (!savedDraft.current) return;
+    const draft = savedDraft.current;
+    
+    if (draft.data.identification) {
+      setIdentification(draft.data.identification);
+    }
+    if (draft.data.factures?.length) {
+      setFactures(draft.data.factures);
+    }
+    if (draft.step) {
+      setCurrentStep(draft.step);
+    }
+    
+    setRestoreBanner(false);
+  }, []);
+
+  const dismissRestore = useCallback(async () => {
+    setRestoreBanner(false);
     if (user?.id) {
-      const storageKey = getStorageKey();
-      localStorage.removeItem(storageKey);
+      try {
+        await api.clearDraft();
+      } catch (error) {
+        console.error('Failed to clear draft:', error);
+      }
+    }
+  }, [user?.id]);
+
+  const clearAutosave = useCallback(async () => {
+    if (user?.id) {
+      try {
+        await api.clearDraft();
+      } catch (error) {
+        console.error('Failed to clear draft:', error);
+      }
     }
   }, [user?.id]);
 

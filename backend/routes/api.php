@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\HistoriqueController;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\GenerationController;
+use App\Http\Controllers\Api\DraftController;
 
 /*
 |--------------------------------------------------------------------------
@@ -73,6 +74,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('is-approved')->post('/generations', [GenerationController::class, 'store']);
     Route::middleware('is-approved')->get('/generations/{id}/download', [GenerationController::class, 'download']);
 
+    // Draft endpoints (require approval)
+    Route::middleware('is-approved')->post('/drafts/save', [DraftController::class, 'save']);
+    Route::middleware('is-approved')->get('/drafts/load', [DraftController::class, 'load']);
+    Route::middleware('is-approved')->delete('/drafts/clear', [DraftController::class, 'clear']);
+
     // Admin routes (require admin role)
     Route::middleware('is-admin')->group(function () {
         // Dashboard stats
@@ -95,6 +101,9 @@ Route::middleware('auth:sanctum')->group(function () {
         // Declarations list
         Route::get('/admin/declarations', [AdminController::class, 'declarations']);
 
+        // Factures list
+        Route::get('/admin/factures', [AdminController::class, 'factures']);
+
         // Admin profile management
         Route::put('/admin/profile', [AdminController::class, 'updateProfile']);
         Route::put('/admin/password', [AdminController::class, 'updatePassword']);
@@ -102,5 +111,9 @@ Route::middleware('auth:sanctum')->group(function () {
         // Messages management
         Route::get('/admin/messages', [AdminController::class, 'messages']);
         Route::put('/admin/messages/{contact}/read', [AdminController::class, 'markMessageAsRead']);
+
+        // Chart data endpoints
+        Route::get('/admin/monthly-comparison', [AdminController::class, 'monthlyComparison']);
+        Route::get('/admin/available-years', [AdminController::class, 'availableYears']);
     });
 });

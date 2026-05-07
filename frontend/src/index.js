@@ -8,6 +8,7 @@ import './styles/globals.css';
 import './styles/layout.css';
 import './styles/components.css';
 import './styles/App.css';
+import './styles/mobile-invoice.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

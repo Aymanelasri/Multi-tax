@@ -98,7 +98,7 @@ const css = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
-  body{background:${C.bg};color:${C.text};font-family:'Inter',system-ui,-apple-system,sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;letter-spacing:-.01em}
+  body{background:${C.bg};color:${C.text};font-family:'Inter',system-ui,-apple-system,sans-serif;overflow-x:hidden;width:100%;max-width:100vw;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;letter-spacing:-.01em}
   body::-webkit-scrollbar{width:8px}
   body::-webkit-scrollbar-track{background:transparent}
   body::-webkit-scrollbar-thumb{background:${C.accent};border-radius:10px;transition:background .2s}
@@ -195,31 +195,38 @@ const css = `
   .tl-item-desc{font-size:.9rem;color:${C.muted};line-height:1.7}
 
   /* hero section */
-  .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:100px;align-items:center}
-  .hero-h1{font-size:4.2rem;font-weight:900;line-height:1.1;letter-spacing:-3px;background:linear-gradient(135deg,${C.text},${C.muted});-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-  .hero-p{font-size:1.05rem;color:${C.muted};line-height:1.8;letter-spacing:-.02em}
+  .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:100px;align-items:center;width:100%;max-width:100%}
+  .hero-h1{font-size:4.2rem;font-weight:900;line-height:1.1;letter-spacing:-3px;background:linear-gradient(135deg,${C.text},${C.muted});-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;max-width:100%}
+  .hero-p{font-size:1.05rem;color:${C.muted};line-height:1.8;letter-spacing:-.02em;max-width:100%}
 
   @media(max-width:1200px){
     .hero-grid{gap:60px}
     .hero-h1{font-size:3.6rem}
   }
   @media(max-width:768px){
-    .hero-grid{grid-template-columns:1fr!important;gap:32px!important}
+    body{padding:0!important;margin:0!important}
+    .wrap{padding:0!important;width:100%!important;max-width:100vw!important;overflow-x:hidden!important}
+    .hero-grid{grid-template-columns:1fr!important;gap:32px!important;width:100%!important;padding:0!important}
     .mockup-col{display:none!important}
-    .hero-h1{font-size:2.2rem!important;letter-spacing:-1.5px!important}
-    .bento{grid-template-columns:1fr!important}
-    .testimonials-grid{grid-template-columns:1fr!important}
-    .timeline{grid-template-columns:1fr!important}
+    .hero-h1{font-size:2.2rem!important;letter-spacing:-1.5px!important;width:100%!important;max-width:100%!important}
+    .hero-p{width:100%!important;max-width:100%!important}
+    .bento{grid-template-columns:1fr!important;width:100%!important}
+    .testimonials-grid{grid-template-columns:1fr!important;width:100%!important}
+    .timeline{grid-template-columns:1fr!important;width:100%!important}
     .timeline::before{display:none}
     .tl-dot::after{display:none}
-    .stats-row{flex-direction:column!important;gap:28px!important}
+    .stats-row{flex-direction:column!important;gap:28px!important;width:100%!important}
     .stats-sep{display:none!important}
     .feat-card{padding:20px!important}
-    .btn-p,.btn-o{width:100%!important;justify-content:center!important}
+    .btn-p,.btn-o{width:100%!important;justify-content:center!important;max-width:100%!important}
   }
   @media(max-width:480px){
-    .hero-h1{font-size:1.8rem!important;letter-spacing:-1px!important}
-    .hero-p{font-size:.9rem!important}
+    body{padding:0!important;margin:0!important;width:100%!important}
+    .wrap{padding:0!important;width:100%!important;max-width:100vw!important}
+    .hero-grid{padding:0!important;width:100%!important}
+    .hero-h1{font-size:1.8rem!important;letter-spacing:-1px!important;width:100%!important;word-wrap:break-word!important}
+    .hero-p{font-size:.9rem!important;width:100%!important}
+    .btn-p,.btn-o{font-size:.85rem!important;padding:11px 20px!important}
   }
 `;
 
@@ -385,7 +392,7 @@ const HomePage = () => {
         <AccessMessage />
 
         {/* ── Hero ── */}
-        <div style={{ padding: '104px 64px 0 64px' }}>
+        <div style={{ padding: '104px 64px 0 64px', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }} className="hero-section">
           <div className="hero-grid">
             <div>
               <h1 className="reveal hero-h1" style={{ marginBottom: 28 }}>
@@ -413,7 +420,7 @@ const HomePage = () => {
         </div>
 
         {/* ── Stats ── */}
-        <div style={{ padding: '64px 64px 80px 64px' }}>
+        <div style={{ padding: '64px 64px 80px 64px', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
           <div className="reveal d3 stats-row" style={{ display: 'flex', alignItems: 'stretch', gap: 0 }}>
             <StatItem target={10} suffix="K+" label={tr.statLabels[0]} duration={1600} />
             <div className="stats-sep" style={{ width: 1, height: 80, background: 'linear-gradient(180deg, transparent, rgba(74,222,128,0.2), transparent)', margin: '0 56px' }} />
@@ -426,7 +433,7 @@ const HomePage = () => {
         <NewsTicker />
 
         {/* ── Features ── */}
-        <div id="features" style={{ padding: '120px 64px 120px 64px' }}>
+        <div id="features" style={{ padding: '120px 64px 120px 64px', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
           <div className="reveal" style={{ marginBottom: 40 }}>
             <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', color: '#00d4a0', textTransform: 'uppercase', marginBottom: 12 }}>{tr.featLabel}</p>
             <h2 style={{ fontSize: 'clamp(32px, 4vw, 52px)', fontWeight: 900, letterSpacing: '-1px', lineHeight: 1.15, marginBottom: 8, color: '#ffffff' }}>{tr.featTitle}</h2>
@@ -458,7 +465,7 @@ const HomePage = () => {
         </div>
 
         {/* ── Testimonials ── */}
-        <div style={{ padding: '0 64px 120px 64px' }}>
+        <div style={{ padding: '0 64px 120px 64px', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
           <div className="reveal" style={{ marginBottom: 48 }}>
             <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', color: '#00d4a0', textTransform: 'uppercase', marginBottom: 12 }}>{tr.testimonialsLabel}</p>
             <h2 style={{ fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: 900, letterSpacing: '-1px', lineHeight: 1.15, color: '#ffffff' }}>{tr.testimonialsTitle}</h2>

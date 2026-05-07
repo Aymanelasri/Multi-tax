@@ -386,16 +386,11 @@ export const useTVAFormLogic = (initialData = null) => {
 
     // Validate entire form
     if (!validate()) {
-      console.error('Form validation failed:', errors);
       return false;
     }
 
     // Format and prepare submission data
     const formattedData = formatForSubmission();
-
-    // Log for debugging
-    console.log('✅ Form validation successful');
-    console.log('📦 Data ready for API submission:', formattedData);
 
     // Prepare for Laravel API
     const apiPayload = {
@@ -404,10 +399,8 @@ export const useTVAFormLogic = (initialData = null) => {
       version: 'EDI_V4.0'
     };
 
-    console.log('🚀 API Payload:', apiPayload);
-
     return apiPayload;
-  }, [validate, formatForSubmission, errors]);
+  }, [validate, formatForSubmission]);
 
   /**
    * Reset form to initial state
@@ -466,10 +459,8 @@ export const useTVAFormLogic = (initialData = null) => {
         })));
       }
 
-      console.log('✅ Data imported successfully');
       return true;
     } catch (error) {
-      console.error('❌ Import failed:', error);
       return false;
     }
   }, []);

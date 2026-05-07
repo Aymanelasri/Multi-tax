@@ -10,6 +10,67 @@ const IdentificationForm = ({ data, onChange, onNext, onOpenSocietesModal }) => 
   const regimeDef = REGIMES.find((r) => r.value === data.regime);
   const set = (field, value) => onChange({ ...data, [field]: value });
   const ifValid = !data.identifiantFiscal || /^\d{1,8}$/.test(data.identifiantFiscal.trim());
+  
+  const [periodeError, setPeriodeError] = React.useState('');
+  
+  // Validate période based on regime
+  const validatePeriode = (periode, regime) => {
+    if (!periode || periode.trim() === '') {
+      return t('error_periode_required') || 'La période est requise';
+    }
+    
+    const num = parseInt(periode, 10);
+    
+    // Check if it's a valid integer
+    if (isNaN(num) || num.toString() !== periode.trim() || num < 0) {
+      return 'La période doit être un nombre entier positif';
+    }
+    
+    // Validate based on regime
+    if (regime === '1') { // Mensuel
+      if (num < 1 || num > 12) {
+        return 'La période doit être entre 1 et 12 pour le régime mensuel';
+      }
+    } else if (regime === '2') { // Trimestriel
+      if (num < 1 || num > 4) {
+        return 'La période doit être entre 1 et 4 pour le régime trimestriel';
+      }
+    }
+    
+    return '';
+  };
+  
+  // Handle période blur
+  const handlePeriodeBlur = () => {
+    const error = validatePeriode(data.periode, data.regime);
+    setPeriodeError(error);
+  };
+  
+  // Handle période change
+  const handlePeriodeChange = (value) => {
+    set('periode', value);
+    if (periodeError) {
+      const error = validatePeriode(value, data.regime);
+      setPeriodeError(error);
+    }
+  };
+  
+  // Get placeholder based on regime
+  const getPeriodePlaceholder = () => {
+    if (data.regime === '1') return '1 - 12';
+    if (data.regime === '2') return '1 - 4';
+    return 'ex: 3';
+  };
+  
+  // Handle next with validation
+  const handleNext = () => {
+    const error = validatePeriode(data.periode, data.regime);
+    if (error) {
+      setPeriodeError(error);
+      return;
+    }
+    onNext();
+  };
   return (
     <div className="panel active" id="panel1">
       <div className="panel-title" style={{ fontSize: 'clamp(20px, 2.5vw, 28px)', fontWeight: 800, marginBottom: 6 }}>
@@ -68,7 +129,11 @@ const IdentificationForm = ({ data, onChange, onNext, onOpenSocietesModal }) => 
           <FormGroup label={t('field_regime')} required>
             <select
               value={data.regime || '1'}
-              onChange={(e) => onChange({ ...data, regime: e.target.value, periode: '' })}
+              onChange={(e) => {
+                const newRegime = e.target.value;
+                onChange({ ...data, regime: newRegime, periode: '' });
+                setPeriodeError('');
+              }}
             >
               {REGIMES.map((r) => (
                 <option key={r.value} value={r.value}>{t(`regime_${r.value}`)}</option>
@@ -84,13 +149,18 @@ const IdentificationForm = ({ data, onChange, onNext, onOpenSocietesModal }) => 
             <div className="number-wrap">
               <input
                 type="number"
-                placeholder="ex: 3"
+                placeholder={getPeriodePlaceholder()}
                 min="1"
                 max={regimeDef?.maxPeriode || 12}
                 value={data.periode || ''}
-                onChange={(e) => set('periode', e.target.value)}
+                onChange={(e) => handlePeriodeChange(e.target.value)}
+                onBlur={handlePeriodeBlur}
+                className={periodeError ? 'invalid' : ''}
               />
             </div>
+            {periodeError && (
+              <span className="field-error">❌ {periodeError}</span>
+            )}
           </FormGroup>
 
           {regimeDef?.label && (
@@ -112,7 +182,7 @@ const IdentificationForm = ({ data, onChange, onNext, onOpenSocietesModal }) => 
       </Card>
 
       <div className="actions-row">
-        <Button variant="primary" onClick={onNext}>{t('btn_next_step1')}</Button>
+        <Button variant="primary" onClick={handleNext} disabled={!!periodeError}>{t('btn_next_step1')}</Button>
       </div>
     </div>
   );

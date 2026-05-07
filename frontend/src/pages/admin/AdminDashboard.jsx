@@ -3,6 +3,7 @@ import { useAdminLanguage } from '../../context/AdminLanguageContext'
 import { getToken } from '../../services/auth'
 import api from '../../lib/api'
 import { FaSignOutAlt } from 'react-icons/fa'
+import MonthlyComparisonChart from './MonthlyComparisonChart'
 import {
   
   AreaChart,
@@ -210,6 +211,17 @@ export default function AdminDashboard() {
   const [selectedUserProfile, setSelectedUserProfile] = useState(null)
   const [societesSubTab, setSocietesSubTab] = useState('with-companies')
   const [societesUserSearch, setSocietesUserSearch] = useState('')
+  const [facturesData, setFacturesData] = useState([])
+  const [facturesLoading, setFacturesLoading] = useState(false)
+  const [facturesSearchTerm, setFacturesSearchTerm] = useState('')
+  const [facturesFilterYear, setFacturesFilterYear] = useState('all')
+  const [facturesFilterMonth, setFacturesFilterMonth] = useState('all')
+  const [facturesFilterRegime, setFacturesFilterRegime] = useState('all')
+  const [facturesSortBy, setFacturesSortBy] = useState('date')
+  const [facturesCurrentPage, setFacturesCurrentPage] = useState(1)
+  const [facturesLastPage, setFacturesLastPage] = useState(1)
+  const [facturesTotalCount, setFacturesTotalCount] = useState(0)
+  const [expandedUserId, setExpandedUserId] = useState(null)
   const pageSize = 10
 
   // Sort societies helper function
@@ -439,6 +451,35 @@ export default function AdminDashboard() {
     if (activeTab === 'societes') fetchSocietes()
   }, [activeTab, isAuthenticated, language])
 
+  // Fetch Factures with pagination
+  useEffect(() => {
+    if (!isAuthenticated) return
+
+    const fetchFactures = async () => {
+      try {
+        setFacturesLoading(true)
+        const params = new URLSearchParams({
+          page: facturesCurrentPage,
+          per_page: 10,
+          search: facturesSearchTerm,
+          year: facturesFilterYear,
+          month: facturesFilterMonth,
+          regime: facturesFilterRegime
+        })
+        const response = await api.get(`/admin/factures?${params}`)
+        setFacturesData(response.data.data || [])
+        setFacturesLastPage(response.data.last_page || 1)
+        setFacturesTotalCount(response.data.total || 0)
+      } catch (error) {
+        showToast('Erreur lors du chargement des factures', 'error')
+      } finally {
+        setFacturesLoading(false)
+      }
+    }
+
+    if (activeTab === 'factures') fetchFactures()
+  }, [activeTab, isAuthenticated, facturesCurrentPage, facturesSearchTerm, facturesFilterYear, facturesFilterMonth, facturesFilterRegime])
+
   // Mark message as read - FIX BUG 6
   const handleMarkMessageAsRead = async (messageId) => {
     try {
@@ -611,7 +652,24 @@ export default function AdminDashboard() {
                 <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, marginBottom: 24, color: currentTheme.textPrimary }}>📈 {t('user_evolution')}</div>
                 <div style={{ height: isMobile ? 250 : 300 }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={stats.monthlyUsers || []}>
+                    <AreaChart data={(() => {
+                      const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
+                      const apiData = stats.monthlyUsers || [];
+                      
+                      // Create a map of API data by month name for easy lookup
+                      const dataMap = {};
+                      apiData.forEach(item => {
+                        dataMap[item.month] = item.count || item.value || 0;
+                      });
+                      
+                      // Build complete 12-month array
+                      return monthNames.map((month) => {
+                        return { 
+                          month, 
+                          count: dataMap[month] || 0 
+                        };
+                      });
+                    })()}>
                       <defs>
                         <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor={currentTheme.accentGreen} stopOpacity={0.3} />
@@ -699,8 +757,11 @@ export default function AdminDashboard() {
               </div>
             </div>
 
+            {/* Monthly Comparison Chart */}
+            <MonthlyComparisonChart theme={theme} language={language} t={t} />
+
             {/* Stats Strip */}
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: 20, marginBottom: 28 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: 20, marginBottom: 28, marginTop: 28 }}>
               <div style={{ background: currentTheme.bgCard, border: `1px solid ${currentTheme.border}`, borderRadius: 16, padding: 24, backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', gap: 16, boxShadow: theme === 'light' ? '0 2px 8px rgba(0,0,0,0.08)' : '0 8px 32px rgba(0,0,0,0.1)' }}>
                 <div style={{ width: 56, height: 56, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, background: theme === 'light' ? 'rgba(16,185,129,0.1)' : 'rgba(0,212,160,0.15)' }}>📊</div>
                 <div>
@@ -1354,6 +1415,321 @@ export default function AdminDashboard() {
           </div>
         )
 
+      case 'factures':
+        // Calculate totals from grouped data
+        const totalFactures = facturesData.reduce((sum, user) => sum + user.total_factures, 0)
+        const totalDeclarations = facturesData.reduce((sum, user) => sum + user.declarations.length, 0)
+        const uniqueUsers = facturesData.length
+
+        return (
+          <div>
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: isMobile ? 20 : 36, fontWeight: 800, marginBottom: 6, color: currentTheme.textPrimary }}>
+                📄 {t('factures')}
+              </div>
+              <div style={{ fontSize: isMobile ? 13 : 15, color: currentTheme.textMuted }}>
+                {t('factures_overview')}
+              </div>
+            </div>
+
+            {/* Stat Cards - Only 3 cards now */}
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: isMobile ? 12 : 20, marginBottom: 28 }}>
+              <div style={{ background: currentTheme.bgCard, border: `1px solid ${currentTheme.border}`, borderRadius: 16, padding: 24, boxShadow: theme === 'light' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted, marginBottom: 12 }}>{t('total_factures')}</div>
+                <div style={{ fontSize: isMobile ? 28 : 40, fontWeight: 900, color: currentTheme.textPrimary }}>{totalFactures}</div>
+              </div>
+              <div style={{ background: currentTheme.bgCard, border: `1px solid ${currentTheme.border}`, borderRadius: 16, padding: 24, boxShadow: theme === 'light' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted, marginBottom: 12 }}>{t('declarations')}</div>
+                <div style={{ fontSize: isMobile ? 28 : 40, fontWeight: 900, color: currentTheme.accentBlue }}>{totalDeclarations}</div>
+              </div>
+              <div style={{ background: currentTheme.bgCard, border: `1px solid ${currentTheme.border}`, borderRadius: 16, padding: 24, boxShadow: theme === 'light' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: currentTheme.textMuted, marginBottom: 12 }}>{t('users_count')}</div>
+                <div style={{ fontSize: isMobile ? 28 : 40, fontWeight: 900, color: currentTheme.accentPurple }}>{uniqueUsers}</div>
+              </div>
+            </div>
+
+            {/* Filters */}
+            <div style={{ background: currentTheme.bgCard, border: `1px solid ${currentTheme.border}`, borderRadius: 12, padding: 20, marginBottom: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+                <input
+                  type="text"
+                  placeholder={t('search')}
+                  value={facturesSearchTerm}
+                  onChange={e => { setFacturesSearchTerm(e.target.value); setFacturesCurrentPage(1) }}
+                  style={{
+                    padding: '10px 14px',
+                    background: currentTheme.bgMain,
+                    border: `1px solid ${currentTheme.border}`,
+                    borderRadius: 8,
+                    color: currentTheme.textPrimary,
+                    fontSize: 13,
+                    fontFamily: 'inherit'
+                  }}
+                />
+                <select
+                  value={facturesFilterYear}
+                  onChange={e => { setFacturesFilterYear(e.target.value); setFacturesCurrentPage(1) }}
+                  style={{
+                    padding: '10px 14px',
+                    background: currentTheme.bgMain,
+                    border: `1px solid ${currentTheme.border}`,
+                    borderRadius: 8,
+                    color: currentTheme.textPrimary,
+                    fontSize: 13,
+                    fontFamily: 'inherit',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="all">{t('all_years')}</option>
+                  {[...new Set(facturesData.flatMap(u => u.declarations.map(d => new Date(d.created_at).getFullYear().toString())))].sort((a, b) => b - a).map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+                <select
+                  value={facturesFilterMonth}
+                  onChange={e => { setFacturesFilterMonth(e.target.value); setFacturesCurrentPage(1) }}
+                  style={{
+                    padding: '10px 14px',
+                    background: currentTheme.bgMain,
+                    border: `1px solid ${currentTheme.border}`,
+                    borderRadius: 8,
+                    color: currentTheme.textPrimary,
+                    fontSize: 13,
+                    fontFamily: 'inherit',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="all">{t('all_months')}</option>
+                  {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'].map(m => <option key={m} value={m}>{language === 'FR' ? 'Mois' : language === 'EN' ? 'Month' : 'شهر'} {m}</option>)}
+                </select>
+                <select
+                  value={facturesFilterRegime}
+                  onChange={e => { setFacturesFilterRegime(e.target.value); setFacturesCurrentPage(1) }}
+                  style={{
+                    padding: '10px 14px',
+                    background: currentTheme.bgMain,
+                    border: `1px solid ${currentTheme.border}`,
+                    borderRadius: 8,
+                    color: currentTheme.textPrimary,
+                    fontSize: 13,
+                    fontFamily: 'inherit',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="all">{t('all_regimes')}</option>
+                  <option value="mensuel">{t('monthly')}</option>
+                  <option value="trimestriel">{t('quarterly')}</option>
+                  <option value="null">{language === 'FR' ? 'Non défini' : language === 'EN' ? 'Undefined' : 'غير محدد'}</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Table */}
+            {facturesLoading ? (
+              <div style={{ textAlign: 'center', padding: '40px 20px', color: currentTheme.textMuted }}>{t('loading_invoices')}</div>
+            ) : facturesData.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 20px', color: currentTheme.textMuted }}>
+                <div style={{ fontSize: 48, marginBottom: 10 }}>📄</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: currentTheme.textPrimary, marginBottom: 8 }}>{t('no_invoices_found')}</div>
+              </div>
+            ) : (
+              <div>
+                <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 20, overflow: isMobile ? 'auto' : 'hidden', backdropFilter: 'blur(12px)' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: isMobile ? '800px' : 'auto' }}>
+                    <thead>
+                      <tr style={{ background: `linear-gradient(90deg, rgba(0,212,160,0.06), rgba(0,153,255,0.06))`, borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                        <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8', width: 40 }}></th>
+                        <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8' }}>{t('user')}</th>
+                        <th style={{ padding: '12px 14px', textAlign: 'center', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8' }}>{t('declarations')}</th>
+                        <th style={{ padding: '12px 14px', textAlign: 'center', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8' }}>{t('nb_invoices')}</th>
+                        <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8' }}>{t('last_date')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {facturesData.map((user) => (
+                        <React.Fragment key={user.user_id}>
+                          {/* Main User Row */}
+                          <tr 
+                            onClick={() => setExpandedUserId(expandedUserId === user.user_id ? null : user.user_id)}
+                            style={{ 
+                              borderBottom: `1px solid ${currentTheme.border}`, 
+                              transition: 'all 0.2s ease',
+                              cursor: 'pointer',
+                              background: expandedUserId === user.user_id ? 'rgba(0,212,160,0.05)' : 'transparent'
+                            }}
+                            onMouseEnter={(e) => {
+                              if (expandedUserId !== user.user_id) {
+                                e.currentTarget.style.background = 'rgba(255,255,255,0.02)'
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (expandedUserId !== user.user_id) {
+                                e.currentTarget.style.background = 'transparent'
+                              }
+                            }}
+                          >
+                            <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                              <span style={{ fontSize: 16, color: currentTheme.accentGreen, transition: 'transform 0.2s ease', display: 'inline-block', transform: expandedUserId === user.user_id ? 'rotate(90deg)' : 'rotate(0deg)' }}>
+                                ›
+                              </span>
+                            </td>
+                            <td style={{ padding: '12px 14px' }}>
+                              <div style={{ fontSize: 13, fontWeight: 600, color: currentTheme.textPrimary }}>{user.user_name}</div>
+                              <div style={{ fontSize: 11, color: currentTheme.textMuted }}>{user.user_email}</div>
+                            </td>
+                            <td style={{ padding: '12px 14px', textAlign: 'center', fontSize: 16, fontWeight: 700, color: currentTheme.accentBlue }}>{user.declarations.length}</td>
+                            <td style={{ padding: '12px 14px', textAlign: 'center', fontSize: 16, fontWeight: 700, color: currentTheme.accentPurple }}>{user.total_factures}</td>
+                            <td style={{ padding: '12px 14px', fontSize: 13, color: currentTheme.textSecondary }}>
+                              {new Date(user.last_date).toLocaleDateString('fr-FR')}
+                            </td>
+                          </tr>
+                          
+                          {/* Expanded Sub-Rows */}
+                          {expandedUserId === user.user_id && (
+                            <tr>
+                              <td colSpan="4" style={{ padding: 0, background: 'rgba(0,212,160,0.02)' }}>
+                                <div style={{ padding: '0 20px 12px 60px' }}>
+                                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                    <thead>
+                                      <tr style={{ borderBottom: `1px solid ${currentTheme.border}` }}>
+                                        <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('declaration_number')}</th>
+                                        <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('regime')}</th>
+                                        <th style={{ padding: '8px 12px', textAlign: 'center', fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('nb_invoices')}</th>
+                                        <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('date')}</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {user.declarations.map((decl, idx) => (
+                                        <tr key={idx} style={{ borderBottom: idx < user.declarations.length - 1 ? `1px solid ${currentTheme.border}` : 'none' }}>
+                                          <td style={{ padding: '8px 12px', fontSize: 12, fontWeight: 600, fontFamily: 'monospace', color: currentTheme.accentBlue }}>{decl.numero_declaration}</td>
+                                          <td style={{ padding: '8px 12px' }}>
+                                            <span style={{
+                                              padding: '3px 8px',
+                                              borderRadius: 4,
+                                              fontSize: 10,
+                                              fontWeight: 600,
+                                              background: decl.regime === 'Mensuel' ? 'rgba(0,212,160,0.1)' : decl.regime === 'Trimestriel' ? 'rgba(59,130,246,0.1)' : 'rgba(148,163,184,0.1)',
+                                              color: decl.regime === 'Mensuel' ? currentTheme.accentGreen : decl.regime === 'Trimestriel' ? currentTheme.accentBlue : currentTheme.textMuted
+                                            }}>
+                                              {decl.regime || (language === 'FR' ? 'Non défini' : language === 'EN' ? 'Undefined' : 'غير محدد')}
+                                            </span>
+                                          </td>
+                                          <td style={{ padding: '8px 12px', textAlign: 'center', fontSize: 14, fontWeight: 700, color: currentTheme.accentPurple }}>{decl.nb_factures}</td>
+                                          <td style={{ padding: '8px 12px', fontSize: 12, color: currentTheme.textSecondary }}>
+                                            {new Date(decl.created_at).toLocaleDateString('fr-FR')}
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination */}
+                {facturesLastPage > 1 && (
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 20 }}>
+                    <button
+                      onClick={() => setFacturesCurrentPage(Math.max(1, facturesCurrentPage - 1))}
+                      disabled={facturesCurrentPage === 1}
+                      style={{
+                        padding: '10px 16px',
+                        background: currentTheme.bgCard,
+                        border: `1px solid ${currentTheme.border}`,
+                        borderRadius: 8,
+                        color: currentTheme.textSecondary,
+                        cursor: facturesCurrentPage === 1 ? 'not-allowed' : 'pointer',
+                        fontFamily: 'inherit',
+                        opacity: facturesCurrentPage === 1 ? 0.5 : 1,
+                        fontSize: 14,
+                        fontWeight: 600
+                      }}
+                    >
+                      ← Précédent
+                    </button>
+                    <span style={{ fontSize: 13, color: currentTheme.textMuted, fontWeight: 600 }}>
+                      Page {facturesCurrentPage} sur {facturesLastPage}
+                    </span>
+                    <button
+                      onClick={() => setFacturesCurrentPage(Math.min(facturesLastPage, facturesCurrentPage + 1))}
+                      disabled={facturesCurrentPage === facturesLastPage}
+                      style={{
+                        padding: '10px 16px',
+                        background: currentTheme.bgCard,
+                        border: `1px solid ${currentTheme.border}`,
+                        borderRadius: 8,
+                        color: currentTheme.textSecondary,
+                        cursor: facturesCurrentPage === facturesLastPage ? 'not-allowed' : 'pointer',
+                        fontFamily: 'inherit',
+                        opacity: facturesCurrentPage === facturesLastPage ? 0.5 : 1,
+                        fontSize: 14,
+                        fontWeight: 600
+                      }}
+                    >
+                      Suivant →
+                    </button>
+                  </div>
+                )}
+
+                {/* Export Button */}
+                <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
+                  <button
+                    onClick={() => {
+                      const csv = [
+                        ['Utilisateur', 'Email', 'N° Déclaration', 'Régime', 'Nb Factures', 'Date'],
+                        ...facturesData.flatMap(user => 
+                          user.declarations.map(d => [
+                            user.user_name,
+                            user.user_email,
+                            d.numero_declaration,
+                            d.regime,
+                            d.nb_factures,
+                            new Date(d.created_at).toLocaleDateString('fr-FR')
+                          ])
+                        )
+                      ].map(row => row.join(',')).join('\n')
+                      
+                      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+                      const link = document.createElement('a')
+                      link.href = URL.createObjectURL(blob)
+                      link.download = `factures_${new Date().toISOString().split('T')[0]}.csv`
+                      link.click()
+                      showToast('Export réussi', 'success')
+                    }}
+                    style={{
+                      padding: '12px 24px',
+                      background: theme === 'light' ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #00d4a0, #0099ff)',
+                      border: 'none',
+                      borderRadius: 8,
+                      color: 'white',
+                      fontWeight: 700,
+                      fontSize: 14,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      transition: 'all 0.2s ease',
+                      boxShadow: theme === 'light' ? '0 4px 12px rgba(16,185,129,0.2)' : '0 4px 12px rgba(0,212,160,0.2)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.transform = 'translateY(-2px)'
+                      e.target.style.boxShadow = theme === 'light' ? '0 6px 20px rgba(16,185,129,0.3)' : '0 6px 20px rgba(0,212,160,0.3)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.transform = 'translateY(0)'
+                      e.target.style.boxShadow = theme === 'light' ? '0 4px 12px rgba(16,185,129,0.2)' : '0 4px 12px rgba(0,212,160,0.2)'
+                    }}
+                  >
+                    {t('export_excel')}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )
+
       case 'settings':
         return (
           <div>
@@ -1601,6 +1977,7 @@ export default function AdminDashboard() {
     { id: 'overview', label: t('dashboard'), emoji: '▦', icon: 'grid' },
     { id: 'users', label: t('users'), emoji: '👥', icon: 'people' },
     { id: 'societes', label: t('companies'), emoji: '🏢', icon: 'building', badge: false },
+    { id: 'factures', label: t('factures'), emoji: '📄', icon: 'document', badge: false },
     { id: 'pending', label: t('pending'), emoji: '⏳', icon: 'clock', badge: stats?.pendingUsers > 0 },
     { id: 'messages', label: t('messages'), emoji: '📧', icon: 'envelope', badge: messages.filter(m => m.status === 'unread').length > 0 },
     { id: 'settings', label: t('settings'), emoji: '⚙️', icon: 'gear' }
@@ -2368,8 +2745,32 @@ export default function AdminDashboard() {
                       }}
                     >
                       <div style={{ marginBottom: 12 }}>
-                        <div style={{ fontSize: 16, fontWeight: 700, color: currentTheme.textPrimary, marginBottom: 4 }}>
-                          {societe.nom}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+                          <div style={{ fontSize: 16, fontWeight: 700, color: currentTheme.textPrimary }}>
+                            {societe.nom}
+                          </div>
+                          <div style={{
+                            padding: '4px 6px',
+                            borderRadius: '12px',
+                            background: societe.usage_count === 0 
+                              ? 'rgba(251, 191, 36, 0.15)' 
+                              : 'rgba(0, 212, 160, 0.15)',
+                            border: societe.usage_count === 0
+                              ? '1px solid rgba(251, 191, 36, 0.3)'
+                              : '1px solid rgba(0, 212, 160, 0.3)',
+                            fontSize: '11px',
+                            fontWeight: '600',
+                            color: societe.usage_count === 0 ? '#397465' : '#397465',
+                            whiteSpace: 'nowrap',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em'
+                          }}>
+                            {societe.usage_count === 0 
+                              ? '🧾 Jamais utilisée' 
+                              : societe.usage_count === 1
+                              ? '🧾 Utilisée 1 fois'
+                              : `🧾 Utilisée ${societe.usage_count} fois`}
+                          </div>
                         </div>
                         <div style={{ fontSize: 13, color: currentTheme.textMuted }}>
                           {societe.ville && `${societe.ville} • `}

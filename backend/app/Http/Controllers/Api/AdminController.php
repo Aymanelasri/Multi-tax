@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Societe;
 use App\Models\Declaration;
 use App\Models\Contact;
+use App\Models\Generation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -40,17 +41,19 @@ class AdminController extends Controller
         $avgSocietesPerUser = $totalUsers > 0 ? $totalSocietes / $totalUsers : 0;
         $avgDeclarationsPerUser = $totalUsers > 0 ? $totalDeclarations / $totalUsers : 0;
 
-        // Monthly user registration data (last 6 months)
+        // Monthly user registration data (all 12 months of current year)
         $monthlyUsers = [];
-        for ($i = 5; $i >= 0; $i--) {
-            $month = Carbon::now()->subMonths($i);
+        $currentYear = now()->year;
+        $monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
+        
+        for ($i = 1; $i <= 12; $i++) {
             $count = User::where('role', '!=', 'admin')
-                ->whereYear('created_at', $month->year)
-                ->whereMonth('created_at', $month->month)
+                ->whereYear('created_at', $currentYear)
+                ->whereMonth('created_at', $i)
                 ->count();
             $monthlyUsers[] = [
-                'month' => $month->format('M'),
-                'name' => $month->format('F'),
+                'month' => $monthNames[$i - 1],
+                'name' => Carbon::create($currentYear, $i, 1)->format('F'),
                 'value' => $count,
                 'count' => $count,
             ];
@@ -306,7 +309,7 @@ class AdminController extends Controller
             ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             return response()->json([
                 'message' => 'Failed to delete user',
                 'error' => $e->getMessage()
@@ -368,6 +371,7 @@ class AdminController extends Controller
                             'user_id' => $societe->user_id,
                             'created_at' => $societe->created_at,
                             'updated_at' => $societe->updated_at,
+                            'usage_count' => $societe->usage_count ?? 0,
                         ];
                     })->values(),
                     'created_at' => $user->created_at,
@@ -522,6 +526,251 @@ class AdminController extends Controller
         return response()->json([
             'message' => 'Message marked as read',
             'contact' => $contact,
+        ]);
+    }
+
+    /**
+     * Get all factures from all generations with pagination and grouping by user
+     */
+    public function factures(Request $request)
+    {
+        $perPage = $request->input('per_page', 10);
+        $search = $request->input('search', '');
+        $year = $request->input('year', 'all');
+        $month = $request->input('month', 'all');
+        $regime = $request->input('regime', 'all');
+
+        $query = Generation::with(['user:id,name,email'])
+            ->where('factures', '>', 0);
+
+        // Apply filters
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('reference', 'like', "%{$search}%")
+                  ->orWhereHas('user', function($userQuery) use ($search) {
+                      $userQuery->where('name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($year !== 'all') {
+            $query->whereYear('created_at', $year);
+        }
+
+        if ($month !== 'all') {
+            $query->whereMonth('created_at', $month);
+        }
+
+        // Filter by regime - IMPROVED: Check actual database values first
+        if ($regime !== 'all') {
+            if ($regime === 'null') {
+                // Filter for null/empty regime
+                $query->where(function($q) {
+                    $q->whereNull('regime')
+                      ->orWhere('regime', '')
+                      ->orWhere('regime', '—');
+                });
+            } else if ($regime === 'mensuel') {
+                // Match: mensuel, Mensuel, M, m, 1, or extract from filename
+                $query->where(function($q) {
+                    $q->whereRaw('LOWER(regime) = ?', ['mensuel'])
+                      ->orWhere('regime', 'Mensuel')
+                      ->orWhere('regime', 'M')
+                      ->orWhere('regime', 'm')
+                      ->orWhere('regime', '1')
+                      // Also match if regime is null but filename suggests mensuel (P5-P12)
+                      ->orWhere(function($subQ) {
+                          $subQ->whereNull('regime')
+                               ->where(function($fileQ) {
+                                   for ($i = 5; $i <= 12; $i++) {
+                                       $fileQ->orWhere('file_name', 'like', "%_P{$i}%")
+                                             ->orWhere('file_name', 'like', "%_P{$i}.%")
+                                             ->orWhere('periode', 'P' . $i)
+                                             ->orWhere('periode', (string)$i);
+                                   }
+                               });
+                      });
+                });
+            } else if ($regime === 'trimestriel') {
+                // Match: trimestriel, Trimestriel, T, t, 2, or extract from filename
+                $query->where(function($q) {
+                    $q->whereRaw('LOWER(regime) = ?', ['trimestriel'])
+                      ->orWhere('regime', 'Trimestriel')
+                      ->orWhere('regime', 'T')
+                      ->orWhere('regime', 't')
+                      ->orWhere('regime', '2')
+                      // Also match if regime is null but filename suggests trimestriel (P1-P4)
+                      ->orWhere(function($subQ) {
+                          $subQ->whereNull('regime')
+                               ->where(function($fileQ) {
+                                   for ($i = 1; $i <= 4; $i++) {
+                                       $fileQ->orWhere('file_name', 'like', "%_P{$i}%")
+                                             ->orWhere('file_name', 'like', "%_P{$i}.%")
+                                             ->orWhere('periode', 'P' . $i)
+                                             ->orWhere('periode', (string)$i);
+                                   }
+                               });
+                      });
+                });
+            }
+        }
+
+        $generations = $query->orderBy('created_at', 'desc')->get();
+
+        // Group by user
+        $groupedByUser = [];
+        foreach ($generations as $generation) {
+            $userId = $generation->user_id;
+            $userName = $generation->user->name ?? 'N/A';
+            $userEmail = $generation->user->email ?? '';
+
+            // Get regime from database column (fallback to extraction from filename)
+            $regimeValue = $generation->regime;
+            
+            // Normalize regime value
+            if (!$regimeValue || $regimeValue === '' || $regimeValue === '—' || $regimeValue === 'Non défini') {
+                // Fallback: Extract from file_name if regime column is null
+                $fileName = $generation->file_name ?? '';
+                if (preg_match('/[_\s]P(\d+)/i', $fileName, $matches)) {
+                    $periodNum = intval($matches[1]);
+                    if ($periodNum >= 1 && $periodNum <= 4) {
+                        $regimeValue = 'Trimestriel';
+                    } else if ($periodNum >= 5 && $periodNum <= 12) {
+                        $regimeValue = 'Mensuel';
+                    } else {
+                        $regimeValue = 'Non défini';
+                    }
+                } else {
+                    $regimeValue = 'Non défini';
+                }
+            } else {
+                // Normalize existing regime values
+                $regimeLower = strtolower($regimeValue);
+                if (in_array($regimeLower, ['mensuel', 'm', '1'])) {
+                    $regimeValue = 'Mensuel';
+                } else if (in_array($regimeLower, ['trimestriel', 't', '2'])) {
+                    $regimeValue = 'Trimestriel';
+                } else {
+                    $regimeValue = ucfirst($regimeValue);
+                }
+            }
+
+            $regimeDisplay = $regimeValue;
+
+            // Format période for display based on régime
+            $periodeDisplay = $generation->periode ?? 'P1';
+            $periodNum = intval(preg_replace('/[^0-9]/', '', $periodeDisplay));
+            
+            if ($regimeValue === 'Trimestriel' && $periodNum >= 1 && $periodNum <= 4) {
+                $periodeDisplay = 'T' . $periodNum;
+            } else {
+                $periodeDisplay = 'P' . $periodNum;
+            }
+
+            $declaration = [
+                'id' => $generation->id,
+                'numero_declaration' => $generation->reference,
+                'regime' => $regimeDisplay,
+                'periode' => $periodeDisplay,
+                'nb_factures' => $generation->factures,
+                'created_at' => $generation->created_at,
+            ];
+
+            if (!isset($groupedByUser[$userId])) {
+                $groupedByUser[$userId] = [
+                    'user_id' => $userId,
+                    'user_name' => $userName,
+                    'user_email' => $userEmail,
+                    'total_factures' => 0,
+                    'last_date' => $generation->created_at,
+                    'declarations' => []
+                ];
+            }
+
+            $groupedByUser[$userId]['total_factures'] += $generation->factures;
+            $groupedByUser[$userId]['declarations'][] = $declaration;
+
+            // Update last_date if this is more recent
+            if ($generation->created_at > $groupedByUser[$userId]['last_date']) {
+                $groupedByUser[$userId]['last_date'] = $generation->created_at;
+            }
+        }
+
+        // Convert to array and paginate manually
+        $groupedData = array_values($groupedByUser);
+        $total = count($groupedData);
+        $currentPage = $request->input('page', 1);
+        $offset = ($currentPage - 1) * $perPage;
+        $paginatedData = array_slice($groupedData, $offset, $perPage);
+
+        return response()->json([
+            'data' => $paginatedData,
+            'current_page' => (int)$currentPage,
+            'last_page' => (int)ceil($total / $perPage),
+            'per_page' => (int)$perPage,
+            'total' => $total,
+            'from' => $offset + 1,
+            'to' => min($offset + $perPage, $total),
+        ]);
+    }
+
+    /**
+     * Get monthly comparison data (factures vs generations)
+     */
+    public function monthlyComparison(Request $request)
+    {
+        $year = $request->input('year', date('Y'));
+
+        // Get monthly factures count from generations table
+        $monthlyFactures = Generation::selectRaw('MONTH(created_at) as month, SUM(factures) as factures')
+            ->whereYear('created_at', $year)
+            ->groupBy('month')
+            ->get()
+            ->keyBy('month');
+
+        // Get monthly generations count from generations table
+        $monthlyGenerations = Generation::selectRaw('MONTH(created_at) as month, COUNT(*) as declarations')
+            ->whereYear('created_at', $year)
+            ->groupBy('month')
+            ->get()
+            ->keyBy('month');
+
+        // Combine data for all 12 months
+        $data = [];
+        for ($month = 1; $month <= 12; $month++) {
+            $data[] = [
+                'month' => $month,
+                'factures' => $monthlyFactures->get($month)->factures ?? 0,
+                'declarations' => $monthlyGenerations->get($month)->declarations ?? 0,
+            ];
+        }
+
+        return response()->json($data);
+    }
+
+    /**
+     * Get available years from generations and declarations
+     */
+    public function availableYears(Request $request)
+    {
+        $generationYears = Generation::selectRaw('DISTINCT YEAR(created_at) as year')
+            ->orderBy('year', 'desc')
+            ->pluck('year');
+
+        $declarationYears = Declaration::selectRaw('DISTINCT YEAR(created_at) as year')
+            ->orderBy('year', 'desc')
+            ->pluck('year');
+
+        $years = $generationYears->merge($declarationYears)->unique()->sort()->values();
+
+        // If no years found, return current year
+        if ($years->isEmpty()) {
+            $years = collect([date('Y')]);
+        }
+
+        return response()->json([
+            'years' => $years->toArray()
         ]);
     }
 }

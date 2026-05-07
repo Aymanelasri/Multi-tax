@@ -121,15 +121,15 @@ const Modal = ({ societe, onClose, onSave, t, allSocietes }) => {
           <div key={ri} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 14, alignItems: 'start' }}>
             {row.map(({ key, label, required, hint, maxLength, numeric }) => {
               const placeholders = {
-                if: 'Ex: 12345678',
-                nom: 'Ex: Société ',
-                ice: 'Ex: 000123456789012',
+                if: '12345678',
+                nom: 'Société ABC',
+                ice: '15 chiffres',
                 rc: '',
                 tp: '',
                 cnss: '',
                 adresse: '',
                 ville: '',
-                tel: '+212 6XX XXX XXX',
+                tel: '+212600000000',
                 email: ''
               };
               
@@ -272,6 +272,7 @@ const SocietesPage = () => {
     periode: '',
   });
   const [startDeclErr, setStartDeclErr] = useState('');
+  const [periodeError, setPeriodeError] = useState('');
 
   // ✅ CRITICAL: Fetch societes from API on mount (never from localStorage)
   useEffect(() => {
@@ -355,23 +356,47 @@ const SocietesPage = () => {
   };
 
   const handleUse = async (s) => {
-    try {
-      const response = await api.incrementSocieteUsage(s.id);
-      setSocietes(societes.map(soc => soc.id === s.id ? response.data : soc));
-    } catch (err) {
-    }
-
+    // Don't increment usage here - only when declaration is completed
     setStartDeclForm({
       identifiantFiscal: s.if || '',
+      ice: s.ice || '',
       annee: new Date().getFullYear().toString(),
       regime: '1',
       periode: '',
     });
     setStartDeclErr('');
+    setPeriodeError('');
     setStartDeclModal(s);
   };
 
-  const handleStartDeclContinue = () => {
+  const validatePeriode = (periode, regime) => {
+    if (!periode || periode.trim() === '') {
+      return 'La période est requise';
+    }
+    
+    const num = parseInt(periode, 10);
+    
+    if (isNaN(num) || num.toString() !== periode.trim() || num < 0) {
+      return 'La période doit être un nombre entier positif';
+    }
+    
+    if (regime === '1') {
+      if (num < 1 || num > 12) {
+        return 'La période doit être entre 1 et 12 pour le régime mensuel';
+      }
+    } else if (regime === '2') {
+      if (num < 1 || num > 4) {
+        return 'La période doit être entre 1 et 4 pour le régime trimestriel';
+      }
+    }
+    
+    return '';
+  };
+
+  const handleStartDeclContinue = async () => {
+    setStartDeclErr('');
+    setPeriodeError('');
+    
     // Validate fields
     if (!startDeclForm.identifiantFiscal?.trim()) {
       setStartDeclErr(t('error_1_8_digits'));
@@ -385,9 +410,20 @@ const SocietesPage = () => {
       setStartDeclErr(t('field_annee') + ' requis');
       return;
     }
-    if (!startDeclForm.periode?.trim()) {
-      setStartDeclErr(t('field_periode') + ' requis');
+    
+    // Validate période
+    const periodeErr = validatePeriode(startDeclForm.periode, startDeclForm.regime);
+    if (periodeErr) {
+      setPeriodeError(periodeErr);
       return;
+    }
+
+    // ✅ Increment usage count ONLY when user clicks "Continuer →"
+    try {
+      const response = await api.incrementSocieteUsage(startDeclModal.id);
+      setSocietes(societes.map(soc => soc.id === startDeclModal.id ? response.data : soc));
+    } catch (err) {
+      console.error('Failed to increment usage:', err);
     }
 
     // Navigate to generator with state
@@ -648,8 +684,6 @@ const SocietesPage = () => {
                 >
                   <option value="1">Mensuel</option>
                   <option value="2">Trimestriel</option>
-                  <option value="3">Cessation temporaire</option>
-                  <option value="4">Cession/Cessation TVA</option>
                 </select>
               </div>
 
@@ -661,12 +695,26 @@ const SocietesPage = () => {
                 <input
                   type="number"
                   value={startDeclForm.periode}
-                  onChange={e => setStartDeclForm({ ...startDeclForm, periode: e.target.value })}
-                  style={inputStyle}
-                  placeholder="1-12 (mensuel), 1-4 (trimestriel)"
-                  onFocus={e => e.target.style.borderColor = '#00d4a0'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'}
+                  onChange={e => {
+                    setStartDeclForm({ ...startDeclForm, periode: e.target.value });
+                    setPeriodeError('');
+                  }}
+                  onBlur={() => {
+                    const err = validatePeriode(startDeclForm.periode, startDeclForm.regime);
+                    setPeriodeError(err);
+                  }}
+                  style={{
+                    ...inputStyle,
+                    borderColor: periodeError ? '#ef4444' : 'rgba(255,255,255,0.12)'
+                  }}
+                  placeholder={startDeclForm.regime === '1' ? '1-12 (mensuel)' : '1-4 (trimestriel)'}
+                  onFocus={e => { if (!periodeError) e.target.style.borderColor = '#00d4a0'; }}
                 />
+                {periodeError && (
+                  <div style={{ color: '#ef4444', fontSize: '0.72rem', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    ❌ {periodeError}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -676,7 +724,18 @@ const SocietesPage = () => {
               <button onClick={() => setStartDeclModal(null)} style={{ padding: '10px 20px', borderRadius: 8, background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#94a3b8', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'inherit' }}>
                 {t('societes_modal_cancel')}
               </button>
-              <button onClick={handleStartDeclContinue} style={{ padding: '10px 24px', borderRadius: 8, background: 'linear-gradient(135deg,#10b981,#34d399)', border: 'none', color: '#000', fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'inherit' }}>
+              <button onClick={handleStartDeclContinue} disabled={!!periodeError} style={{ 
+                padding: '10px 24px', 
+                borderRadius: 8, 
+                background: periodeError ? 'rgba(100,116,139,0.3)' : 'linear-gradient(135deg,#10b981,#34d399)', 
+                border: 'none', 
+                color: periodeError ? '#64748b' : '#000', 
+                fontWeight: 700, 
+                cursor: periodeError ? 'not-allowed' : 'pointer', 
+                fontSize: '0.85rem', 
+                fontFamily: 'inherit',
+                opacity: periodeError ? 0.6 : 1
+              }}>
                 {t('societes_modal_continue')}
               </button>
             </div>

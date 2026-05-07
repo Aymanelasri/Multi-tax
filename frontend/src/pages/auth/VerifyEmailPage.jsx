@@ -42,7 +42,6 @@ export default function VerifyEmailPage() {
       // Redirect to login immediately (success or error)
       navigate('/login', { replace: true })
     } catch (err) {
-      console.error('Verification error:', err)
       // Redirect to login even on error
       navigate('/login', { replace: true })
     }
@@ -58,7 +57,6 @@ export default function VerifyEmailPage() {
   // Redirect to register if no email and no token
   useEffect(() => {
     if (!email && !token) {
-      console.warn('No email or token found')
       navigate('/register', { replace: true })
     }
   }, [email, token, navigate])
@@ -83,11 +81,7 @@ export default function VerifyEmailPage() {
     setError('')
 
     try {
-      console.log('📧 Resending verification to:', email)
-      
       const response = await api.resendVerification(email)
-      
-      console.log('✅ Resend response:', response)
       
       if (response) {
         setSuccess(
@@ -98,8 +92,6 @@ export default function VerifyEmailPage() {
         setCountdown(60)
       }
     } catch (err) {
-      console.error('❌ Resend error:', err)
-      
       const errorMsg = err.message || (t('lang') === 'FR' ? 'Erreur lors de l\'envoi' : 'Error sending email')
       setError(errorMsg)
       setSuccess('')

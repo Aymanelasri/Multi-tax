@@ -5,6 +5,7 @@ import Navigation from '../components/Navigation';
 import Toast from '../components/ui/Toast';
 import { useLang } from '../context/LanguageContext';
 import api from '../lib/api';
+import '../styles/historique-mobile.css';
 
 const HistoriquePage = () => {
   const { t } = useLang();
@@ -102,7 +103,7 @@ const HistoriquePage = () => {
       <Navigation />
 
       {/* Page Header */}
-      <div style={{ padding: '80px 48px 32px', maxWidth: '1400px', margin: '0 auto' }}>
+      <div className="historique-page-header" style={{ padding: '80px 48px 32px', maxWidth: '1400px', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' }}>
           <button
             onClick={() => navigate('/generateur')}
@@ -132,7 +133,7 @@ const HistoriquePage = () => {
           </button>
         </div>
 
-        <h1 style={{
+        <h1 className="historique-page-title" style={{
           fontSize: 'clamp(28px, 4vw, 42px)',
           fontWeight: 900,
           color: '#ffffff',
@@ -141,7 +142,7 @@ const HistoriquePage = () => {
         }}>
           📋 Historique des téléchargements
         </h1>
-        <p style={{
+        <p className="historique-page-subtitle" style={{
           fontSize: '15px',
           color: '#94a3b8',
           lineHeight: '1.6',
@@ -153,7 +154,7 @@ const HistoriquePage = () => {
       </div>
 
       {/* Content */}
-      <div style={{ padding: '0 48px 80px', maxWidth: '1400px', margin: '0 auto' }}>
+      <div className="historique-content" style={{ padding: '0 48px 80px', maxWidth: '1400px', margin: '0 auto' }}>
         {loading ? (
           <div style={{
             background: '#141d2e',
@@ -215,7 +216,7 @@ const HistoriquePage = () => {
             overflow: 'hidden'
           }}>
             {/* Table Header */}
-            <div style={{
+            <div className="historique-table-header" style={{
               display: 'grid',
               gridTemplateColumns: '50px 1fr 100px 120px 150px 120px',
               gap: '16px',
@@ -240,6 +241,7 @@ const HistoriquePage = () => {
             {generations.map((gen, index) => (
               <div
                 key={gen.id}
+                className="historique-table-row"
                 style={{
                   display: 'grid',
                   gridTemplateColumns: '50px 1fr 100px 120px 150px 120px',
@@ -253,13 +255,13 @@ const HistoriquePage = () => {
                 onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
                 {/* Icon */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div className="historique-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {getFileIcon(gen.file_type)}
                 </div>
 
                 {/* File Name */}
-                <div>
-                  <div style={{
+                <div className="historique-file-info">
+                  <div className="historique-file-name" title={gen.file_name} style={{
                     color: '#ffffff',
                     fontSize: '14px',
                     fontWeight: 600,
@@ -268,14 +270,14 @@ const HistoriquePage = () => {
                   }}>
                     {gen.file_name}
                   </div>
-                  <div style={{ color: '#64748b', fontSize: '12px' }}>
+                  <div className="historique-file-ref" style={{ color: '#64748b', fontSize: '12px' }}>
                     Réf: {gen.reference}
                   </div>
                 </div>
 
                 {/* Type */}
                 <div>
-                  <span style={{
+                  <span className="historique-type-badge" style={{
                     display: 'inline-block',
                     padding: '4px 10px',
                     background: `${getFileTypeColor(gen.file_type)}20`,
@@ -290,18 +292,19 @@ const HistoriquePage = () => {
                 </div>
 
                 {/* Size */}
-                <div style={{ color: '#94a3b8', fontSize: '13px' }}>
+                <div className="historique-size" style={{ color: '#94a3b8', fontSize: '13px' }}>
                   {formatFileSize(gen.file_size)}
                 </div>
 
                 {/* Date */}
-                <div style={{ color: '#94a3b8', fontSize: '13px' }}>
+                <div className="historique-date" style={{ color: '#94a3b8', fontSize: '13px' }}>
                   {formatDate(gen.created_at)}
                 </div>
 
                 {/* Download Button */}
                 <div style={{ textAlign: 'center' }}>
                   <button
+                    className="historique-download-btn"
                     onClick={() => handleDownload(gen)}
                     disabled={downloading === gen.id}
                     style={{
@@ -340,7 +343,7 @@ const HistoriquePage = () => {
 
         {/* Stats Summary */}
         {generations.length > 0 && (
-          <div style={{
+          <div className="historique-stats" style={{
             marginTop: '24px',
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',

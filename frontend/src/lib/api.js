@@ -251,6 +251,16 @@ const api = {
     const result = await request('DELETE', url)
     return { data: result }
   },
+
+  // Draft endpoints
+  saveDraft: (step, data) =>
+    request('POST', '/drafts/save', { step, data }),
+
+  loadDraft: () =>
+    request('GET', '/drafts/load'),
+
+  clearDraft: () =>
+    request('DELETE', '/drafts/clear'),
 }
 
 export default api

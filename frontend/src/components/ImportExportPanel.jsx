@@ -78,20 +78,13 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
     onLoadModule({ type: 'factures', entries: merged });
     showToast(isFR ? `${rows.length} factures importées depuis le fichier` : `${rows.length} invoices imported from file`);
     
-    // TRACKING: Log import to historique
+    // TRACKING: Log import to historique (fire-and-forget)
     if (user) {
-      console.log('📥 Tracking import:', { count: rows.length, user: user.id });
       api.createHistorique({
         action: 'import',
         description: isFR ? `Import de ${rows.length} factures` : `Imported ${rows.length} invoices`,
         data: { count: rows.length, type: 'factures' }
-      }).then(() => {
-        console.log('✅ Import tracked successfully');
-      }).catch((err) => {
-        console.error('❌ Failed to track import:', err);
-      });
-    } else {
-      console.warn('⚠️ User not authenticated, skipping tracking');
+      }).catch(() => {}); 
     }
   }, [factures, onLoadModule, isFR, user]);
 
@@ -221,7 +214,6 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
       
       handleImportRows(rows);
     } catch (err) {
-      console.error('Excel import error:', err);
       showToast(isFR ? 'Format invalide. Vérifiez les colonnes.' : 'Invalid format. Please check the columns.');
     }
   }, [handleImportRows, isFR]);
@@ -514,8 +506,6 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
     
     // TRACKING: Save export to backend with file
     if (user) {
-      console.log('📤 Tracking export with file upload:', { filename: `${name}.xlsx`, size: fileSize });
-      
       // Create FormData to upload file
       const formData = new FormData();
       formData.append('file', blob, `${name}.xlsx`);
@@ -523,6 +513,9 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
       formData.append('reference', `EXP-${new Date().getFullYear()}-${String(Date.now()).slice(-4)}`);
       formData.append('factures', entries.length);
       formData.append('montant_ttc', 0);
+      formData.append('regime', identification?.regime || 'Non défini');
+      formData.append('annee', identification?.annee || new Date().getFullYear().toString());
+      formData.append('periode', identification?.periode || '1');
       
       try {
         await fetch(`${process.env.REACT_APP_API_URL}/generations`, {
@@ -534,23 +527,16 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
           body: formData,
           credentials: 'include'
         });
-        console.log('✅ Export file saved to backend');
       } catch (err) {
-        console.error('❌ Failed to save export file:', err);
+        // Silently ignore export file save errors
       }
       
-      // Also track in historique
+      // Track in historique (fire-and-forget)
       api.createHistorique({
         action: 'export',
         description: isFR ? `Export de ${entries.length} ${type === 'factures' ? 'factures' : 'identifications'}` : `Exported ${entries.length} ${type === 'factures' ? 'invoices' : 'identifications'}`,
         data: { filename: `${name}.xlsx`, count: entries.length, type, file_size: fileSize }
-      }).then(() => {
-        console.log('✅ Export tracked successfully');
-      }).catch((err) => {
-        console.error('❌ Failed to track export:', err);
-      });
-    } else {
-      console.warn('⚠️ User not authenticated, skipping tracking');
+      }).catch(() => {}); // Silently ignore tracking errors
     }
   };
 
@@ -563,20 +549,13 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
     onLoadModule(mod);
     showToast(isFR ? `Module "${mod.name}" chargé` : `Module "${mod.name}" loaded`);
     
-    // TRACKING: Log module load to historique
+    // TRACKING: Log module load to historique (fire-and-forget)
     if (user) {
-      console.log('📚 Tracking module load:', { module: mod.name, user: user.id });
       api.createHistorique({
         action: 'load_module',
         description: isFR ? `Chargement du module "${mod.name}"` : `Loaded module "${mod.name}"`,
         data: { module_name: mod.name, count: mod.count, type: mod.type }
-      }).then(() => {
-        console.log('✅ Module load tracked successfully');
-      }).catch((err) => {
-        console.error('❌ Failed to track module load:', err);
-      });
-    } else {
-      console.warn('⚠️ User not authenticated, skipping tracking');
+      }).catch(() => {}); // Silently ignore tracking errors
     }
   };
 
