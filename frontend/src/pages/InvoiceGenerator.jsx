@@ -556,7 +556,7 @@ const InvoiceGenerator = () => {
               <TotalsBar factures={factures} t={t} />
               <ValidationSummary identification={identification} factures={factures} />
               <ValidationErrors errors={xmlErrors} isVisible={showValidationErrors && xmlErrors.length > 0} />
-              <Button variant="secondary" onClick={() => handleStepChange(2)} style={{ marginTop: 8 }}>{t('btn_back')}</Button>
+              <Button  variant="secondary" onClick={() => handleStepChange(2)} style={{ marginTop: 8 }}>{t('btn_back')}</Button>
             </div>
           </div>
 

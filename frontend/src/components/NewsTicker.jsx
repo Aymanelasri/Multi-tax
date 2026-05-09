@@ -6,13 +6,13 @@ const NewsTicker = () => {
   useEffect(() => {
     const dismissed = sessionStorage.getItem('ticker_dismissed');
     if (dismissed) {
-      setIsVisible(false);
+      setIsVisible(true);
     }
   }, []);
 
   const handleClose = () => {
     setIsVisible(false);
-    sessionStorage.setItem('ticker_dismissed', 'true');
+    
   };
 
   const newsItems = [

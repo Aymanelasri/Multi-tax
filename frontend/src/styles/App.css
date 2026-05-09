@@ -735,6 +735,7 @@ label .req { color: var(--green); margin-left: 2px; }
   gap: 12px;
   flex-wrap: wrap;
   margin-top: 24px;
+  margin-bottom: 48px;
   align-items: center;
 }
 
