@@ -96,17 +96,71 @@ const T = {
 // ── css ───────────────────────────────────────────────────────────────────────
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  
+  /* Theme Variables */
+  :root.dark {
+    --home-bg: #0a0e27;
+    --home-nav: #0f1426;
+    --home-card: #111a2e;
+    --home-card2: #0d1220;
+    --home-border: #1a2540;
+    --home-text: #f0f4f8;
+    --home-text-muted: #94a3b8;
+    --home-input-bg: #0d1728;
+    --home-input-border: rgba(255,255,255,0.12);
+    --home-input-placeholder: rgba(148,163,184,0.5);
+  }
+  
+  :root.light {
+    --home-bg: #f8fafc;
+    --home-nav: #ffffff;
+    --home-card: #ffffff;
+    --home-card2: #f1f5f9;
+    --home-border: #e2e8f0;
+    --home-text: #0f172a;
+    --home-text-muted: #64748b;
+    --home-input-bg: #ffffff;
+    --home-input-border: #cbd5e1;
+    --home-input-placeholder: #94a3b8;
+  }
+  
+  /* Default to dark */
+  :root {
+    --home-bg: #0a0e27;
+    --home-nav: #0f1426;
+    --home-card: #111a2e;
+    --home-card2: #0d1220;
+    --home-border: #1a2540;
+    --home-text: #f0f4f8;
+    --home-text-muted: #94a3b8;
+    --home-input-bg: #0d1728;
+    --home-input-border: rgba(255,255,255,0.12);
+    --home-input-placeholder: rgba(148,163,184,0.5);
+  }
+  
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
-  body{background:${C.bg};color:${C.text};font-family:'Inter',system-ui,-apple-system,sans-serif;overflow-x:hidden;width:100%;max-width:100vw;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;letter-spacing:-.01em}
+  body{
+    background: var(--home-bg);
+    color: var(--home-text);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    overflow-x:hidden;
+    width:100%;
+    max-width:100vw;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    letter-spacing:-.01em;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
   body::-webkit-scrollbar{width:8px}
   body::-webkit-scrollbar-track{background:transparent}
   body::-webkit-scrollbar-thumb{background:${C.accent};border-radius:10px;transition:background .2s}
   body::-webkit-scrollbar-thumb:hover{background:${C.accentBright}}
   a{text-decoration:none;color:inherit}
 
-  .grid-bg{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,rgba(16,185,129,0.05) 0%,rgba(16,185,129,0.02) 50%,transparent 100%),linear-gradient(90deg,rgba(16,185,129,0.03) 1px,transparent 1px),linear-gradient(rgba(16,185,129,0.03) 1px,transparent 1px);background-size:100% 100%,80px 80px,80px 80px;pointer-events:none;z-index:0}
-  .wrap{position:relative;z-index:1}
+  .grid-bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;transition:all 0.3s ease;background:linear-gradient(135deg,rgba(16,185,129,0.05) 0%,rgba(16,185,129,0.02) 50%,transparent 100%),linear-gradient(90deg,rgba(16,185,129,0.03) 1px,transparent 1px),linear-gradient(rgba(16,185,129,0.03) 1px,transparent 1px);background-size:100% 100%,80px 80px,80px 80px}
+  :root.light .grid-bg{background:#ffffff;background-image:radial-gradient(circle at top left,rgba(0,212,160,0.20),transparent 32%),radial-gradient(circle at bottom right,rgba(59,130,246,0.16),transparent 35%),radial-gradient(circle at center,rgba(139,92,246,0.08),transparent 40%),linear-gradient(rgba(0,212,160,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,160,0.06) 1px,transparent 1px);background-size:auto,auto,auto,60px 60px,60px 60px;background-position:top left,bottom right,center,center,center}
+  .wrap{position:relative;z-index:1;background:transparent;transition:background-color 0.3s ease}
 
   /* ✅ Section isolation styles - prevent layout bleed from context state */
   section{isolation:isolate;position:relative;z-index:1}
@@ -123,8 +177,11 @@ const css = `
   .btn-p:hover::before{left:100%}
   .btn-p:active{transform:translateY(0)}
   
-  .btn-o{padding:12px 28px;border-radius:10px;background:transparent;color:${C.text};border:1.5px solid ${C.border};font-weight:550;font-size:.92rem;cursor:pointer;transition:all .25s ease;font-family:'Inter',sans-serif;letter-spacing:-.02em}
+  .btn-o{padding:12px 28px;border-radius:10px;background:transparent;color:var(--home-text);border:1.5px solid var(--home-border);font-weight:550;font-size:.92rem;cursor:pointer;transition:all .25s ease;font-family:'Inter',sans-serif;letter-spacing:-.02em}
   .btn-o:hover{border-color:${C.accent};color:${C.accentBright};background:rgba(16,185,129,0.05);transform:translateY(-2px);box-shadow:0 8px 24px rgba(16,185,129,0.15)}
+  
+  :root.light .btn-o{color:var(--home-text)}
+  :root.light .btn-o:hover{background:rgba(16,185,129,0.08)}
 
   /* animations */
   .reveal{opacity:0;transform:translateY(25px);transition:opacity .6s cubic-bezier(0.2,0.6,0.3,1),transform .6s cubic-bezier(0.2,0.6,0.3,1)}
@@ -146,16 +203,25 @@ const css = `
   .feat-card {
     border-radius: 16px;
     padding: 28px;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     cursor: default;
     position: relative;
     overflow: hidden;
-    background: #141d2e;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--home-card);
+    border: 1px solid var(--home-border);
+  }
+  
+  :root.light .feat-card {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   }
   
   .feat-card:hover {
     border-color: rgba(0, 212, 160, 0.3);
+    transform: translateY(-2px);
+  }
+  
+  :root.light .feat-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
   }
   
   .feat-card-icon {
@@ -172,16 +238,18 @@ const css = `
   .feat-card-title {
     font-size: 16px;
     font-weight: 700;
-    color: #ffffff;
+    color: var(--home-text);
     margin-bottom: 8px;
     letter-spacing: -0.3px;
+    transition: color 0.3s ease;
   }
   
   .feat-card-desc {
     font-size: 13px;
-    color: #94a3b8;
+    color: var(--home-text-muted);
     line-height: 1.7;
     letter-spacing: -0.01em;
+    transition: color 0.3s ease;
   }
 
   /* timeline */
@@ -191,13 +259,14 @@ const css = `
   .tl-dot{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,rgba(16,185,129,0.2),rgba(16,185,129,0.05));border:2px solid ${C.accent};display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;color:${C.accent};letter-spacing:.08em;margin-bottom:24px;position:relative;z-index:1;flex-shrink:0;box-shadow:0 0 32px rgba(16,185,129,0.3),inset 0 0 20px rgba(16,185,129,0.1)}
   .tl-dot::after{content:'';position:absolute;inset:0;border-radius:50%;animation:pulse 2s ease-in-out infinite;border:1px solid ${C.accent};opacity:0}
   @keyframes pulse{0%,100%{transform:scale(1);opacity:0}50%{transform:scale(1.2);opacity:.5}}
-  .tl-item-title{font-size:1.05rem;font-weight:700;color:${C.text};margin-bottom:12px}
-  .tl-item-desc{font-size:.9rem;color:${C.muted};line-height:1.7}
+  .tl-item-title{font-size:1.05rem;font-weight:700;color:var(--home-text);margin-bottom:12px;transition:color 0.3s ease}
+  .tl-item-desc{font-size:.9rem;color:var(--home-text-muted);line-height:1.7;transition:color 0.3s ease}
 
   /* hero section */
   .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:100px;align-items:center;width:100%;max-width:100%}
-  .hero-h1{font-size:4.2rem;font-weight:900;line-height:1.1;letter-spacing:-3px;background:linear-gradient(135deg,${C.text},${C.muted});-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;max-width:100%}
-  .hero-p{font-size:1.05rem;color:${C.muted};line-height:1.8;letter-spacing:-.02em;max-width:100%}
+  .hero-h1{font-size:4.2rem;font-weight:900;line-height:1.1;letter-spacing:-3px;color:var(--home-text);transition:color 0.3s ease;max-width:100%}
+  :root.light .hero-h1{text-shadow:0 2px 20px rgba(0,0,0,0.08)}
+  .hero-p{font-size:1.05rem;color:var(--home-text-muted);line-height:1.8;letter-spacing:-.02em;max-width:100%;transition:color 0.3s ease}
 
   @media(max-width:1200px){
     .hero-grid{gap:60px}
@@ -259,7 +328,7 @@ const StatItem = ({ target, suffix, label, duration = 2500 }) => {
   const { count, ref } = useCountUp(target, duration);
   return (
     <div ref={ref} style={{ textAlign: 'center' }}>
-      <div style={{ fontSize: '4.2rem', fontWeight: 900, background: 'linear-gradient(135deg, #4ade80, #86efac)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', letterSpacing: '-3px', lineHeight: 1, textShadow: '0 0 40px rgba(74,222,128,0.3)', filter: 'drop-shadow(0 0 20px rgba(74,222,128,0.2))' }}>{count}{suffix}</div>
+      <div style={{ fontSize: '4.2rem', fontWeight: 900, background: 'linear-gradient(135deg, #10b981, #34d399)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', letterSpacing: '-3px', lineHeight: 1, textShadow: '0 0 40px rgba(16,185,129,0.5)', filter: 'drop-shadow(0 0 30px rgba(16,185,129,0.4))' }}>{count}{suffix}</div>
       <div style={{ fontSize: '0.85rem', color: C.muted, marginTop: 14, fontWeight: 500, letterSpacing: '0.04em', textTransform: 'uppercase' }}>{label}</div>
     </div>
   );
@@ -277,23 +346,23 @@ const useReveal = () => {
 
 // ── TVA mockup ────────────────────────────────────────────────────────────────
 const TVACard = ({ t }) => (
-  <div style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.04))', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderRadius: 20, padding: 36, border: '1.5px solid rgba(74,222,128,0.2)', boxShadow: '0 20px 60px rgba(0,0,0,0.4), inset 0 1px 1px rgba(74,222,128,0.15)' }}>
+  <div style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.04))', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderRadius: 20, padding: 36, border: '1.5px solid rgba(74,222,128,0.2)', boxShadow: '0 20px 60px rgba(0,0,0,0.4), inset 0 1px 1px rgba(74,222,128,0.15)', transition: 'all 0.3s ease' }}>
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <span style={{ fontSize: '1.4rem', filter: 'drop-shadow(0 4px 12px rgba(74,222,128,0.15))' }}>📋</span>
-        <span style={{ fontSize: '1rem', fontWeight: 800, background: 'linear-gradient(135deg, #f0f4f8, #c0c7d4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{t === 'fr' ? 'Déclaration TVA' : 'VAT Declaration'}</span>
+        <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--home-text)', transition: 'color 0.3s ease' }}>{t === 'fr' ? 'Déclaration TVA' : 'VAT Declaration'}</span>
       </div>
       <span style={{ padding: '6px 14px', borderRadius: 8, background: 'linear-gradient(135deg, #10b981, #34d399)', color: '#000', fontSize: '0.7rem', fontWeight: 700, boxShadow: '0 4px 12px rgba(16,185,129,0.3)' }}>{t === 'fr' ? '✓ Valide' : '✓ Valid'}</span>
     </div>
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 24, paddingBottom: 24, borderBottom: `1.5px solid rgba(74,222,128,0.1)` }}>
       {[['IF', '12345678'], [t === 'fr' ? 'Année' : 'Year', '2024'], [t === 'fr' ? 'Période' : 'Period', '3'], [t === 'fr' ? 'Régime' : 'Regime', t === 'fr' ? 'Mensuel' : 'Monthly']].map(([k, v]) => (
         <div key={k} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.85rem', color: C.muted, fontWeight: 500 }}>{k}</span>
-          <span style={{ fontSize: '0.9rem', fontWeight: 700, background: 'linear-gradient(135deg, #f0f4f8, #c0c7d4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{v}</span>
+          <span style={{ fontSize: '0.85rem', color: 'var(--home-text-muted)', fontWeight: 500, transition: 'color 0.3s ease' }}>{k}</span>
+          <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--home-text)', transition: 'color 0.3s ease' }}>{v}</span>
         </div>
       ))}
     </div>
-    <div style={{ background: 'linear-gradient(135deg, rgba(10,14,27,0.9), rgba(20,28,50,0.8))', border: `1px solid rgba(74,222,128,0.15)`, borderRadius: 12, padding: 16, fontFamily: 'JetBrains Mono, monospace', fontSize: '0.7rem', lineHeight: 2, color: C.muted, overflow: 'auto', boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.4)' }}>
+    <div style={{ background: 'var(--home-card2)', border: `1px solid rgba(74,222,128,0.15)`, borderRadius: 12, padding: 16, fontFamily: 'JetBrains Mono, monospace', fontSize: '0.7rem', lineHeight: 2, color: 'var(--home-text-muted)', overflow: 'auto', boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.2)', transition: 'all 0.3s ease' }}>
       <div style={{ color: '#666' }}>&lt;DeclarationReleveDeduction&gt;</div>
       <div style={{ paddingLeft: 16, color: '#777' }}>
         <div><span style={{ color: '#10b981' }}>&lt;identifiantFiscal&gt;</span><span style={{ color: '#fbbf24' }}>12345678</span><span style={{ color: '#10b981' }}>&lt;/identifiantFiscal&gt;</span></div>
@@ -303,7 +372,7 @@ const TVACard = ({ t }) => (
       </div>
       <div style={{ color: '#666' }}>&lt;/DeclarationReleveDeduction&gt;</div>
     </div>
-    <div style={{ marginTop: 20, padding: '12px 18px', borderRadius: 10, background: 'linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.08))', border: `1.5px solid rgba(16,185,129,0.3)`, fontSize: '0.85rem', color: C.accent, fontWeight: 700, textAlign: 'center', boxShadow: '0 4px 12px rgba(16,185,129,0.15)' }}>
+    <div style={{ marginTop: 20, padding: '12px 18px', borderRadius: 10, background: 'linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.08))', border: `1.5px solid rgba(16,185,129,0.3)`, fontSize: '0.85rem', color: '#10b981', fontWeight: 700, textAlign: 'center', boxShadow: '0 4px 12px rgba(16,185,129,0.15)' }}>
       ✓ {t === 'fr' ? 'Fichier ZIP prêt' : 'ZIP file ready'}
     </div>
   </div>
@@ -385,7 +454,7 @@ const HomePage = () => {
     <>
       <style>{css}</style>
       <div className="grid-bg" />
-      <div className="wrap" style={{ background: C.bg, minHeight: '100vh', color: C.text }}>
+      <div className="wrap" style={{ minHeight: '100vh' }}>
 
         <Navigation />
         
@@ -409,7 +478,7 @@ const HomePage = () => {
                   <button className="btn-o">{tr.heroCta2}</button>
                 </a>
               </div>
-              <div className="reveal d3" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '12px', textAlign: 'left' }}>
+              <div className="reveal d3" style={{ fontSize: '12px', color: 'var(--home-text-muted)', marginTop: '12px', textAlign: 'left', transition: 'color 0.3s ease' }}>
                 💡 {lang === 'FR' ? 'Commencez par enregistrer vos fournisseurs, puis générez vos déclarations en 1 clic.' : 'Start by registering your suppliers, then generate your declarations in 1 click.'}
               </div>
             </div>
@@ -436,8 +505,8 @@ const HomePage = () => {
         <div id="features" style={{ padding: '120px 64px 120px 64px', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
           <div className="reveal" style={{ marginBottom: 40 }}>
             <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', color: '#00d4a0', textTransform: 'uppercase', marginBottom: 12 }}>{tr.featLabel}</p>
-            <h2 style={{ fontSize: 'clamp(32px, 4vw, 52px)', fontWeight: 900, letterSpacing: '-1px', lineHeight: 1.15, marginBottom: 8, color: '#ffffff' }}>{tr.featTitle}</h2>
-            <p style={{ fontSize: '15px', color: '#94a3b8', maxWidth: 700, lineHeight: 1.7, letterSpacing: '-0.02em' }}>{tr.featSub}</p>
+            <h2 style={{ fontSize: 'clamp(32px, 4vw, 52px)', fontWeight: 900, letterSpacing: '-1px', lineHeight: 1.15, marginBottom: 8, color: 'var(--home-text)', transition: 'color 0.3s ease', textShadow: document.documentElement.classList.contains('light') ? '0 4px 24px rgba(0,0,0,0.12)' : 'none' }}>{tr.featTitle}</h2>
+            <p style={{ fontSize: '15px', color: 'var(--home-text-muted)', maxWidth: 700, lineHeight: 1.7, letterSpacing: '-0.02em', transition: 'color 0.3s ease' }}>{tr.featSub}</p>
           </div>
           <div className="bento">
             <div className={`feat-card featured reveal d0 feat-card-wide`}>
@@ -468,13 +537,13 @@ const HomePage = () => {
         <div style={{ padding: '0 64px 120px 64px', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
           <div className="reveal" style={{ marginBottom: 48 }}>
             <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', color: '#00d4a0', textTransform: 'uppercase', marginBottom: 12 }}>{tr.testimonialsLabel}</p>
-            <h2 style={{ fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: 900, letterSpacing: '-1px', lineHeight: 1.15, color: '#ffffff' }}>{tr.testimonialsTitle}</h2>
+            <h2 style={{ fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: 900, letterSpacing: '-1px', lineHeight: 1.15, color: 'var(--home-text)', transition: 'color 0.3s ease', textShadow: document.documentElement.classList.contains('light') ? '0 4px 24px rgba(0,0,0,0.12)' : 'none' }}>{tr.testimonialsTitle}</h2>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }} className="testimonials-grid">
             {tr.testimonials.map((r, i) => (
-              <div key={i} className="reveal" style={{ position: 'relative', background: 'linear-gradient(145deg, #0f1a2e, #111d30)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 20, padding: '32px 28px 28px', transition: 'all 0.25s ease', overflow: 'hidden' }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(16,185,129,0.35)'; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.3)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+              <div key={i} className="reveal" style={{ position: 'relative', background: 'var(--home-card)', border: '1px solid var(--home-border)', borderRadius: 20, padding: '32px 28px 28px', transition: 'all 0.3s ease', overflow: 'hidden' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(16,185,129,0.35)'; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.15)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--home-border)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
               >
                 {/* quote mark */}
                 <div style={{ position: 'absolute', top: 20, right: 24, fontSize: 64, lineHeight: 1, color: 'rgba(16,185,129,0.08)', fontFamily: 'Georgia, serif', fontWeight: 900, userSelect: 'none' }}>&ldquo;</div>
@@ -487,7 +556,7 @@ const HomePage = () => {
                 </div>
 
                 {/* text */}
-                <p style={{ fontSize: '0.88rem', color: '#cbd5e1', lineHeight: 1.8, marginBottom: 28, position: 'relative', zIndex: 1 }}>{r.text}</p>
+                <p style={{ fontSize: '0.88rem', color: 'var(--home-text-muted)', lineHeight: 1.8, marginBottom: 28, position: 'relative', zIndex: 1, transition: 'color 0.3s ease' }}>{r.text}</p>
 
                 {/* divider */}
                 <div style={{ height: 1, background: 'linear-gradient(90deg, rgba(16,185,129,0.3), transparent)', marginBottom: 20 }} />
@@ -496,7 +565,7 @@ const HomePage = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #10b981, #34d399)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, color: '#000', flexShrink: 0, boxShadow: '0 4px 12px rgba(16,185,129,0.3)' }}>{r.name[0]}</div>
                   <div>
-                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#f0f4f8', letterSpacing: '-0.2px' }}>{r.name}</div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--home-text)', letterSpacing: '-0.2px', transition: 'color 0.3s ease' }}>{r.name}</div>
                     <div style={{ fontSize: '0.72rem', color: '#10b981', marginTop: 2, fontWeight: 500 }}>{r.role}</div>
                   </div>
                 </div>
@@ -510,8 +579,8 @@ const HomePage = () => {
           <div style={{ padding: '120px 64px 120px 64px' }}>
             <div className="reveal" style={{ marginBottom: 72, maxWidth: 620 }}>
               <p style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.16em', color: C.accent, textTransform: 'uppercase', marginBottom: 12, background: 'linear-gradient(135deg, #10b981, #34d399)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{tr.howLabel}</p>
-              <h2 style={{ fontSize: '3.2rem', fontWeight: 900, letterSpacing: '-2.2px', lineHeight: 1.15, marginBottom: 18, background: 'linear-gradient(135deg, #f0f4f8, #c0c7d4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{tr.howTitle}</h2>
-              <p style={{ fontSize: '1rem', color: C.muted, lineHeight: 1.75, letterSpacing: '-0.02em' }}>{tr.howSub}</p>
+              <h2 style={{ fontSize: '3.2rem', fontWeight: 900, letterSpacing: '-2.2px', lineHeight: 1.15, marginBottom: 18, color: 'var(--home-text)', transition: 'color 0.3s ease', textShadow: document.documentElement.classList.contains('light') ? '0 4px 24px rgba(0,0,0,0.12)' : 'none' }}>{tr.howTitle}</h2>
+              <p style={{ fontSize: '1rem', color: 'var(--home-text-muted)', lineHeight: 1.75, letterSpacing: '-0.02em', transition: 'color 0.3s ease' }}>{tr.howSub}</p>
             </div>
             <div className="timeline">
               {tr.steps.map((s, i) => (
@@ -530,12 +599,13 @@ const HomePage = () => {
 
         {/* ── Footer ── */}
 <footer style={{ 
-  background: `linear-gradient(180deg, ${C.nav} 0%, ${C.card} 100%)`,
-  borderTop: `1px solid ${C.border}`,
+  background: `var(--home-nav)`,
+  borderTop: `1px solid var(--home-border)`,
   backdropFilter: 'blur(10px)',
   WebkitBackdropFilter: 'blur(10px)',
   position: 'relative',
-  overflow: 'hidden'
+  overflow: 'hidden',
+  transition: 'all 0.3s ease'
 }}>
   {/* Premium background glow effect */}
   <div style={{
@@ -572,7 +642,7 @@ const HomePage = () => {
             SIMPL-<span style={{ background: `linear-gradient(135deg, ${C.accent}, ${C.accentBright})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>TVA</span>
           </span>
         </div>
-        <p style={{ fontSize: '0.84rem', color: C.muted, lineHeight: 1.8, maxWidth: 380 }}>{tr.footerTagline}</p>
+        <p style={{ fontSize: '0.84rem', color: 'var(--home-text-muted)', lineHeight: 1.8, maxWidth: 380, transition: 'color 0.3s ease' }}>{tr.footerTagline}</p>
       </div>
       <div>
         <div style={{ 
@@ -598,7 +668,7 @@ const HomePage = () => {
       onClick={() => navigate(getPath(l))} 
       style={{ 
         fontSize: '0.84rem', 
-        color: C.muted, 
+        color: 'var(--home-text-muted)', 
         marginBottom: 11, 
         cursor: 'pointer', 
         transition: 'all .25s cubic-bezier(.4, 0, .2, 1)',
@@ -610,7 +680,7 @@ const HomePage = () => {
         e.currentTarget.style.borderLeftColor = C.accent;
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.color = C.muted;
+        e.currentTarget.style.color = 'var(--home-text-muted)';
         e.currentTarget.style.borderLeftColor = 'transparent';
       }}
     >
@@ -621,19 +691,20 @@ const HomePage = () => {
       </div>
     </div>
     <div style={{ 
-      borderTop: `1px solid ${C.border}`, 
+      borderTop: `1px solid var(--home-border)`, 
       paddingTop: 28, 
       display: 'flex', 
       justifyContent: 'space-between', 
       alignItems: 'center', 
       flexWrap: 'wrap', 
-      gap: 24 
+      gap: 24,
+      transition: 'border-color 0.3s ease'
     }}>
-      <span style={{ fontSize: '0.76rem', color: C.muted, fontWeight: 500 }}>{tr.footerCopy}</span>
-      <div style={{ display: 'flex', gap: 12, fontSize: '0.76rem', color: C.muted, alignItems: 'center' }}>
+      <span style={{ fontSize: '0.76rem', color: 'var(--home-text-muted)', fontWeight: 500, transition: 'color 0.3s ease' }}>{tr.footerCopy}</span>
+      <div style={{ display: 'flex', gap: 12, fontSize: '0.76rem', color: 'var(--home-text-muted)', alignItems: 'center' }}>
         
         
-        <span style={{ color: C.border, opacity: 0.3 }}>|</span>
+        <span style={{ color: 'var(--home-border)', opacity: 0.3 }}>|</span>
         
         <span style={{ 
           cursor: 'pointer',
@@ -647,14 +718,14 @@ const HomePage = () => {
             e.target.style.borderBottomColor = C.accent;
           }}
           onMouseLeave={(e) => {
-            e.target.style.color = C.muted;
+            e.target.style.color = 'var(--home-text-muted)';
             e.target.style.borderBottomColor = 'transparent';
           }}>{tr.footerPrivacy}</span>
         
-        <span style={{ color: C.border, opacity: 0.3 }}>|</span>
+        <span style={{ color: 'var(--home-border)', opacity: 0.3 }}>|</span>
         
         <a href="https://www.tax.gov.ma" target="_blank" rel="noreferrer" style={{ 
-          color: C.muted,
+          color: 'var(--home-text-muted)',
           textDecoration: 'none',
           transition: 'all .25s cubic-bezier(.4, 0, .2, 1)',
           paddingBottom: 2,
@@ -666,7 +737,7 @@ const HomePage = () => {
             e.target.style.borderBottomColor = C.accent;
           }}
           onMouseLeave={(e) => {
-            e.target.style.color = C.muted;
+            e.target.style.color = 'var(--home-text-muted)';
             e.target.style.borderBottomColor = 'transparent';
           }}>tax.gov.ma</a>
       </div>

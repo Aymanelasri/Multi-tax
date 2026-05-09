@@ -20,7 +20,6 @@ const ContactPage = () => {
   const [showToast, setShowToast] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -44,7 +43,7 @@ const ContactPage = () => {
     if (!formData.email.trim()) newErrors.email = t('form_error_email');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = t('form_error_email_invalid');
     if (!formData.message.trim()) newErrors.message = t('form_error_message');
-    if (formData.message.trim().length < 10) newErrors.message = 'Le message doit contenir au moins 10 caractères';
+    if (formData.message.trim().length < 10) newErrors.message = t('contact_min_message');
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -81,33 +80,55 @@ const ContactPage = () => {
   };
 
   return (
-    <div style={{ background: '#0a0f1a', minHeight: '100vh' }}>
+    <>
+      {/* Premium background grid - same as HomePage */}
+      <div className="grid-bg" style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        zIndex: 0,
+        transition: 'all 0.3s ease',
+        background: document.documentElement.classList.contains('light')
+          ? 'linear-gradient(135deg, rgba(0,212,160,0.20), transparent 32%), radial-gradient(circle at bottom right, rgba(59,130,246,0.16), transparent 35%), radial-gradient(circle at center, rgba(139,92,246,0.08), transparent 40%), linear-gradient(rgba(0,212,160,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,160,0.06) 1px, transparent 1px)'
+          : 'linear-gradient(135deg, rgba(16,185,129,0.05) 0%, rgba(16,185,129,0.02) 50%, transparent 100%), linear-gradient(90deg, rgba(16,185,129,0.03) 1px, transparent 1px), linear-gradient(rgba(16,185,129,0.03) 1px, transparent 1px)',
+        backgroundSize: document.documentElement.classList.contains('light')
+          ? 'auto, auto, auto, 60px 60px, 60px 60px'
+          : '100% 100%, 80px 80px, 80px 80px',
+        backgroundPosition: document.documentElement.classList.contains('light')
+          ? 'top left, bottom right, center, center, center'
+          : 'center'
+      }} />
+      
+      <div style={{ background: 'transparent', minHeight: '100vh', position: 'relative', zIndex: 1, transition: 'background-color 0.3s ease' }}>
       <Navigation />
 
-      {/* Page Header */}
       <div style={{ padding: '88px 48px 32px', maxWidth: 'none' }}>
         <h1 style={{
           fontSize: 'clamp(28px, 4vw, 42px)',
           fontWeight: 900,
-          color: '#ffffff',
+          color: 'var(--text-primary)',
           marginBottom: '12px',
-          letterSpacing: '-0.5px'
+          letterSpacing: '-0.5px',
+          transition: 'color 0.3s ease'
         }}>
           {t('contact_title')}
         </h1>
         <p style={{
           fontSize: '15px',
-          color: '#94a3b8',
+          color: 'var(--text-muted)',
           lineHeight: '1.6',
           marginBottom: 0,
-          maxWidth: '700px'
+          maxWidth: '700px',
+          transition: 'color 0.3s ease'
         }}>
           {t('contact_sub1')}<br />
           {t('contact_sub2')}
         </p>
       </div>
 
-      {/* 3-Column Info Cards */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
@@ -115,16 +136,15 @@ const ContactPage = () => {
         padding: '0 48px 48px',
         maxWidth: '1200px'
       }}>
-        {/* Card 1 */}
         <div style={{
-          background: '#141d2e',
-          border: '1px solid rgba(255,255,255,0.08)',
+          background: 'var(--card-bg)',
+          border: '1px solid var(--border)',
           borderRadius: '14px',
           padding: '24px',
-          transition: 'all 0.2s ease'
+          transition: 'all 0.3s ease'
         }}
           onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(0,212,160,0.2)'}
-          onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
         >
           <div style={{
             width: '32px',
@@ -138,7 +158,7 @@ const ContactPage = () => {
             fontWeight: 'bold',
             marginBottom: '12px'
           }}>●</div>
-          <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', marginBottom: '8px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px', transition: 'color 0.3s ease' }}>
             {t('card1_title')}
           </h3>
           <p style={{
@@ -149,21 +169,20 @@ const ContactPage = () => {
           }}>
             {t('card1_email')}
           </p>
-          <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0, transition: 'color 0.3s ease' }}>
             {t('card1_text')}
           </p>
         </div>
 
-        {/* Card 2 */}
         <div style={{
-          background: '#141d2e',
-          border: '1px solid rgba(255,255,255,0.08)',
+          background: 'var(--card-bg)',
+          border: '1px solid var(--border)',
           borderRadius: '14px',
           padding: '24px',
-          transition: 'all 0.2s ease'
+          transition: 'all 0.3s ease'
         }}
           onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(0,212,160,0.2)'}
-          onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
         >
           <div style={{
             width: '32px',
@@ -177,7 +196,7 @@ const ContactPage = () => {
             fontSize: '18px',
             marginBottom: '12px'
           }}>📄</div>
-          <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', marginBottom: '12px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '12px', transition: 'color 0.3s ease' }}>
             {t('card2_title')}
           </h3>
           <ul style={{
@@ -185,8 +204,9 @@ const ContactPage = () => {
             padding: 0,
             margin: '0 0 12px 0',
             fontSize: '13px',
-            color: '#94a3b8',
-            lineHeight: '1.8'
+            color: 'var(--text-muted)',
+            lineHeight: '1.8',
+            transition: 'color 0.3s ease'
           }}>
             <li>{t('card2_item1')}</li>
             <li>{t('card2_item2')}</li>
@@ -195,24 +215,24 @@ const ContactPage = () => {
           </ul>
           <p style={{
             fontSize: '12px',
-            color: '#64748b',
+            color: 'var(--text-dim)',
             fontStyle: 'italic',
-            margin: 0
+            margin: 0,
+            transition: 'color 0.3s ease'
           }}>
             {t('card2_note')}
           </p>
         </div>
 
-        {/* Card 3 */}
         <div style={{
-          background: '#141d2e',
-          border: '1px solid rgba(255,255,255,0.08)',
+          background: 'var(--card-bg)',
+          border: '1px solid var(--border)',
           borderRadius: '14px',
           padding: '24px',
-          transition: 'all 0.2s ease'
+          transition: 'all 0.3s ease'
         }}
           onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(0,212,160,0.2)'}
-          onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
         >
           <div style={{
             width: '32px',
@@ -227,21 +247,21 @@ const ContactPage = () => {
             fontWeight: 'bold',
             marginBottom: '12px'
           }}>MA</div>
-          <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', marginBottom: '8px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px', transition: 'color 0.3s ease' }}>
             {t('card3_title')}
           </h3>
           <p style={{
             fontSize: '13px',
-            color: '#94a3b8',
+            color: 'var(--text-muted)',
             lineHeight: '1.6',
-            margin: 0
+            margin: 0,
+            transition: 'color 0.3s ease'
           }}>
             {t('card3_text1')} {t('card3_text2')}
           </p>
         </div>
       </div>
 
-      {/* Contact Form */}
       <div style={{
         padding: '0 48px 80px',
         maxWidth: '640px'
@@ -249,29 +269,31 @@ const ContactPage = () => {
         <h2 style={{
           fontSize: '22px',
           fontWeight: 800,
-          color: '#ffffff',
-          marginBottom: '24px'
+          color: 'var(--text-primary)',
+          marginBottom: '24px',
+          transition: 'color 0.3s ease'
         }}>
           {t('form_title')}
         </h2>
 
         <div style={{
-          background: '#141d2e',
-          border: '1px solid rgba(255,255,255,0.08)',
+          background: 'var(--card-bg)',
+          border: '1px solid var(--border)',
           borderRadius: '16px',
-          padding: '32px'
+          padding: '32px',
+          transition: 'all 0.3s ease'
         }}>
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {/* Nom */}
             <div>
               <label style={{
                 fontSize: '11px',
                 fontWeight: 700,
-                color: '#64748b',
+                color: 'var(--text-dim)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.08em',
                 display: 'block',
-                marginBottom: '6px'
+                marginBottom: '6px',
+                transition: 'color 0.3s ease'
               }}>
                 {t('form_name')} <span style={{ color: '#ef4444' }}>*</span>
               </label>
@@ -285,11 +307,11 @@ const ContactPage = () => {
                   width: '100%',
                   padding: '12px 16px',
                   fontSize: '14px',
-                  border: `1px solid ${errors.nom ? '#ef4444' : 'rgba(255,255,255,0.12)'}`,
+                  border: `1px solid ${errors.nom ? '#ef4444' : 'var(--border-subtle)'}`,
                   borderRadius: '8px',
-                  background: '#0d1728',
-                  color: '#ffffff',
-                  transition: 'all 0.2s ease',
+                  background: 'var(--input-bg)',
+                  color: 'var(--text-primary)',
+                  transition: 'all 0.3s ease',
                   height: '44px'
                 }}
                 onFocus={(e) => {
@@ -300,7 +322,7 @@ const ContactPage = () => {
                 }}
                 onBlur={(e) => {
                   if (!errors.nom) {
-                    e.target.style.borderColor = 'rgba(255,255,255,0.12)';
+                    e.target.style.borderColor = 'var(--border-subtle)';
                     e.target.style.boxShadow = 'none';
                   }
                 }}
@@ -308,16 +330,16 @@ const ContactPage = () => {
               {errors.nom && <span style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px', display: 'block' }}>{errors.nom}</span>}
             </div>
 
-            {/* Email */}
             <div>
               <label style={{
                 fontSize: '11px',
                 fontWeight: 700,
-                color: '#64748b',
+                color: 'var(--text-dim)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.08em',
                 display: 'block',
-                marginBottom: '6px'
+                marginBottom: '6px',
+                transition: 'color 0.3s ease'
               }}>
                 {t('form_email')} <span style={{ color: '#ef4444' }}>*</span>
               </label>
@@ -331,11 +353,11 @@ const ContactPage = () => {
                   width: '100%',
                   padding: '12px 16px',
                   fontSize: '14px',
-                  border: `1px solid ${errors.email ? '#ef4444' : 'rgba(255,255,255,0.12)'}`,
+                  border: `1px solid ${errors.email ? '#ef4444' : 'var(--border-subtle)'}`,
                   borderRadius: '8px',
-                  background: '#0d1728',
-                  color: '#ffffff',
-                  transition: 'all 0.2s ease',
+                  background: 'var(--input-bg)',
+                  color: 'var(--text-primary)',
+                  transition: 'all 0.3s ease',
                   height: '44px'
                 }}
                 onFocus={(e) => {
@@ -346,7 +368,7 @@ const ContactPage = () => {
                 }}
                 onBlur={(e) => {
                   if (!errors.email) {
-                    e.target.style.borderColor = 'rgba(255,255,255,0.12)';
+                    e.target.style.borderColor = 'var(--border-subtle)';
                     e.target.style.boxShadow = 'none';
                   }
                 }}
@@ -354,16 +376,16 @@ const ContactPage = () => {
               {errors.email && <span style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px', display: 'block' }}>{errors.email}</span>}
             </div>
 
-            {/* Sujet */}
             <div>
               <label style={{
                 fontSize: '11px',
                 fontWeight: 700,
-                color: '#64748b',
+                color: 'var(--text-dim)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.08em',
                 display: 'block',
-                marginBottom: '6px'
+                marginBottom: '6px',
+                transition: 'color 0.3s ease'
               }}>
                 {t('form_subject')} <span style={{ color: '#ef4444' }}>*</span>
               </label>
@@ -375,39 +397,39 @@ const ContactPage = () => {
                   width: '100%',
                   padding: '12px 16px',
                   fontSize: '14px',
-                  border: '1px solid rgba(255,255,255,0.12)',
+                  border: '1px solid var(--border-subtle)',
                   borderRadius: '8px',
-                  background: '#0d1728',
-                  color: '#ffffff',
+                  background: 'var(--input-bg)',
+                  color: 'var(--text-primary)',
                   cursor: 'pointer',
                   height: '44px',
-                  transition: 'all 0.2s ease'
+                  transition: 'all 0.3s ease'
                 }}
                 onFocus={(e) => {
                   e.target.style.borderColor = '#00d4a0';
                   e.target.style.boxShadow = '0 0 0 3px rgba(0,212,160,0.15)';
                 }}
                 onBlur={(e) => {
-                  e.target.style.borderColor = 'rgba(255,255,255,0.12)';
+                  e.target.style.borderColor = 'var(--border-subtle)';
                   e.target.style.boxShadow = 'none';
                 }}
               >
                 {subjects.map(s => (
-                  <option key={s.value} value={s.value} style={{ background: '#0d1728', color: '#ffffff' }}>{s.label}</option>
+                  <option key={s.value} value={s.value} style={{ background: 'var(--input-bg)', color: 'var(--text-primary)' }}>{s.label}</option>
                 ))}
               </select>
             </div>
 
-            {/* Message */}
             <div>
               <label style={{
                 fontSize: '11px',
                 fontWeight: 700,
-                color: '#64748b',
+                color: 'var(--text-dim)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.08em',
                 display: 'block',
-                marginBottom: '6px'
+                marginBottom: '6px',
+                transition: 'color 0.3s ease'
               }}>
                 {t('form_message')} <span style={{ color: '#ef4444' }}>*</span>
               </label>
@@ -421,13 +443,13 @@ const ContactPage = () => {
                   width: '100%',
                   padding: '12px 16px',
                   fontSize: '14px',
-                  border: `1px solid ${errors.message ? '#ef4444' : 'rgba(255,255,255,0.12)'}`,
+                  border: `1px solid ${errors.message ? '#ef4444' : 'var(--border-subtle)'}`,
                   borderRadius: '8px',
-                  background: '#0d1728',
-                  color: '#ffffff',
+                  background: 'var(--input-bg)',
+                  color: 'var(--text-primary)',
                   fontFamily: 'inherit',
                   resize: 'vertical',
-                  transition: 'all 0.2s ease'
+                  transition: 'all 0.3s ease'
                 }}
                 onFocus={(e) => {
                   if (!errors.message) {
@@ -437,7 +459,7 @@ const ContactPage = () => {
                 }}
                 onBlur={(e) => {
                   if (!errors.message) {
-                    e.target.style.borderColor = 'rgba(255,255,255,0.12)';
+                    e.target.style.borderColor = 'var(--border-subtle)';
                     e.target.style.boxShadow = 'none';
                   }
                 }}
@@ -445,7 +467,6 @@ const ContactPage = () => {
               {errors.message && <span style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px', display: 'block' }}>{errors.message}</span>}
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
@@ -460,7 +481,7 @@ const ContactPage = () => {
                 fontSize: '14px',
                 fontWeight: 700,
                 cursor: isLoading ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s ease',
+                transition: 'all 0.3s ease',
                 marginTop: '8px',
                 opacity: isLoading ? 0.7 : 1
               }}
@@ -473,12 +494,12 @@ const ContactPage = () => {
         </div>
       </div>
 
-      {/* Footer */}
       <footer style={{
-        background: '#060d18',
-        borderTop: '1px solid rgba(255,255,255,0.08)',
+        background: 'var(--dark-bg)',
+        borderTop: '1px solid var(--border)',
         padding: '48px',
-        color: 'rgba(255,255,255,0.6)'
+        color: 'var(--text-muted)',
+        transition: 'all 0.3s ease'
       }}>
         <div style={{
           display: 'grid',
@@ -486,113 +507,77 @@ const ContactPage = () => {
           gap: '32px',
           marginBottom: '32px'
         }}>
-          {/* Column 1 */}
           <div>
-            <div style={{ fontSize: '16px', fontWeight: 700, marginBottom: '8px', color: '#ffffff' }}>
+            <div style={{ fontSize: '16px', fontWeight: 700, marginBottom: '8px', color: 'var(--text-primary)', transition: 'color 0.3s ease' }}>
               EDI-TVA Maroc
             </div>
-            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', margin: 0 }}>
-              Générateur EDI SIMPL-TVA conforme aux standards DGI Maroc.
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0, transition: 'color 0.3s ease' }}>
+              {t('footer_tagline')}
             </p>
           </div>
 
-          {/* Column 2 */}
           <div>
-            <div style={{ fontSize: '14px', fontWeight: 700, marginBottom: '12px', color: '#ffffff' }}>
-              Navigation
+            <div style={{ fontSize: '14px', fontWeight: 700, marginBottom: '12px', color: 'var(--text-primary)', transition: 'color 0.3s ease' }}>
+              {t('footer_nav')}
             </div>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '13px' }}>
               <li style={{ marginBottom: '8px' }}>
                 <button 
                   onClick={() => navigate('/')} 
-                  style={{ 
-                    color: 'rgba(255,255,255,0.6)', 
-                    background: 'none', 
-                    border: 'none', 
-                    cursor: 'pointer', 
-                    fontSize: '13px', 
-                    padding: 0, 
-                    transition: 'color 0.2s' 
-                  }} 
-                  onMouseEnter={(e) => e.target.style.color = '#ffffff'} 
-                  onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.6)'}
+                  style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', padding: 0, transition: 'color 0.3s' }} 
+                  onMouseEnter={(e) => e.target.style.color = 'var(--text-primary)'} 
+                  onMouseLeave={(e) => e.target.style.color = 'var(--text-muted)'}
                 >
-                  Accueil
+                  {t('nav_home')}
                 </button>
               </li>
               <li style={{ marginBottom: '8px' }}>
                 <button 
                   onClick={() => navigate('/generateur')} 
-                  style={{ 
-                    color: 'rgba(255,255,255,0.6)', 
-                    background: 'none', 
-                    border: 'none', 
-                    cursor: 'pointer', 
-                    fontSize: '13px', 
-                    padding: 0, 
-                    transition: 'color 0.2s' 
-                  }} 
-                  onMouseEnter={(e) => e.target.style.color = '#ffffff'} 
-                  onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.6)'}
+                  style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', padding: 0, transition: 'color 0.3s' }} 
+                  onMouseEnter={(e) => e.target.style.color = 'var(--text-primary)'} 
+                  onMouseLeave={(e) => e.target.style.color = 'var(--text-muted)'}
                 >
-                  Générateur
+                  {t('nav_generator')}
                 </button>
               </li>
               <li style={{ marginBottom: '8px' }}>
                 <button 
                   onClick={() => navigate('/societes')} 
-                  style={{ 
-                    color: 'rgba(255,255,255,0.6)', 
-                    background: 'none', 
-                    border: 'none', 
-                    cursor: 'pointer', 
-                    fontSize: '13px', 
-                    padding: 0, 
-                    transition: 'color 0.2s' 
-                  }} 
-                  onMouseEnter={(e) => e.target.style.color = '#ffffff'} 
-                  onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.6)'}
+                  style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', padding: 0, transition: 'color 0.3s' }} 
+                  onMouseEnter={(e) => e.target.style.color = 'var(--text-primary)'} 
+                  onMouseLeave={(e) => e.target.style.color = 'var(--text-muted)'}
                 >
-                  Sociétés
+                  {t('nav_societes')}
                 </button>
               </li>
               <li>
                 <button 
                   onClick={() => navigate('/contact')} 
-                  style={{ 
-                    color: 'rgba(255,255,255,0.6)', 
-                    background: 'none', 
-                    border: 'none', 
-                    cursor: 'pointer', 
-                    fontSize: '13px', 
-                    padding: 0, 
-                    transition: 'color 0.2s' 
-                  }} 
-                  onMouseEnter={(e) => e.target.style.color = '#ffffff'} 
-                  onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.6)'}
+                  style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', padding: 0, transition: 'color 0.3s' }} 
+                  onMouseEnter={(e) => e.target.style.color = 'var(--text-primary)'} 
+                  onMouseLeave={(e) => e.target.style.color = 'var(--text-muted)'}
                 >
-                  Contact
+                  {t('nav_contact')}
                 </button>
               </li>
             </ul>
           </div>
 
-          {/* Column 3 */}
           <div>
-            <div style={{ fontSize: '14px', fontWeight: 700, marginBottom: '12px', color: '#ffffff' }}>
-              Informations légales
+            <div style={{ fontSize: '14px', fontWeight: 700, marginBottom: '12px', color: 'var(--text-primary)', transition: 'color 0.3s ease' }}>
+              {t('footer_legal')}
             </div>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '13px' }}>
-              <li style={{ marginBottom: '8px' }}><button onClick={() => navigate('/legal#mentions')} style={{ color: 'rgba(255,255,255,0.6)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', padding: 0, transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#00d4a0'} onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.6)'}>Mentions légales</button></li>
-              <li style={{ marginBottom: '8px' }}><button onClick={() => navigate('/legal#confidentialite')} style={{ color: 'rgba(255,255,255,0.6)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', padding: 0, transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#00d4a0'} onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.6)'}>Confidentialité</button></li>
-              <li><button onClick={() => navigate('/legal#conditions')} style={{ color: 'rgba(255,255,255,0.6)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', padding: 0, transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#00d4a0'} onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.6)'}>Conditions d'utilisation</button></li>
+              <li style={{ marginBottom: '8px' }}><button onClick={() => navigate('/legal#mentions')} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', padding: 0, transition: 'color 0.3s' }} onMouseEnter={(e) => e.target.style.color = '#00d4a0'} onMouseLeave={(e) => e.target.style.color = 'var(--text-muted)'}>{t('footer_mentions')}</button></li>
+              <li style={{ marginBottom: '8px' }}><button onClick={() => navigate('/legal#confidentialite')} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', padding: 0, transition: 'color 0.3s' }} onMouseEnter={(e) => e.target.style.color = '#00d4a0'} onMouseLeave={(e) => e.target.style.color = 'var(--text-muted)'}>{t('footer_privacy')}</button></li>
+              <li><button onClick={() => navigate('/legal#conditions')} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', padding: 0, transition: 'color 0.3s' }} onMouseEnter={(e) => e.target.style.color = '#00d4a0'} onMouseLeave={(e) => e.target.style.color = 'var(--text-muted)'}>{t('footer_terms')}</button></li>
             </ul>
           </div>
         </div>
 
-        {/* Bottom Bar */}
         <div style={{
-          borderTop: '1px solid rgba(255,255,255,0.08)',
+          borderTop: '1px solid var(--border)',
           paddingTop: '20px',
           display: 'flex',
           justifyContent: 'space-between',
@@ -600,15 +585,17 @@ const ContactPage = () => {
           flexWrap: 'wrap',
           gap: '12px',
           fontSize: '12px',
-          color: 'rgba(255,255,255,0.4)'
+          color: 'var(--text-dim)',
+          transition: 'all 0.3s ease'
         }}>
-          <div>© 2025 EDI-TVA Maroc — Générateur EDI SIMPL-TVA conforme DGI Maroc.</div>
-          <div>100% local · Gratuit · Conforme DGI</div>
+          <div>{t('footer_copy')}</div>
+          <div>{t('footer_badges')}</div>
         </div>
       </footer>
 
       <Toast message={toastMsg} isVisible={showToast} />
-    </div>
+      </div>
+    </>
   );
 };
 

@@ -5,6 +5,48 @@ import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import api from '../lib/api';
 
+// Add theme-aware CSS variables
+const themeStyles = `
+  :root.dark {
+    --societes-bg: #080c1f;
+    --societes-card: #141d2e;
+    --societes-modal: #141d2e;
+    --societes-input: #1a2332;
+    --societes-border: rgba(255,255,255,0.15);
+    --societes-border-hover: rgba(0,212,160,0.3);
+    --societes-text: #f0f4f8;
+    --societes-text-muted: #94a3b8;
+    --societes-text-dim: #cbd5e1;
+    --societes-text-dimmer: #94a3b8;
+  }
+  
+  :root.light {
+    --societes-bg: #f8fafc;
+    --societes-card: #ffffff;
+    --societes-modal: #ffffff;
+    --societes-input: #f8fafc;
+    --societes-border: #cbd5e1;
+    --societes-border-hover: rgba(0,212,160,0.4);
+    --societes-text: #0f172a;
+    --societes-text-muted: #64748b;
+    --societes-text-dim: #475569;
+    --societes-text-dimmer: #94a3b8;
+  }
+  
+  :root {
+    --societes-bg: #080c1f;
+    --societes-card: #141d2e;
+    --societes-modal: #141d2e;
+    --societes-input: #1a2332;
+    --societes-border: rgba(255,255,255,0.15);
+    --societes-border-hover: rgba(0,212,160,0.3);
+    --societes-text: #f0f4f8;
+    --societes-text-muted: #94a3b8;
+    --societes-text-dim: #cbd5e1;
+    --societes-text-dimmer: #94a3b8;
+  }
+`;
+
 const AVATAR_COLORS = ['#00d4a0','#3b82f6','#f59e0b','#8b5cf6','#ef4444','#06b6d4','#ec4899'];
 const avatarColor = (nom) => AVATAR_COLORS[(nom?.charCodeAt(0) || 0) % AVATAR_COLORS.length];
 const initials = (nom) => (nom || '?').slice(0, 2).toUpperCase();
@@ -12,11 +54,26 @@ const initials = (nom) => (nom || '?').slice(0, 2).toUpperCase();
 const EMPTY = { if: '', nom: '', rc: '', ice: '', tp: '', cnss: '', adresse: '', ville: '', tel: '', email: '' };
 
 const inputStyle = {
-  background: '#0d1728', border: '1px solid rgba(255,255,255,0.12)',
-  color: '#f0f4f8', borderRadius: 8, height: 44, padding: '0 14px',
+  background: 'var(--societes-input)', border: '1px solid var(--societes-border)',
+  color: 'var(--societes-text)', borderRadius: 8, height: 44, padding: '0 14px',
   fontSize: '0.87rem', width: '100%', outline: 'none', fontFamily: 'inherit',
-  transition: 'border-color 0.2s',
+  transition: 'all 0.3s ease',
 };
+
+const placeholderStyles = `
+  input::placeholder, select::placeholder {
+    color: var(--societes-text-dim) !important;
+    opacity: 0.6;
+  }
+  input::-webkit-input-placeholder, select::-webkit-input-placeholder {
+    color: var(--societes-text-dim) !important;
+    opacity: 0.6;
+  }
+  input::-moz-placeholder, select::-moz-placeholder {
+    color: var(--societes-text-dim) !important;
+    opacity: 0.6;
+  }
+`;
 
 const Modal = ({ societe, onClose, onSave, t, allSocietes }) => {
   const [form, setForm] = useState(societe ? { ...societe } : { ...EMPTY });
@@ -108,13 +165,16 @@ const Modal = ({ societe, onClose, onSave, t, allSocietes }) => {
   ];
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ background: '#141d2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, padding: 32, width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto' }}>
+    <>
+      <style>{themeStyles}</style>
+      <style>{placeholderStyles}</style>
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div style={{ background: 'var(--societes-modal)', border: '1px solid var(--societes-border)', borderRadius: 16, padding: 32, width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto', transition: 'all 0.3s ease', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 800, color: '#f0f4f8', margin: 0 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--societes-text)', margin: 0, transition: 'color 0.3s ease' }}>
             {societe ? t('societes_modal_edit') : t('societes_modal_add')}
           </h2>
-          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#64748b', fontSize: 20, cursor: 'pointer', lineHeight: 1 }}>✕</button>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--societes-text-dim)', fontSize: 20, cursor: 'pointer', lineHeight: 1, transition: 'color 0.3s ease' }}>✕</button>
         </div>
 
         {fields.map((row, ri) => (
@@ -142,19 +202,20 @@ const Modal = ({ societe, onClose, onSave, t, allSocietes }) => {
                 <div key={key} data-error={errors[key] ? 'true' : 'false'} style={{ display: 'flex', flexDirection: 'column' }}>
                   {/* Label row - fixed height */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, height: 20, marginBottom: 6 }}>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--societes-text-dim)', letterSpacing: '0.06em', textTransform: 'uppercase', transition: 'color 0.3s ease' }}>
                       {label}
                     </span>
                     {hint && (
                       <span style={{ 
                         fontSize: '10px', 
-                        color: '#475569', 
+                        color: 'var(--societes-text-dimmer)', 
                         fontWeight: 400, 
                         textTransform: 'none',
                         letterSpacing: 0,
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
-                        textOverflow: 'ellipsis'
+                        textOverflow: 'ellipsis',
+                        transition: 'color 0.3s ease'
                       }}>
                         ({hint})
                       </span>
@@ -174,19 +235,19 @@ const Modal = ({ societe, onClose, onSave, t, allSocietes }) => {
                     maxLength={maxLength}
                     style={{
                       ...inputStyle, 
-                      color: form[key] ? '#f0f4f8' : '#64748b', 
+                      color: 'var(--societes-text)',
                       borderColor: iceBorderColor, 
-                      transition: 'border-color 0.2s',
+                      transition: 'all 0.3s ease',
                       width: '100%',
                       boxSizing: 'border-box'
                     }}
                     onFocus={e => { if (key !== 'ice') e.target.style.borderColor = '#00d4a0'; }}
-                    onBlur={e => { if (key !== 'ice') e.target.style.borderColor = errors[key] ? '#ef4444' : 'rgba(255,255,255,0.08)'; }}
+                    onBlur={e => { if (key !== 'ice') e.target.style.borderColor = errors[key] ? '#ef4444' : 'var(--societes-border)'; }}
                   />
                   
                   {/* ICE counter */}
                   {key === 'ice' && (
-                    <div style={{ fontSize: '11px', marginTop: 4, color: iceLength === 15 ? '#00d4a0' : iceLength > 0 ? '#ef4444' : '#64748b', minHeight: 0 }}>
+                    <div style={{ fontSize: '11px', marginTop: 4, color: iceLength === 15 ? '#00d4a0' : iceLength > 0 ? '#ef4444' : 'var(--societes-text-dim)', minHeight: 0, transition: 'color 0.3s ease' }}>
                       {iceLength} / 15 chiffres
                     </div>
                   )}
@@ -219,7 +280,7 @@ const Modal = ({ societe, onClose, onSave, t, allSocietes }) => {
 
 
         <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-          <button onClick={onClose} style={{ padding: '10px 20px', borderRadius: 8, background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#94a3b8', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'inherit' }}>
+          <button onClick={onClose} style={{ padding: '10px 20px', borderRadius: 8, background: 'transparent', border: '1px solid var(--societes-border)', color: 'var(--societes-text-muted)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'inherit', transition: 'all 0.3s ease' }}>
             {t('societes_cancel')}
           </button>
           <button 
@@ -245,6 +306,7 @@ const Modal = ({ societe, onClose, onSave, t, allSocietes }) => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
@@ -442,17 +504,41 @@ const SocietesPage = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080c1f' }}>
+    <>
+      <style>{themeStyles}</style>
+      
+      {/* Premium background grid - same as HomePage */}
+      <div className="grid-bg" style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        zIndex: 0,
+        transition: 'all 0.3s ease',
+        background: document.documentElement.classList.contains('light')
+          ? 'linear-gradient(135deg, rgba(0,212,160,0.20), transparent 32%), radial-gradient(circle at bottom right, rgba(59,130,246,0.16), transparent 35%), radial-gradient(circle at center, rgba(139,92,246,0.08), transparent 40%), linear-gradient(rgba(0,212,160,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,160,0.06) 1px, transparent 1px)'
+          : 'linear-gradient(135deg, rgba(16,185,129,0.05) 0%, rgba(16,185,129,0.02) 50%, transparent 100%), linear-gradient(90deg, rgba(16,185,129,0.03) 1px, transparent 1px), linear-gradient(rgba(16,185,129,0.03) 1px, transparent 1px)',
+        backgroundSize: document.documentElement.classList.contains('light')
+          ? 'auto, auto, auto, 60px 60px, 60px 60px'
+          : '100% 100%, 80px 80px, 80px 80px',
+        backgroundPosition: document.documentElement.classList.contains('light')
+          ? 'top left, bottom right, center, center, center'
+          : 'center'
+      }} />
+      
+      <div style={{ minHeight: '100vh', background: 'transparent', position: 'relative', zIndex: 1, transition: 'background-color 0.3s ease' }}>
       <Navigation />
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '88px 48px 100px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 40, flexWrap: 'wrap', gap: 16 }}>
           <div>
-            <h1 style={{ fontSize: 'clamp(28px,4vw,42px)', fontWeight: 900, color: '#f0f4f8', letterSpacing: '-1.5px', marginBottom: 8 }}>
+            <h1 style={{ fontSize: 'clamp(28px,4vw,42px)', fontWeight: 900, color: 'var(--societes-text)', letterSpacing: '-1.5px', marginBottom: 8, transition: 'color 0.3s ease' }}>
               {t('societes_title')}
             </h1>
-            <p style={{ fontSize: '0.95rem', color: '#64748b', margin: 0 }}>{t('societes_subtitle')}</p>
+            <p style={{ fontSize: '0.95rem', color: 'var(--societes-text-dim)', margin: 0, transition: 'color 0.3s ease' }}>{t('societes_subtitle')}</p>
           </div>
           <button
             onClick={() => setModal('add')}
@@ -474,7 +560,7 @@ const SocietesPage = () => {
         {loading && (
           <div style={{ textAlign: 'center', padding: '80px 0' }}>
             <div style={{ display: 'inline-block', width: 40, height: 40, border: '3px solid rgba(0,212,160,0.2)', borderTop: '3px solid #00d4a0', borderRadius: '50%', animation: 'spin 0.8s linear infinite', marginBottom: 20 }} />
-            <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>{t('loading') || 'Chargement...'}</p>
+            <p style={{ color: 'var(--societes-text-muted)', fontSize: '0.9rem', transition: 'color 0.3s ease' }}>{t('loading') || 'Chargement...'}</p>
             <style>{`
               @keyframes spin {
                 to { transform: rotate(360deg); }
@@ -488,16 +574,16 @@ const SocietesPage = () => {
           <div style={{ background: 'rgba(0,212,160,0.08)', border: '1px solid rgba(0,212,160,0.25)', borderRadius: 12, padding: '16px 20px', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 16 }}>
             <div style={{ fontSize: '24px', flexShrink: 0 }}>💡</div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '14px', fontWeight: 700, color: '#ffffff', marginBottom: 8 }}>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--societes-text)', marginBottom: 8, transition: 'color 0.3s ease' }}>
                 {t('societes_onboarding_title')}
               </div>
-              <div style={{ fontSize: '12px', color: '#94a3b8' }}>
+              <div style={{ fontSize: '12px', color: 'var(--societes-text-muted)', transition: 'color 0.3s ease' }}>
                 {t('societes_onboarding_subtitle')}
               </div>
             </div>
             <button
               onClick={dismissOnboarding}
-              style={{ background: 'transparent', border: 'none', color: '#94a3b8', fontSize: '18px', cursor: 'pointer', padding: 0, flexShrink: 0, lineHeight: 1 }}
+              style={{ background: 'transparent', border: 'none', color: 'var(--societes-text-muted)', fontSize: '18px', cursor: 'pointer', padding: 0, flexShrink: 0, lineHeight: 1, transition: 'color 0.3s ease' }}
             >
               × Compris
             </button>
@@ -510,10 +596,10 @@ const SocietesPage = () => {
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder={t('societes_search')}
+              placeholder={t('societes_search') || 'Rechercher par nom, IF, ville...'}
               style={{ ...inputStyle, flex: 1, minWidth: 200, maxWidth: 360, height: 42 }}
               onFocus={e => e.target.style.borderColor = '#00d4a0'}
-              onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'}
+              onBlur={e => e.target.style.borderColor = 'var(--societes-border)'}
             />
             <select
               value={sort}
@@ -531,8 +617,8 @@ const SocietesPage = () => {
         {!loading && societes.length === 0 && (
           <div style={{ textAlign: 'center', padding: '80px 0' }}>
             <div style={{ fontSize: 52, marginBottom: 20 }}>🏢</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f0f4f8', marginBottom: 10 }}>{t('societes_empty')}</div>
-            <div style={{ fontSize: '0.88rem', color: '#64748b', marginBottom: 28 }}>{t('societes_empty_sub')}</div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--societes-text)', marginBottom: 10, transition: 'color 0.3s ease' }}>{t('societes_empty')}</div>
+            <div style={{ fontSize: '0.88rem', color: 'var(--societes-text-dim)', marginBottom: 28, transition: 'color 0.3s ease' }}>{t('societes_empty_sub')}</div>
             <button onClick={() => setModal('add')} style={{ padding: '12px 28px', borderRadius: 10, background: 'linear-gradient(135deg,#10b981,#34d399)', border: 'none', color: '#000', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', fontFamily: 'inherit' }}>
               {t('societes_add')}
             </button>
@@ -545,9 +631,9 @@ const SocietesPage = () => {
             {filtered.map(s => (
               <div
                 key={s.id}
-                style={{ background: '#141d2e', border: `1px solid ${confirmId === s.id ? 'rgba(239,68,68,0.4)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 14, padding: 20, transition: 'border-color 0.2s', cursor: 'default' }}
-                onMouseEnter={e => { if (confirmId !== s.id) e.currentTarget.style.borderColor = 'rgba(0,212,160,0.3)'; }}
-                onMouseLeave={e => { if (confirmId !== s.id) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+                style={{ background: 'var(--societes-card)', border: `1px solid ${confirmId === s.id ? 'rgba(239,68,68,0.4)' : 'var(--societes-border)'}`, borderRadius: 14, padding: 20, transition: 'all 0.3s ease', cursor: 'default' }}
+                onMouseEnter={e => { if (confirmId !== s.id) e.currentTarget.style.borderColor = 'var(--societes-border-hover)'; }}
+                onMouseLeave={e => { if (confirmId !== s.id) e.currentTarget.style.borderColor = 'var(--societes-border)'; }}
               >
                 {/* Card header */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
@@ -555,44 +641,44 @@ const SocietesPage = () => {
                     {initials(s.nom)}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#f0f4f8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.nom}</div>
-                    {s.if && <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: 2 }}>IF: {s.if}</div>}
+                    <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--societes-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', transition: 'color 0.3s ease' }}>{s.nom}</div>
+                    {s.if && <div style={{ fontSize: '0.72rem', color: 'var(--societes-text-dim)', marginTop: 2, transition: 'color 0.3s ease' }}>IF: {s.if}</div>}
                   </div>
                 </div>
 
                 {/* Card details */}
-                <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 12, marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 5 }}>
-                  {s.rc && <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>RC: <span style={{ color: '#cbd5e1' }}>{s.rc}</span></div>}
-                  {s.ice && <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>ICE: <span style={{ color: '#cbd5e1' }}>{s.ice}</span></div>}
-                  {s.tp && <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>TP: <span style={{ color: '#cbd5e1' }}>{s.tp}</span></div>}
-                  {s.cnss && <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>CNSS: <span style={{ color: '#cbd5e1' }}>{s.cnss}</span></div>}
-                  {s.ville && <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>📍 <span style={{ color: '#cbd5e1' }}>{s.ville}</span></div>}
-                  {s.last_used && <div style={{ fontSize: '0.7rem', color: '#475569', marginTop: 2 }}>Dernière utilisation: {new Date(s.last_used).toLocaleDateString('fr-MA')}</div>}
+                <div style={{ borderTop: '1px solid var(--societes-border)', paddingTop: 12, marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 5, transition: 'border-color 0.3s ease' }}>
+                  {s.rc && <div style={{ fontSize: '0.75rem', color: 'var(--societes-text-muted)', transition: 'color 0.3s ease' }}>RC: <span style={{ color: 'var(--societes-text)', transition: 'color 0.3s ease' }}>{s.rc}</span></div>}
+                  {s.ice && <div style={{ fontSize: '0.75rem', color: 'var(--societes-text-muted)', transition: 'color 0.3s ease' }}>ICE: <span style={{ color: 'var(--societes-text)', transition: 'color 0.3s ease' }}>{s.ice}</span></div>}
+                  {s.tp && <div style={{ fontSize: '0.75rem', color: 'var(--societes-text-muted)', transition: 'color 0.3s ease' }}>TP: <span style={{ color: 'var(--societes-text)', transition: 'color 0.3s ease' }}>{s.tp}</span></div>}
+                  {s.cnss && <div style={{ fontSize: '0.75rem', color: 'var(--societes-text-muted)', transition: 'color 0.3s ease' }}>CNSS: <span style={{ color: 'var(--societes-text)', transition: 'color 0.3s ease' }}>{s.cnss}</span></div>}
+                  {s.ville && <div style={{ fontSize: '0.75rem', color: 'var(--societes-text-muted)', transition: 'color 0.3s ease' }}>📍 <span style={{ color: 'var(--societes-text)', transition: 'color 0.3s ease' }}>{s.ville}</span></div>}
+                  {s.last_used && <div style={{ fontSize: '0.68rem', color: '#10b981', marginTop: 4, fontWeight: 500, transition: 'color 0.3s ease' }}>✓ Dernière utilisation: {new Date(s.last_used).toLocaleDateString('fr-MA')}</div>}
                 </div>
 
                 {/* Card footer */}
-                <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                  <span style={{ fontSize: '0.7rem', color: '#475569', fontWeight: 500 }}>
-                    {t('societes_used_count')} {s.usage_count || 0}x
+                <div style={{ borderTop: '1px solid var(--societes-border)', paddingTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, transition: 'border-color 0.3s ease' }}>
+                  <span style={{ fontSize: '0.68rem', color: '#10b981', fontWeight: 600, transition: 'color 0.3s ease' }}>
+                    ✓ {t('societes_used_count')} {s.usage_count || 0}x
                   </span>
 
                   {confirmId === s.id ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Supprimer ?</span>
-                      <button onClick={() => handleDelete(s.id)} style={{ padding: '3px 10px', fontSize: '0.72rem', background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', borderRadius: 5, cursor: 'pointer', fontFamily: 'inherit' }}>Oui</button>
-                      <button onClick={() => setConfirmId(null)} style={{ padding: '3px 10px', fontSize: '0.72rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', borderRadius: 5, cursor: 'pointer', fontFamily: 'inherit' }}>Non</button>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--societes-text-muted)', transition: 'color 0.3s ease' }}>Supprimer ?</span>
+                      <button onClick={() => handleDelete(s.id)} style={{ padding: '3px 10px', fontSize: '0.72rem', background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', borderRadius: 5, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.3s ease' }}>Oui</button>
+                      <button onClick={() => setConfirmId(null)} style={{ padding: '3px 10px', fontSize: '0.72rem', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--societes-border)', color: 'var(--societes-text-muted)', borderRadius: 5, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.3s ease' }}>Non</button>
                     </div>
                   ) : (
                     <div style={{ display: 'flex', gap: 6 }}>
-                      <button onClick={() => handleUse(s)} style={{ padding: '5px 12px', fontSize: '0.75rem', background: 'rgba(0,212,160,0.1)', border: '1px solid rgba(0,212,160,0.25)', color: '#00d4a0', borderRadius: 6, cursor: 'pointer', fontWeight: 600, fontFamily: 'inherit', transition: 'background 0.15s' }}
+                      <button onClick={() => handleUse(s)} style={{ padding: '5px 12px', fontSize: '0.75rem', background: 'rgba(0,212,160,0.1)', border: '1px solid rgba(0,212,160,0.25)', color: '#00d4a0', borderRadius: 6, cursor: 'pointer', fontWeight: 600, fontFamily: 'inherit', transition: 'all 0.3s ease' }}
                         onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,212,160,0.18)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,212,160,0.1)'}
                       >{t('societes_use')}</button>
-                      <button onClick={() => setModal(s)} style={{ padding: '5px 12px', fontSize: '0.75rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', borderRadius: 6, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.15s' }}
+                      <button onClick={() => setModal(s)} style={{ padding: '5px 12px', fontSize: '0.75rem', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--societes-border)', color: 'var(--societes-text-muted)', borderRadius: 6, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.3s ease' }}
                         onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
                       >{t('societes_edit')}</button>
-                      <button onClick={() => setConfirmId(s.id)} style={{ padding: '5px 10px', fontSize: '0.75rem', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444', borderRadius: 6, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.15s' }}
+                      <button onClick={() => setConfirmId(s.id)} style={{ padding: '5px 10px', fontSize: '0.75rem', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444', borderRadius: 6, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.3s ease' }}
                         onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.15)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'rgba(239,68,68,0.08)'}
                       >🗑</button>
@@ -606,7 +692,7 @@ const SocietesPage = () => {
 
         {/* No results */}
         {!loading && societes.length > 0 && filtered.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '48px 0', color: '#64748b', fontSize: '0.88rem' }}>
+          <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--societes-text-dim)', fontSize: '0.88rem', transition: 'color 0.3s ease' }}>
             Aucun résultat pour "{search}"
           </div>
         )}
@@ -626,23 +712,23 @@ const SocietesPage = () => {
       {/* Start Declaration Modal */}
       {startDeclModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div style={{ background: '#141d2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, padding: 32, width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto' }}>
+          <div style={{ background: 'var(--societes-modal)', border: '1px solid var(--societes-border)', borderRadius: 16, padding: 32, width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto', transition: 'all 0.3s ease', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
             <div style={{ marginBottom: 24 }}>
-              <h2 style={{ fontSize: 18, fontWeight: 800, color: '#f0f4f8', marginBottom: 8 }}>{t('societes_modal_start_title')}</h2>
-              <p style={{ fontSize: '0.9rem', color: '#94a3b8', margin: 0 }}>
+              <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--societes-text)', marginBottom: 8, transition: 'color 0.3s ease' }}>{t('societes_modal_start_title')}</h2>
+              <p style={{ fontSize: '0.9rem', color: 'var(--societes-text-muted)', margin: 0, transition: 'color 0.3s ease' }}>
                 {t('societes_modal_start_subtitle').replace('{{company}}', startDeclModal.nom)}
               </p>
             </div>
 
             {/* Step 1 fields */}
-            <div style={{ marginBottom: 24, paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ marginBottom: 24, paddingBottom: 20, borderBottom: '1px solid var(--societes-border)', transition: 'border-color 0.3s ease' }}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, color: '#00d4a0', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 16 }}>
                 {t('societes_modal_start_header_info')}
               </label>
 
               {/* IF field */}
               <div style={{ marginBottom: 14 }}>
-                <label style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 5 }}>
+                <label style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--societes-text-dim)', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 5, transition: 'color 0.3s ease' }}>
                   {t('field_if')} <span style={{ color: '#00d4a0' }}>*</span>
                 </label>
                 <input
@@ -651,13 +737,13 @@ const SocietesPage = () => {
                   style={inputStyle}
                   placeholder="1-8 chiffres"
                   onFocus={e => e.target.style.borderColor = '#00d4a0'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'}
+                  onBlur={e => e.target.style.borderColor = 'var(--societes-border)'}
                 />
               </div>
 
               {/* Année field */}
               <div style={{ marginBottom: 14 }}>
-                <label style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 5 }}>
+                <label style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--societes-text-dim)', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 5, transition: 'color 0.3s ease' }}>
                   {t('field_annee')} <span style={{ color: '#00d4a0' }}>*</span>
                 </label>
                 <input
@@ -666,30 +752,30 @@ const SocietesPage = () => {
                   onChange={e => setStartDeclForm({ ...startDeclForm, annee: e.target.value })}
                   style={inputStyle}
                   onFocus={e => e.target.style.borderColor = '#00d4a0'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'}
+                  onBlur={e => e.target.style.borderColor = 'var(--societes-border)'}
                 />
               </div>
 
               {/* Régime field */}
               <div style={{ marginBottom: 14 }}>
-                <label style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 5 }}>
+                <label style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--societes-text-dim)', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 5, transition: 'color 0.3s ease' }}>
                   {t('field_regime')} <span style={{ color: '#00d4a0' }}>*</span>
                 </label>
                 <select
                   value={startDeclForm.regime}
                   onChange={e => setStartDeclForm({ ...startDeclForm, regime: e.target.value })}
-                  style={{ ...inputStyle, cursor: 'pointer', backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', paddingRight: 34, appearance: 'none', WebkitAppearance: 'none' }}
+                  style={{ ...inputStyle, color: 'var(--societes-text)', cursor: 'pointer', backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', paddingRight: 34, appearance: 'none', WebkitAppearance: 'none' }}
                   onFocus={e => e.target.style.borderColor = '#00d4a0'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'}
+                  onBlur={e => e.target.style.borderColor = 'var(--societes-border)'}
                 >
-                  <option value="1">Mensuel</option>
-                  <option value="2">Trimestriel</option>
+                  <option value="1" style={{ background: 'var(--societes-input)', color: 'var(--societes-text)' }}>Mensuel</option>
+                  <option value="2" style={{ background: 'var(--societes-input)', color: 'var(--societes-text)' }}>Trimestriel</option>
                 </select>
               </div>
 
               {/* Période field */}
               <div style={{ marginBottom: 14 }}>
-                <label style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 5 }}>
+                <label style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--societes-text-dim)', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 5, transition: 'color 0.3s ease' }}>
                   {t('field_periode')} <span style={{ color: '#00d4a0' }}>*</span>
                 </label>
                 <input
@@ -705,7 +791,7 @@ const SocietesPage = () => {
                   }}
                   style={{
                     ...inputStyle,
-                    borderColor: periodeError ? '#ef4444' : 'rgba(255,255,255,0.12)'
+                    borderColor: periodeError ? '#ef4444' : 'var(--societes-border)'
                   }}
                   placeholder={startDeclForm.regime === '1' ? '1-12 (mensuel)' : '1-4 (trimestriel)'}
                   onFocus={e => { if (!periodeError) e.target.style.borderColor = '#00d4a0'; }}
@@ -721,7 +807,7 @@ const SocietesPage = () => {
             {startDeclErr && <div style={{ color: '#ef4444', fontSize: '0.78rem', marginBottom: 14 }}>⚠ {startDeclErr}</div>}
 
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button onClick={() => setStartDeclModal(null)} style={{ padding: '10px 20px', borderRadius: 8, background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#94a3b8', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'inherit' }}>
+              <button onClick={() => setStartDeclModal(null)} style={{ padding: '10px 20px', borderRadius: 8, background: 'transparent', border: '1px solid var(--societes-border)', color: 'var(--societes-text-muted)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'inherit', transition: 'all 0.3s ease' }}>
                 {t('societes_modal_cancel')}
               </button>
               <button onClick={handleStartDeclContinue} disabled={!!periodeError} style={{ 
@@ -743,6 +829,7 @@ const SocietesPage = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 

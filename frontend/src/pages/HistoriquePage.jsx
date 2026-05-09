@@ -27,7 +27,7 @@ const HistoriquePage = () => {
       setGenerations(response.data || []);
     } catch (error) {
       console.error('Failed to fetch generations:', error);
-      toast('❌ Erreur lors du chargement de l\'historique');
+      toast(t('historique_error'));
     } finally {
       setLoading(false);
     }
@@ -61,7 +61,6 @@ const HistoriquePage = () => {
       setDownloading(generation.id);
       const blob = await api.downloadGeneration(generation.id);
       
-      // Create download link
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -71,10 +70,10 @@ const HistoriquePage = () => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       
-      toast('✅ Fichier téléchargé avec succès');
+      toast(t('historique_success'));
     } catch (error) {
       console.error('Download failed:', error);
-      toast('❌ Erreur lors du téléchargement: ' + error.message);
+      toast(t('historique_error') + ': ' + error.message);
     } finally {
       setDownloading(null);
     }
@@ -99,10 +98,9 @@ const HistoriquePage = () => {
   };
 
   return (
-    <div style={{ background: '#0a0f1a', minHeight: '100vh' }}>
+    <div style={{ background: 'var(--page-bg)', minHeight: '100vh', transition: 'background-color 0.3s ease' }}>
       <Navigation />
 
-      {/* Page Header */}
       <div className="historique-page-header" style={{ padding: '80px 48px 32px', maxWidth: '1400px', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' }}>
           <button
@@ -110,58 +108,60 @@ const HistoriquePage = () => {
             style={{
               padding: '8px 16px',
               background: 'transparent',
-              border: '1px solid rgba(255,255,255,0.15)',
+              border: '1px solid var(--border)',
               borderRadius: '8px',
-              color: '#94a3b8',
+              color: 'var(--text-muted)',
               fontSize: '14px',
               cursor: 'pointer',
-              transition: 'all 0.2s ease',
+              transition: 'all 0.3s ease',
               display: 'flex',
               alignItems: 'center',
               gap: '6px'
             }}
             onMouseEnter={(e) => {
-              e.target.style.borderColor = 'rgba(255,255,255,0.3)';
-              e.target.style.color = '#e2e8f0';
+              e.target.style.borderColor = 'var(--border-subtle)';
+              e.target.style.color = 'var(--text-primary)';
             }}
             onMouseLeave={(e) => {
-              e.target.style.borderColor = 'rgba(255,255,255,0.15)';
-              e.target.style.color = '#94a3b8';
+              e.target.style.borderColor = 'var(--border)';
+              e.target.style.color = 'var(--text-muted)';
             }}
           >
-            ← Retour au générateur
+            {t('historique_back')}
           </button>
         </div>
 
         <h1 className="historique-page-title" style={{
           fontSize: 'clamp(28px, 4vw, 42px)',
           fontWeight: 900,
-          color: '#ffffff',
+          color: 'var(--text-primary)',
           marginBottom: '12px',
-          letterSpacing: '-0.5px'
+          letterSpacing: '-0.5px',
+          transition: 'color 0.3s ease'
         }}>
-          📋 Historique des téléchargements
+          📋 {t('historique_title')}
         </h1>
         <p className="historique-page-subtitle" style={{
           fontSize: '15px',
-          color: '#94a3b8',
+          color: 'var(--text-muted)',
           lineHeight: '1.6',
           marginBottom: 0,
-          maxWidth: '700px'
+          maxWidth: '700px',
+          transition: 'color 0.3s ease'
         }}>
-          Consultez et téléchargez à nouveau vos fichiers EDI générés.
+          {t('historique_subtitle')}
         </p>
       </div>
 
-      {/* Content */}
       <div className="historique-content" style={{ padding: '0 48px 80px', maxWidth: '1400px', margin: '0 auto' }}>
         {loading ? (
           <div style={{
-            background: '#141d2e',
-            border: '1px solid rgba(255,255,255,0.08)',
+            background: 'var(--card-bg)',
+            border: '1px solid var(--border)',
             borderRadius: '16px',
             padding: '60px',
-            textAlign: 'center'
+            textAlign: 'center',
+            transition: 'all 0.3s ease'
           }}>
             <div style={{
               width: '40px',
@@ -172,22 +172,23 @@ const HistoriquePage = () => {
               margin: '0 auto 16px',
               animation: 'spin 0.8s linear infinite'
             }} />
-            <p style={{ color: '#94a3b8', fontSize: '14px' }}>Chargement de l'historique...</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: '14px', transition: 'color 0.3s ease' }}>{t('historique_loading')}</p>
           </div>
         ) : generations.length === 0 ? (
           <div style={{
-            background: '#141d2e',
-            border: '1px solid rgba(255,255,255,0.08)',
+            background: 'var(--card-bg)',
+            border: '1px solid var(--border)',
             borderRadius: '16px',
             padding: '60px',
-            textAlign: 'center'
+            textAlign: 'center',
+            transition: 'all 0.3s ease'
           }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>📭</div>
-            <h3 style={{ color: '#ffffff', fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>
-              Aucun téléchargement
+            <h3 style={{ color: 'var(--text-primary)', fontSize: '18px', fontWeight: 700, marginBottom: '8px', transition: 'color 0.3s ease' }}>
+              {t('historique_empty_title')}
             </h3>
-            <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '24px' }}>
-              Vous n'avez pas encore généré de fichiers EDI.
+            <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '24px', transition: 'color 0.3s ease' }}>
+              {t('historique_empty_text')}
             </p>
             <button
               onClick={() => navigate('/generateur')}
@@ -200,44 +201,44 @@ const HistoriquePage = () => {
                 fontSize: '14px',
                 fontWeight: 700,
                 cursor: 'pointer',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.3s ease'
               }}
               onMouseEnter={(e) => e.target.style.background = '#00c896'}
               onMouseLeave={(e) => e.target.style.background = '#00d4a0'}
             >
-              Créer une déclaration →
+              {t('historique_create_btn')}
             </button>
           </div>
         ) : (
           <div style={{
-            background: '#141d2e',
-            border: '1px solid rgba(255,255,255,0.08)',
+            background: 'var(--card-bg)',
+            border: '1px solid var(--border)',
             borderRadius: '16px',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            transition: 'all 0.3s ease'
           }}>
-            {/* Table Header */}
             <div className="historique-table-header" style={{
               display: 'grid',
               gridTemplateColumns: '50px 1fr 100px 120px 150px 120px',
               gap: '16px',
               padding: '16px 24px',
-              background: 'rgba(0,0,0,0.2)',
-              borderBottom: '1px solid rgba(255,255,255,0.08)',
+              background: 'var(--dark-bg)',
+              borderBottom: '1px solid var(--border)',
               fontSize: '11px',
               fontWeight: 700,
-              color: '#64748b',
+              color: 'var(--text-dim)',
               textTransform: 'uppercase',
-              letterSpacing: '0.08em'
+              letterSpacing: '0.08em',
+              transition: 'all 0.3s ease'
             }}>
               <div></div>
-              <div>Nom du fichier</div>
-              <div>Type</div>
-              <div>Taille</div>
-              <div>Date</div>
-              <div style={{ textAlign: 'center' }}>Action</div>
+              <div>{t('historique_col_file')}</div>
+              <div>{t('historique_col_type')}</div>
+              <div>{t('historique_col_size')}</div>
+              <div>{t('historique_col_date')}</div>
+              <div style={{ textAlign: 'center' }}>{t('historique_col_action')}</div>
             </div>
 
-            {/* Table Body */}
             {generations.map((gen, index) => (
               <div
                 key={gen.id}
@@ -247,35 +248,33 @@ const HistoriquePage = () => {
                   gridTemplateColumns: '50px 1fr 100px 120px 150px 120px',
                   gap: '16px',
                   padding: '20px 24px',
-                  borderBottom: index < generations.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
-                  transition: 'background 0.2s ease',
+                  borderBottom: index < generations.length - 1 ? '1px solid var(--border)' : 'none',
+                  transition: 'all 0.3s ease',
                   alignItems: 'center'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--input-bg)'}
                 onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
-                {/* Icon */}
                 <div className="historique-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {getFileIcon(gen.file_type)}
                 </div>
 
-                {/* File Name */}
                 <div className="historique-file-info">
                   <div className="historique-file-name" title={gen.file_name} style={{
-                    color: '#ffffff',
+                    color: 'var(--text-primary)',
                     fontSize: '14px',
                     fontWeight: 600,
                     marginBottom: '4px',
-                    wordBreak: 'break-word'
+                    wordBreak: 'break-word',
+                    transition: 'color 0.3s ease'
                   }}>
                     {gen.file_name}
                   </div>
-                  <div className="historique-file-ref" style={{ color: '#64748b', fontSize: '12px' }}>
+                  <div className="historique-file-ref" style={{ color: 'var(--text-dim)', fontSize: '12px', transition: 'color 0.3s ease' }}>
                     Réf: {gen.reference}
                   </div>
                 </div>
 
-                {/* Type */}
                 <div>
                   <span className="historique-type-badge" style={{
                     display: 'inline-block',
@@ -291,17 +290,14 @@ const HistoriquePage = () => {
                   </span>
                 </div>
 
-                {/* Size */}
-                <div className="historique-size" style={{ color: '#94a3b8', fontSize: '13px' }}>
+                <div className="historique-size" style={{ color: 'var(--text-muted)', fontSize: '13px', transition: 'color 0.3s ease' }}>
                   {formatFileSize(gen.file_size)}
                 </div>
 
-                {/* Date */}
-                <div className="historique-date" style={{ color: '#94a3b8', fontSize: '13px' }}>
+                <div className="historique-date" style={{ color: 'var(--text-muted)', fontSize: '13px', transition: 'color 0.3s ease' }}>
                   {formatDate(gen.created_at)}
                 </div>
 
-                {/* Download Button */}
                 <div style={{ textAlign: 'center' }}>
                   <button
                     className="historique-download-btn"
@@ -316,7 +312,7 @@ const HistoriquePage = () => {
                       fontSize: '13px',
                       fontWeight: 700,
                       cursor: downloading === gen.id ? 'not-allowed' : 'pointer',
-                      transition: 'all 0.2s ease',
+                      transition: 'all 0.3s ease',
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '6px',
@@ -333,7 +329,7 @@ const HistoriquePage = () => {
                       }
                     }}
                   >
-                    {downloading === gen.id ? '⏳' : <HiDownload size={16} />} Télécharger
+                    {downloading === gen.id ? '⏳' : <HiDownload size={16} />} {downloading === gen.id ? t('historique_downloading') : t('historique_download_btn')}
                   </button>
                 </div>
               </div>
@@ -341,7 +337,6 @@ const HistoriquePage = () => {
           </div>
         )}
 
-        {/* Stats Summary */}
         {generations.length > 0 && (
           <div className="historique-stats" style={{
             marginTop: '24px',
@@ -350,29 +345,31 @@ const HistoriquePage = () => {
             gap: '16px'
           }}>
             <div style={{
-              background: '#141d2e',
-              border: '1px solid rgba(255,255,255,0.08)',
+              background: 'var(--card-bg)',
+              border: '1px solid var(--border)',
               borderRadius: '12px',
-              padding: '20px'
+              padding: '20px',
+              transition: 'all 0.3s ease'
             }}>
-              <div style={{ color: '#64748b', fontSize: '12px', marginBottom: '8px' }}>
-                Total des fichiers
+              <div style={{ color: 'var(--text-dim)', fontSize: '12px', marginBottom: '8px', transition: 'color 0.3s ease' }}>
+                {t('historique_stats_total')}
               </div>
-              <div style={{ color: '#ffffff', fontSize: '24px', fontWeight: 700 }}>
+              <div style={{ color: 'var(--text-primary)', fontSize: '24px', fontWeight: 700, transition: 'color 0.3s ease' }}>
                 {generations.length}
               </div>
             </div>
 
             <div style={{
-              background: '#141d2e',
-              border: '1px solid rgba(255,255,255,0.08)',
+              background: 'var(--card-bg)',
+              border: '1px solid var(--border)',
               borderRadius: '12px',
-              padding: '20px'
+              padding: '20px',
+              transition: 'all 0.3s ease'
             }}>
-              <div style={{ color: '#64748b', fontSize: '12px', marginBottom: '8px' }}>
-                Total des factures
+              <div style={{ color: 'var(--text-dim)', fontSize: '12px', marginBottom: '8px', transition: 'color 0.3s ease' }}>
+                {t('historique_stats_invoices')}
               </div>
-              <div style={{ color: '#ffffff', fontSize: '24px', fontWeight: 700 }}>
+              <div style={{ color: 'var(--text-primary)', fontSize: '24px', fontWeight: 700, transition: 'color 0.3s ease' }}>
                 {generations.reduce((sum, gen) => sum + (gen.factures || 0), 0)}
               </div>
             </div>

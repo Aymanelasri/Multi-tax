@@ -1,18 +1,54 @@
+/* ═══════════════════════════════════════════════════════════════
+   AUTH NAVBAR THEME VARIABLES
+═══════════════════════════════════════════════════════════════ */
+
+:root,
+:root.dark {
+  --auth-navbar-bg: rgba(10, 15, 26, 0.8);
+  --auth-navbar-border: rgba(255, 255, 255, 0.06);
+  --auth-navbar-text: #ffffff;
+  --auth-navbar-text-muted: #64748b;
+  --auth-navbar-text-inactive: #475569;
+  --auth-navbar-separator: #334155;
+}
+
+:root.light {
+  --auth-navbar-bg: rgba(255, 255, 255, 0.9);
+  --auth-navbar-border: #e2e8f0;
+  --auth-navbar-text: #0f172a;
+  --auth-navbar-text-muted: #64748b;
+  --auth-navbar-text-inactive: #94a3b8;
+  --auth-navbar-separator: #cbd5e1;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   AUTH NAVBAR
+═══════════════════════════════════════════════════════════════ */
+
 .auth-navbar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   height: 56px;
-  background: rgba(10, 15, 26, 0.8);
+  background: var(--auth-navbar-bg);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--auth-navbar-border);
   z-index: 100;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 40px;
+  transition: all 0.3s ease;
 }
+
+:root.light .auth-navbar {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NAVBAR LEFT - LOGO
+═══════════════════════════════════════════════════════════════ */
 
 .navbar-left {
   display: flex;
@@ -32,30 +68,71 @@
   font-weight: 900;
   font-size: 14px;
   border-radius: 9px;
+  transition: transform 0.2s ease;
+}
+
+.navbar-left:hover .navbar-logo-badge {
+  transform: scale(1.05);
 }
 
 .navbar-logo-text {
   font-size: 17px;
   font-weight: 800;
+  transition: color 0.3s ease;
 }
 
 .navbar-simpl {
-  color: white;
+  color: var(--auth-navbar-text);
+  transition: color 0.3s ease;
 }
 
 .navbar-tva {
   color: #00d4a0;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   NAVBAR CENTER
+═══════════════════════════════════════════════════════════════ */
+
 .navbar-center {
   flex: 1;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   NAVBAR RIGHT
+═══════════════════════════════════════════════════════════════ */
 
 .navbar-right {
   display: flex;
   align-items: center;
   gap: 24px;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   THEME TOGGLE
+═══════════════════════════════════════════════════════════════ */
+
+.theme-toggle-btn {
+  background: none;
+  border: none;
+  color: var(--auth-navbar-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.theme-toggle-btn:hover {
+  color: #00d4a0;
+  background: rgba(0, 212, 160, 0.1);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LANGUAGE TOGGLE
+═══════════════════════════════════════════════════════════════ */
 
 .lang-toggle {
   display: flex;
@@ -69,22 +146,34 @@
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
-  transition: color 0.2s;
+  transition: color 0.3s ease;
+  padding: 4px 8px;
+  border-radius: 4px;
 }
 
 .lang-toggle .active {
-  color: white;
+  color: var(--auth-navbar-text);
 }
 
 .lang-toggle .inactive {
-  color: #475569;
+  color: var(--auth-navbar-text-inactive);
+}
+
+.lang-toggle .inactive:hover {
+  color: var(--auth-navbar-text-muted);
+  background: rgba(0, 212, 160, 0.05);
 }
 
 .lang-separator {
-  color: #334155;
+  color: var(--auth-navbar-separator);
   font-size: 12px;
   font-weight: 700;
+  transition: color 0.3s ease;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   AUTH LINKS
+═══════════════════════════════════════════════════════════════ */
 
 .auth-links {
   display: flex;
@@ -93,8 +182,9 @@
 }
 
 .auth-text {
-  color: #64748b;
+  color: var(--auth-navbar-text-muted);
   font-size: 12px;
+  transition: color 0.3s ease;
 }
 
 .auth-link {
@@ -105,13 +195,20 @@
   font-size: 12px;
   cursor: pointer;
   text-decoration: none;
+  transition: opacity 0.3s ease;
+  padding: 4px 8px;
+  border-radius: 4px;
 }
 
 .auth-link:hover {
   text-decoration: underline;
+  background: rgba(0, 212, 160, 0.05);
 }
 
-/* Mobile */
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE - MOBILE
+═══════════════════════════════════════════════════════════════ */
+
 @media (max-width: 900px) {
   .auth-navbar {
     padding: 0 20px;
@@ -121,5 +218,9 @@
 @media (max-width: 480px) {
   .auth-links {
     display: none;
+  }
+  
+  .navbar-right {
+    gap: 16px;
   }
 }

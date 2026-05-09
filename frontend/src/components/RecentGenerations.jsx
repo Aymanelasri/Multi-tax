@@ -49,29 +49,13 @@ const RecentGenerations = ({ onRefresh = 0, limit = 5 }) => {
   const getStatusConfig = (statut) => {
     switch (statut?.toLowerCase()) {
       case 'success':
-        return {
-          color: '#00d4a0',
-          bg: 'rgba(0,212,160,0.1)',
-          label: 'Succès'
-        };
+        return { color: 'var(--primary-green)', bg: 'rgba(0,212,160,0.08)', label: 'Succès' };
       case 'error':
-        return {
-          color: '#ef4444',
-          bg: 'rgba(239,68,68,0.1)',
-          label: 'Erreur'
-        };
+        return { color: 'var(--red)', bg: 'rgba(239,68,68,0.08)', label: 'Erreur' };
       case 'pending':
-        return {
-          color: '#fbbf24',
-          bg: 'rgba(251,191,36,0.1)',
-          label: 'En cours'
-        };
+        return { color: 'var(--amber)', bg: 'rgba(251,191,36,0.08)', label: 'En cours' };
       default:
-        return {
-          color: '#94a3b8',
-          bg: 'rgba(148,163,184,0.1)',
-          label: statut
-        };
+        return { color: 'var(--text-muted)', bg: 'rgba(148,163,184,0.06)', label: statut };
     }
   };
 
@@ -106,20 +90,21 @@ const RecentGenerations = ({ onRefresh = 0, limit = 5 }) => {
   if (loading) {
     return (
       <div style={{
-        background: '#0a0f1a',
-        border: '1px solid #1e3a5f',
+        background: 'var(--card-bg)',
+        border: '1px solid var(--border)',
         borderRadius: 12,
-        padding: '20px'
+        padding: '20px',
+        transition: 'background-color 0.3s ease, border-color 0.3s ease'
       }}>
         <div style={{
           fontSize: '16px',
           fontWeight: 700,
-          color: '#e2e8f0',
+          color: 'var(--text-primary)',
           marginBottom: 16
         }}>
           📋 Générations récentes
         </div>
-        <div style={{ textAlign: 'center', padding: '40px 20px', color: '#64748b' }}>
+        <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
           <div style={{ fontSize: '24px', marginBottom: 8 }}>⏳</div>
           <div>Chargement...</div>
         </div>
@@ -130,15 +115,16 @@ const RecentGenerations = ({ onRefresh = 0, limit = 5 }) => {
   if (error) {
     return (
       <div style={{
-        background: '#0a0f1a',
-        border: '1px solid #1e3a5f',
+        background: 'var(--card-bg)',
+        border: '1px solid var(--border)',
         borderRadius: 12,
-        padding: '20px'
+        padding: '20px',
+        transition: 'background-color 0.3s ease, border-color 0.3s ease'
       }}>
         <div style={{
           fontSize: '16px',
           fontWeight: 700,
-          color: '#e2e8f0',
+          color: 'var(--text-primary)',
           marginBottom: 16
         }}>
           📋 Générations récentes
@@ -146,7 +132,7 @@ const RecentGenerations = ({ onRefresh = 0, limit = 5 }) => {
         <div style={{
           textAlign: 'center',
           padding: '40px 20px',
-          color: '#ef4444',
+          color: 'var(--red)',
           fontSize: '14px'
         }}>
           {error}
@@ -157,11 +143,12 @@ const RecentGenerations = ({ onRefresh = 0, limit = 5 }) => {
 
   return (
     <div className="recent-gen-container" style={{
-      background: 'linear-gradient(135deg, #0a0f1a 0%, #0d1420 100%)',
-      border: '1px solid rgba(0,212,160,0.2)',
+      background: 'var(--card-bg)',
+      border: '1px solid var(--border)',
       borderRadius: 16,
       padding: '24px',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
+      boxShadow: 'var(--shadow-md)',
+      transition: 'background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease'
     }}>
       {/* Header */}
       <div style={{
@@ -175,7 +162,7 @@ const RecentGenerations = ({ onRefresh = 0, limit = 5 }) => {
         <div style={{
           fontSize: '18px',
           fontWeight: 800,
-          color: '#ffffff',
+          color: 'var(--text-primary)',
           display: 'flex',
           alignItems: 'center',
           gap: 10,
@@ -186,11 +173,11 @@ const RecentGenerations = ({ onRefresh = 0, limit = 5 }) => {
             <span style={{
               fontSize: '12px',
               fontWeight: 700,
-              color: '#00d4a0',
-              background: 'rgba(0,212,160,0.15)',
+              color: 'var(--primary-green)',
+              background: 'var(--green-tint)',
               padding: '3px 10px',
               borderRadius: 20,
-              border: '1px solid rgba(87, 170, 149, 0.3)'
+              border: '1px solid var(--green-border)'
             }}>
               {generations.length}
             </span>
@@ -202,7 +189,7 @@ const RecentGenerations = ({ onRefresh = 0, limit = 5 }) => {
             href="/historique"
             style={{
               fontSize: '12px',
-              color: '#00d4a0',
+              color: 'var(--primary-green)',
               textDecoration: 'none',
               display: 'flex',
               alignItems: 'center',
@@ -210,8 +197,8 @@ const RecentGenerations = ({ onRefresh = 0, limit = 5 }) => {
               fontWeight: 600,
               transition: 'color 0.2s'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#00ffcc'}
-            onMouseLeave={(e) => e.currentTarget.style.color = '#00d4a0'}
+            onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-accent-bright)'}
+            onMouseLeave={(e) => e.currentTarget.style.color = 'var(--primary-green)'}
           >
             Voir tout
             <HiExternalLink size={15} />
@@ -224,7 +211,7 @@ const RecentGenerations = ({ onRefresh = 0, limit = 5 }) => {
         <div style={{
           textAlign: 'center',
           padding: '40px 20px',
-          color: '#64748b',
+          color: 'var(--text-muted)',
           fontSize: '14px'
         }}>
           <div style={{ fontSize: '32px', marginBottom: 12 }}>📭</div>
@@ -237,42 +224,42 @@ const RecentGenerations = ({ onRefresh = 0, limit = 5 }) => {
             
             return (
               <div
-                key={gen.id}
-                className="d-flex align-items-center p-3 border rounded"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(17,24,39,0.6) 0%, rgba(26,34,54,0.4) 100%)',
-                  borderColor: 'rgba(30,58,95,0.5) !important',
-                  gap: '12px',
-                  transition: 'all 0.3s ease',
-                  cursor: 'pointer',
-                  borderRadius: '12px',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(0,212,160,0.08) 0%, rgba(0,136,255,0.05) 100%)';
-                  e.currentTarget.style.borderColor = 'rgba(0,212,160,0.5)';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,212,160,0.15)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(17,24,39,0.6) 0%, rgba(26,34,54,0.4) 100%)';
-                  e.currentTarget.style.borderColor = 'rgba(30,58,95,0.5)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
-                }}
-              >
+                  key={gen.id}
+                  className="d-flex align-items-center p-3 border rounded"
+                  style={{
+                    background: 'var(--input-bg)',
+                    borderColor: 'var(--border)',
+                    gap: '12px',
+                    transition: 'all 0.3s ease',
+                    cursor: 'pointer',
+                    borderRadius: '12px',
+                    boxShadow: 'var(--shadow-sm)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'var(--green-tint)';
+                    e.currentTarget.style.borderColor = 'var(--green-border)';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,212,160,0.07)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'var(--input-bg)';
+                    e.currentTarget.style.borderColor = 'var(--border)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+                  }}
+                >
                 {/* File Icon */}
                 <div className="flex-shrink-0" style={{
                   width: 44,
                   height: 44,
                   borderRadius: 12,
-                  background: 'linear-gradient(135deg, rgba(0,212,160,0.2) 0%, rgba(0,136,255,0.15) 100%)',
+                  background: 'var(--green-tint)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#00ffcc',
-                  border: '1px solid rgba(0,212,160,0.3)',
-                  boxShadow: '0 4px 12px rgba(0,212,160,0.2)'
+                  color: 'var(--primary-green)',
+                  border: '1px solid var(--green-border)',
+                  boxShadow: '0 4px 12px rgba(0,212,160,0.12)'
                 }}>
                   {getFileIcon(gen.file_type)}
                 </div>
@@ -283,7 +270,7 @@ const RecentGenerations = ({ onRefresh = 0, limit = 5 }) => {
                   <div className="d-flex align-items-center flex-wrap" style={{ gap: '4px', marginBottom: 4 }}>
                     <span className="fw-bold text-truncate" style={{
                       fontSize: '14px',
-                      color: '#ffffff',
+                      color: 'var(--text-primary)',
                       fontFamily: 'var(--mono)',
                       maxWidth: '120px',
                       letterSpacing: '0.5px'
@@ -293,14 +280,14 @@ const RecentGenerations = ({ onRefresh = 0, limit = 5 }) => {
                     <span className="d-none d-sm-inline" style={{ color: '#334155', fontSize: '11px' }}>•</span>
                     <span className="text-truncate" style={{
                       fontSize: '11px',
-                      color: '#64748b'
+                      color: 'var(--text-muted)'
                     }}>
                       {formatDate(gen.created_at)}
                     </span>
                     <span className="d-none d-sm-inline" style={{ color: '#334155', fontSize: '11px' }}>•</span>
                     <span className="d-flex align-items-center" style={{
                       fontSize: '11px',
-                      color: '#00d4a0',
+                      color: 'var(--primary-green)',
                       fontWeight: 600,
                       gap: 4
                     }}>
@@ -312,13 +299,13 @@ const RecentGenerations = ({ onRefresh = 0, limit = 5 }) => {
                   </div>
 
                   {/* Details */}
-                  <div className="d-flex align-items-center flex-wrap" style={{ gap: '8px', fontSize: '12px', color: '#94a3b8' }}>
+                  <div className="d-flex align-items-center flex-wrap" style={{ gap: '8px', fontSize: '12px', color: 'var(--text-muted)' }}>
                     <span className="text-nowrap">
                       {gen.factures} {gen.factures === 1 ? 'facture' : 'factures'}
                     </span>
                     <span className="d-none d-sm-inline" style={{ color: '#334155' }}>•</span>
                     <span className="fw-semibold text-nowrap" style={{
-                      color: '#00ffcc',
+                      color: 'var(--primary-green)',
                       fontFamily: 'var(--mono)',
                       fontSize: '13px',
                       fontWeight: 700
@@ -354,29 +341,29 @@ const RecentGenerations = ({ onRefresh = 0, limit = 5 }) => {
                       width: 44,
                       height: 44,
                       borderRadius: 10,
-                      border: '1px solid rgba(0,212,160,0.3)',
-                      background: 'linear-gradient(135deg, rgba(0,212,160,0.1) 0%, rgba(0,136,255,0.08) 100%)',
+                      border: '1px solid var(--green-border)',
+                      background: 'var(--green-tint)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       transition: 'all 0.3s ease',
-                      boxShadow: '0 2px 8px rgba(0,212,160,0.15)'
+                      boxShadow: '0 2px 8px rgba(0,212,160,0.12)'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'linear-gradient(135deg, rgba(0,212,160,0.25) 0%, rgba(0,136,255,0.2) 100%)';
-                      e.currentTarget.style.transform = 'scale(1.1) rotate(5deg)';
-                      e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,212,160,0.4)';
+                      e.currentTarget.style.background = 'rgba(0,212,160,0.25)';
+                      e.currentTarget.style.transform = 'scale(1.05) rotate(3deg)';
+                      e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,212,160,0.18)';
                       e.currentTarget.style.borderColor = 'rgba(0,255,204,0.6)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'linear-gradient(135deg, rgba(0,212,160,0.1) 0%, rgba(0,136,255,0.08) 100%)';
+                      e.currentTarget.style.background = 'var(--green-tint)';
                       e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
-                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,212,160,0.15)';
-                      e.currentTarget.style.borderColor = 'rgba(0,212,160,0.3)';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,212,160,0.12)';
+                      e.currentTarget.style.borderColor = 'var(--green-border)';
                     }}
                     title="Télécharger"
                   >
-                    <HiDownload size={22} color="#00ffcc" style={{ strokeWidth: 2 }} />
+                    <HiDownload size={22} color="var(--primary-green)" style={{ strokeWidth: 2 }} />
                   </button>
                 )}
               </div>

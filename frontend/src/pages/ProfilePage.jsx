@@ -489,9 +489,10 @@ export default function ProfilePage() {
         <style jsx={true}>{`
           .profile-layout {
             min-height: 100vh;
-            background: #0a0f1a;
+            background: var(--page-bg);
             padding-top: 56px;
             font-family: 'Sora', system-ui, sans-serif;
+            transition: background-color 0.3s ease;
           }
 
           .profile-container {
@@ -506,9 +507,14 @@ export default function ProfilePage() {
             gap: 24px;
             margin-bottom: 40px;
             padding: 32px;
-            background: rgba(20, 29, 46, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: var(--card-bg);
+            border: 1px solid var(--border);
             border-radius: 20px;
+            transition: all 0.3s ease;
+          }
+          
+          :global(:root.light) .profile-header {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
           }
 
           .profile-avatar {
@@ -532,14 +538,16 @@ export default function ProfilePage() {
           .profile-name {
             font-size: 28px;
             font-weight: 900;
-            color: white;
+            color: var(--text-primary);
             margin: 0 0 8px 0;
+            transition: color 0.3s ease;
           }
 
           .profile-email {
             font-size: 16px;
-            color: #94a3b8;
+            color: var(--text-muted);
             margin: 0 0 12px 0;
+            transition: color 0.3s ease;
           }
 
           .profile-status {
@@ -565,14 +573,19 @@ export default function ProfilePage() {
             color: #fcd34d;
             border: 1px solid rgba(251, 191, 36, 0.3);
           }
+          
+          :global(:root.light) .status-badge.pending {
+            color: #d97706;
+          }
 
           .profile-tabs {
             display: flex;
             gap: 4px;
             margin-bottom: 32px;
-            background: rgba(20, 29, 46, 0.3);
+            background: var(--input-bg);
             border-radius: 12px;
             padding: 4px;
+            transition: background-color 0.3s ease;
           }
 
           .tab {
@@ -581,11 +594,11 @@ export default function ProfilePage() {
             background: transparent;
             border: none;
             border-radius: 8px;
-            color: #94a3b8;
+            color: var(--text-muted);
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
           }
 
           .tab.active {
@@ -594,8 +607,8 @@ export default function ProfilePage() {
           }
 
           .tab:hover:not(.active) {
-            color: #e2e8f0;
-            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            background: var(--card-bg);
           }
 
           .success-banner {
@@ -623,6 +636,10 @@ export default function ProfilePage() {
             align-items: center;
             gap: 8px;
           }
+          
+          :global(:root.light) .error-banner {
+            color: #ef4444;
+          }
 
           .lock-banner, .warning-banner {
             background: rgba(251, 191, 36, 0.08);
@@ -636,12 +653,22 @@ export default function ProfilePage() {
             align-items: center;
             gap: 8px;
           }
+          
+          :global(:root.light) .lock-banner,
+          :global(:root.light) .warning-banner {
+            color: #d97706;
+          }
 
           .tab-content {
-            background: rgba(20, 29, 46, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: var(--card-bg);
+            border: 1px solid var(--border);
             border-radius: 20px;
             padding: 32px;
+            transition: all 0.3s ease;
+          }
+          
+          :global(:root.light) .tab-content {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
           }
 
           .form-grid {
@@ -659,39 +686,55 @@ export default function ProfilePage() {
             display: block;
             font-size: 11px;
             font-weight: 700;
-            color: #64748b;
+            color: var(--text-dim);
             text-transform: uppercase;
             letter-spacing: 0.08em;
             margin-bottom: 6px;
+            transition: color 0.3s ease;
           }
 
           .form-group input {
             width: 100%;
             height: 48px;
-            background: #141d2e;
-            border: 1.5px solid rgba(255, 255, 255, 0.08);
+            background: var(--input-bg);
+            border: 1.5px solid var(--border-subtle);
             border-radius: 10px;
-            color: white;
+            color: var(--text-primary);
             font-size: 14px;
             padding: 0 14px;
             font-family: 'Sora', sans-serif;
-            transition: border 0.2s, box-shadow 0.2s;
+            transition: all 0.3s ease;
             outline: none;
           }
+          
+          :global(:root.light) .form-group input {
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+          }
 
-          .form-group input:hover:not(:focus) {
-            border-color: rgba(255, 255, 255, 0.15);
+          .form-group input:hover:not(:focus):not(:disabled) {
+            border-color: rgba(0,212,160,0.3);
+          }
+          
+          :global(:root.light) .form-group input:hover:not(:focus):not(:disabled) {
+            background: #ffffff;
+            border-color: rgba(0,212,160,0.4);
           }
 
           .form-group input:focus {
             border-color: #00d4a0;
             box-shadow: 0 0 0 3px rgba(0, 212, 160, 0.12);
+            background: var(--input-bg);
+          }
+          
+          :global(:root.light) .form-group input:focus {
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(0, 212, 160, 0.15);
           }
 
           .form-group input:disabled {
             opacity: 0.6;
             cursor: not-allowed;
-            background: rgba(20, 29, 46, 0.5);
+            background: var(--dark-bg);
           }
 
           .form-group input.error {
@@ -704,6 +747,10 @@ export default function ProfilePage() {
             margin-top: 4px;
             display: block;
           }
+          
+          :global(:root.light) .error-text {
+            color: #ef4444;
+          }
 
           .submit-button {
             width: 100%;
@@ -715,7 +762,7 @@ export default function ProfilePage() {
             border-radius: 10px;
             border: none;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;

@@ -1,9 +1,11 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import api from '../lib/api'
+import { useTheme } from './ThemeContext'
 
 const AuthContext = createContext()
 
 export const AuthProvider = ({ children }) => {
+  const { initThemeForUser, resetTheme } = useTheme();
   const [user, setUser] = useState(null)
   const [token, setToken] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -31,6 +33,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const userData = await api.getUser(authToken)
       setUser(userData.data)
+      initThemeForUser(userData.data?.id)
     } catch (error) {
       clearAuth()
     } finally {
@@ -65,6 +68,7 @@ export const AuthProvider = ({ children }) => {
         
         setToken(newToken)
         setUser(userData)
+        initThemeForUser(userData?.id)
         
         return { success: true, user: userData }
       }
@@ -129,18 +133,17 @@ export const AuthProvider = ({ children }) => {
   }
 
   const clearAuth = () => {
-    // SECURITY: Clear ALL auth data from both storages
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     sessionStorage.removeItem('token')
     sessionStorage.removeItem('user')
     
-    // Clear admin preferences if admin
     if (user?.role === 'admin') {
       localStorage.removeItem('adminTheme')
       localStorage.removeItem('adminLang')
     }
     
+    resetTheme()
     setToken(null)
     setUser(null)
   }

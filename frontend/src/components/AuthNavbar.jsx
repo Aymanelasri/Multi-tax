@@ -1,10 +1,13 @@
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../context/LanguageContext'
+import { useTheme } from '../context/ThemeContext'
+import { BsSun, BsMoon } from 'react-icons/bs'
 import './AuthNavbar.css'
 
 export default function AuthNavbar({ currentPage }) {
   const navigate = useNavigate()
   const { lang, toggleLang } = useLang()
+  const { theme, toggleTheme } = useTheme()
 
   return (
     <nav className="auth-navbar">
@@ -20,8 +23,17 @@ export default function AuthNavbar({ currentPage }) {
       {/* Center - Empty */}
       <div className="navbar-center"></div>
 
-      {/* Right - Language toggle + Auth links */}
+      {/* Right - Theme + Language toggle + Auth links */}
       <div className="navbar-right">
+        {/* Theme Toggle */}
+        <button 
+          className="theme-toggle-btn"
+          onClick={toggleTheme}
+          title={theme === 'dark' ? (lang === 'FR' ? 'Mode Clair' : 'Light Mode') : (lang === 'FR' ? 'Mode Sombre' : 'Dark Mode')}
+        >
+          {theme === 'dark' ? <BsSun size={16} /> : <BsMoon size={16} />}
+        </button>
+
         {/* Language Toggle */}
         <div className="lang-toggle">
           <button 

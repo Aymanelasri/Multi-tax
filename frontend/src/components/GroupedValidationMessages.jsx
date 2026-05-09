@@ -97,37 +97,13 @@ const GroupedValidationMessages = ({ errors = [], warnings = [], infos = [] }) =
   const getSeverityConfig = (severity) => {
     switch (severity) {
       case 'error':
-        return {
-          icon: AlertCircle,
-          color: '#ef4444',
-          bg: 'rgba(239, 68, 68, 0.08)',
-          border: 'rgba(239, 68, 68, 0.3)',
-          label: '🔴 ERREUR'
-        };
+        return { icon: AlertCircle, color: 'var(--red)', bg: 'var(--error-tint)', border: 'var(--error-border)', label: '🔴 ERREUR' };
       case 'warning':
-        return {
-          icon: AlertTriangle,
-          color: '#fbbf24',
-          bg: 'rgba(251, 191, 36, 0.08)',
-          border: 'rgba(251, 191, 36, 0.3)',
-          label: '🟡 AVERTISSEMENT'
-        };
+        return { icon: AlertTriangle, color: 'var(--amber)', bg: 'rgba(251, 191, 36, 0.08)', border: 'rgba(251, 191, 36, 0.3)', label: '🟡 AVERTISSEMENT' };
       case 'info':
-        return {
-          icon: Info,
-          color: '#60A5FA',
-          bg: 'rgba(96, 165, 250, 0.08)',
-          border: 'rgba(96, 165, 250, 0.3)',
-          label: '🔵 INFO'
-        };
+        return { icon: Info, color: 'var(--color-info)', bg: 'rgba(96, 165, 250, 0.06)', border: 'rgba(96, 165, 250, 0.18)', label: '🔵 INFO' };
       default:
-        return {
-          icon: Info,
-          color: '#94a3b8',
-          bg: 'rgba(148, 163, 184, 0.08)',
-          border: 'rgba(148, 163, 184, 0.3)',
-          label: 'INFO'
-        };
+        return { icon: Info, color: 'var(--text-muted)', bg: 'rgba(148, 163, 184, 0.06)', border: 'rgba(148, 163, 184, 0.18)', label: 'INFO' };
     }
   };
 
@@ -139,11 +115,12 @@ const GroupedValidationMessages = ({ errors = [], warnings = [], infos = [] }) =
 
   return (
     <div style={{
-      background: '#0a0f1a',
-      border: '1px solid #1e3a5f',
+      background: 'var(--card-bg)',
+      border: '1px solid var(--border)',
       borderRadius: 12,
       padding: '20px',
-      marginTop: 16
+      marginTop: 16,
+      transition: 'background-color 0.3s ease, border-color 0.3s ease'
     }}>
       {/* Header */}
       <div style={{
@@ -157,7 +134,7 @@ const GroupedValidationMessages = ({ errors = [], warnings = [], infos = [] }) =
         <div style={{
           fontSize: '16px',
           fontWeight: 700,
-          color: '#e2e8f0',
+          color: 'var(--text-primary)',
           display: 'flex',
           alignItems: 'center',
           gap: 8
@@ -166,8 +143,8 @@ const GroupedValidationMessages = ({ errors = [], warnings = [], infos = [] }) =
           <span style={{
             fontSize: '12px',
             fontWeight: 600,
-            color: '#64748b',
-            background: 'rgba(255,255,255,0.05)',
+            color: 'var(--text-muted)',
+            background: 'rgba(0,0,0,0)',
             padding: '2px 8px',
             borderRadius: 12
           }}>
@@ -180,8 +157,8 @@ const GroupedValidationMessages = ({ errors = [], warnings = [], infos = [] }) =
             onClick={toggleExpandAll}
             style={{
               background: 'transparent',
-              border: '1px solid rgba(0,212,160,0.3)',
-              color: '#00d4a0',
+              border: '1px solid var(--green-border)',
+              color: 'var(--primary-green)',
               padding: '6px 12px',
               borderRadius: 6,
               fontSize: '12px',
@@ -190,12 +167,12 @@ const GroupedValidationMessages = ({ errors = [], warnings = [], infos = [] }) =
               transition: 'all 0.2s'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(0,212,160,0.1)';
-              e.currentTarget.style.borderColor = 'rgba(0,212,160,0.5)';
+              e.currentTarget.style.background = 'var(--green-tint)';
+              e.currentTarget.style.borderColor = 'var(--green-border)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.borderColor = 'rgba(0,212,160,0.3)';
+              e.currentTarget.style.borderColor = 'var(--green-border)';
             }}
           >
             {expandAll ? '📕 Tout réduire' : '📖 Tout développer'}
@@ -263,7 +240,7 @@ const GroupedValidationMessages = ({ errors = [], warnings = [], infos = [] }) =
                   <div style={{
                     fontSize: '14px',
                     fontWeight: 600,
-                    color: '#ffffff',
+                    color: 'var(--text-primary)',
                     marginBottom: 2
                   }}>
                     {group.originalMessage}
@@ -271,7 +248,7 @@ const GroupedValidationMessages = ({ errors = [], warnings = [], infos = [] }) =
                   {!group.isGlobal && (
                     <div style={{
                       fontSize: '12px',
-                      color: '#94a3b8'
+                      color: 'var(--text-muted)'
                     }}>
                       {group.count} {group.count === 1 ? 'facture' : 'factures'} concernée{group.count > 1 ? 's' : ''}
                     </div>
@@ -282,7 +259,7 @@ const GroupedValidationMessages = ({ errors = [], warnings = [], infos = [] }) =
                 {!group.isGlobal && (
                   <div style={{
                     background: config.color,
-                    color: '#0a0f1a',
+                    color: 'var(--text-on-accent, #0a0f1a)',
                     fontSize: '13px',
                     fontWeight: 700,
                     padding: '4px 10px',
@@ -299,12 +276,12 @@ const GroupedValidationMessages = ({ errors = [], warnings = [], infos = [] }) =
                 <div style={{
                   borderTop: `1px solid ${config.border}`,
                   padding: '12px 16px',
-                  background: 'rgba(0,0,0,0.2)'
+                  background: 'var(--input-bg)'
                 }}>
                   <div style={{
                     fontSize: '11px',
                     fontWeight: 700,
-                    color: '#64748b',
+                    color: 'var(--text-dim)',
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
                     marginBottom: 8
@@ -322,9 +299,9 @@ const GroupedValidationMessages = ({ errors = [], warnings = [], infos = [] }) =
                         key={i}
                         style={{
                           fontSize: '13px',
-                          color: '#e2e8f0',
+                          color: 'var(--text-primary)',
                           padding: '6px 10px',
-                          background: 'rgba(0,0,0,0.2)',
+                          background: 'var(--card-bg)',
                           borderRadius: 6,
                           borderLeft: `3px solid ${config.color}`,
                           fontFamily: 'var(--mono)'
@@ -378,7 +355,7 @@ const GroupedValidationMessages = ({ errors = [], warnings = [], infos = [] }) =
         )}
         {infos.length > 0 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ color: '#60A5FA', fontWeight: 700 }}>●</span>
+            <span style={{ color: 'var(--color-info)', fontWeight: 700 }}>●</span>
             <span>{infos.length} info{infos.length > 1 ? 's' : ''}</span>
           </div>
         )}

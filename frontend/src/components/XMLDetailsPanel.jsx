@@ -27,23 +27,24 @@ const XMLDetailsPanel = ({ identification, factures, lang = 'FR' }) => {
 
   return (
     <div style={{
-      background: '#0a0f1a',
-      border: '1px solid #1e3a5f',
+      background: 'var(--card-bg)',
+      border: '1px solid var(--border)',
       borderRadius: 12,
       padding: '20px',
       marginTop: 16,
       fontSize: '13px',
       fontFamily: 'var(--mono)',
-      color: '#e2e8f0'
+      color: 'var(--text-primary)',
+      transition: 'background-color 0.3s ease, color 0.3s ease'
     }}>
       {/* Header */}
       <div style={{
         fontSize: '16px',
         fontWeight: 700,
-        color: '#00d4a0',
+        color: 'var(--primary-green)',
         marginBottom: 16,
         paddingBottom: 12,
-        borderBottom: '2px solid #1e3a5f',
+        borderBottom: '2px solid var(--border)',
         display: 'flex',
         alignItems: 'center',
         gap: 8
@@ -53,31 +54,31 @@ const XMLDetailsPanel = ({ identification, factures, lang = 'FR' }) => {
 
       {/* Identification Section */}
       <div style={{
-        background: 'rgba(0,212,160,0.08)',
-        border: '1px solid rgba(0,212,160,0.2)',
+        background: 'var(--gen-restore-bg)',
+        border: '1px solid var(--gen-restore-border)',
         borderRadius: 8,
         padding: '14px',
         marginBottom: 16
       }}>
-        <div style={{ fontSize: '12px', fontWeight: 700, color: '#00d4a0', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--primary-green)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
           🏢 IDENTIFICATION
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
           <div>
-            <span style={{ color: '#64748b' }}>Identifiant Fiscal:</span>
-            <div style={{ color: '#ffffff', fontWeight: 700, marginTop: 2 }}>{identification.identifiantFiscal}</div>
+            <span style={{ color: 'var(--text-muted)' }}>Identifiant Fiscal:</span>
+            <div style={{ color: 'var(--text-primary)', fontWeight: 700, marginTop: 2 }}>{identification.identifiantFiscal}</div>
           </div>
           <div>
-            <span style={{ color: '#64748b' }}>Année:</span>
-            <div style={{ color: '#ffffff', fontWeight: 700, marginTop: 2 }}>{identification.annee}</div>
+            <span style={{ color: 'var(--text-muted)' }}>Année:</span>
+            <div style={{ color: 'var(--text-primary)', fontWeight: 700, marginTop: 2 }}>{identification.annee}</div>
           </div>
           <div>
-            <span style={{ color: '#64748b' }}>Période:</span>
-            <div style={{ color: '#ffffff', fontWeight: 700, marginTop: 2 }}>{identification.periode}</div>
+            <span style={{ color: 'var(--text-muted)' }}>Période:</span>
+            <div style={{ color: 'var(--text-primary)', fontWeight: 700, marginTop: 2 }}>{identification.periode}</div>
           </div>
           <div>
-            <span style={{ color: '#64748b' }}>Régime:</span>
-            <div style={{ color: '#ffffff', fontWeight: 700, marginTop: 2 }}>
+            <span style={{ color: 'var(--text-muted)' }}>Régime:</span>
+            <div style={{ color: 'var(--text-primary)', fontWeight: 700, marginTop: 2 }}>
               {identification.regime === '1' ? 'Mensuel' : identification.regime === '2' ? 'Trimestriel' : identification.regime}
             </div>
           </div>
@@ -86,13 +87,13 @@ const XMLDetailsPanel = ({ identification, factures, lang = 'FR' }) => {
 
       {/* Factures Section */}
       <div style={{
-        background: 'rgba(59,130,246,0.08)',
-        border: '1px solid rgba(59,130,246,0.2)',
+        background: 'rgba(59,130,246,0.06)',
+        border: '1px solid rgba(59,130,246,0.12)',
         borderRadius: 8,
         padding: '14px',
         marginBottom: 16
       }}>
-        <div style={{ fontSize: '12px', fontWeight: 700, color: '#60A5FA', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-info)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
           📄 FACTURES ({factures.length})
         </div>
 
@@ -106,8 +107,8 @@ const XMLDetailsPanel = ({ identification, factures, lang = 'FR' }) => {
 
           return (
             <div key={f.id || idx} style={{
-              background: 'rgba(0,0,0,0.3)',
-              border: '1px solid rgba(255,255,255,0.1)',
+              background: 'var(--card-bg)',
+              border: '1px solid var(--border)',
               borderRadius: 8,
               padding: '12px',
               marginBottom: idx < factures.length - 1 ? 10 : 0
@@ -122,8 +123,8 @@ const XMLDetailsPanel = ({ identification, factures, lang = 'FR' }) => {
                 borderBottom: '1px solid rgba(255,255,255,0.1)'
               }}>
                 <span style={{
-                  background: '#00d4a0',
-                  color: '#0a0f1a',
+                  background: 'var(--primary-green)',
+                  color: 'var(--text-on-accent, #0a0f1a)',
                   padding: '2px 8px',
                   borderRadius: 4,
                   fontSize: '11px',
@@ -131,10 +132,10 @@ const XMLDetailsPanel = ({ identification, factures, lang = 'FR' }) => {
                 }}>
                   #{f.ord || idx + 1}
                 </span>
-                <span style={{ color: '#ffffff', fontWeight: 700, fontSize: '14px' }}>
+                <span style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: '14px' }}>
                   {f.num}
                 </span>
-                <span style={{ color: '#64748b', fontSize: '12px' }}>
+                <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>
                   {f.des}
                 </span>
               </div>
@@ -143,19 +144,19 @@ const XMLDetailsPanel = ({ identification, factures, lang = 'FR' }) => {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 10, fontSize: '12px' }}>
                 {/* Montants */}
                 <div>
-                  <div style={{ color: '#64748b', marginBottom: 4 }}>💰 Montant HT</div>
-                  <div style={{ color: '#60A5FA', fontWeight: 700 }}>{fmt(mht)} MAD</div>
+                  <div style={{ color: 'var(--text-muted)', marginBottom: 4 }}>💰 Montant HT</div>
+                  <div style={{ color: 'var(--color-info)', fontWeight: 700 }}>{fmt(mht)} MAD</div>
                 </div>
 
                 <div>
-                  <div style={{ color: '#64748b', marginBottom: 4 }}>📊 Taux TVA</div>
-                  <div style={{ color: '#fbbf24', fontWeight: 700 }}>{fmt(tx)}%</div>
+                  <div style={{ color: 'var(--text-muted)', marginBottom: 4 }}>📊 Taux TVA</div>
+                  <div style={{ color: 'var(--amber)', fontWeight: 700 }}>{fmt(tx)}%</div>
                 </div>
 
                 {prorata < 100 && (
                   <div>
-                    <div style={{ color: '#64748b', marginBottom: 4 }}>📉 Prorata</div>
-                    <div style={{ color: '#c4b5fd', fontWeight: 700 }}>{prorata}%</div>
+                    <div style={{ color: 'var(--text-muted)', marginBottom: 4 }}>📉 Prorata</div>
+                    <div style={{ color: 'var(--blue)', fontWeight: 700 }}>{prorata}%</div>
                   </div>
                 )}
 
@@ -163,21 +164,21 @@ const XMLDetailsPanel = ({ identification, factures, lang = 'FR' }) => {
                   <div style={{ color: '#64748b', marginBottom: 4 }}>
                     {prorata < 100 ? '💵 TVA Brute' : '💵 TVA'}
                   </div>
-                  <div style={{ color: prorata < 100 ? '#94a3b8' : '#00d4a0', fontWeight: 700 }}>
+                  <div style={{ color: prorata < 100 ? 'var(--text-muted)' : 'var(--primary-green)', fontWeight: 700 }}>
                     {fmt(tvaRaw)} MAD
                   </div>
                 </div>
 
                 {prorata < 100 && (
                   <div>
-                    <div style={{ color: '#64748b', marginBottom: 4 }}>✅ TVA Récupérable</div>
-                    <div style={{ color: '#00d4a0', fontWeight: 700 }}>{fmt(tvaRecup)} MAD</div>
+                    <div style={{ color: 'var(--text-muted)', marginBottom: 4 }}>✅ TVA Récupérable</div>
+                    <div style={{ color: 'var(--primary-green)', fontWeight: 700 }}>{fmt(tvaRecup)} MAD</div>
                   </div>
                 )}
 
                 <div>
-                  <div style={{ color: '#64748b', marginBottom: 4 }}>💳 Total TTC</div>
-                  <div style={{ color: '#34D399', fontWeight: 700, fontSize: '14px' }}>{fmt(ttc)} MAD</div>
+                  <div style={{ color: 'var(--text-muted)', marginBottom: 4 }}>💳 Total TTC</div>
+                  <div style={{ color: 'var(--color-success-bright)', fontWeight: 700, fontSize: '14px' }}>{fmt(ttc)} MAD</div>
                 </div>
 
                 {/* Fournisseur */}
@@ -231,43 +232,43 @@ const XMLDetailsPanel = ({ identification, factures, lang = 'FR' }) => {
 
       {/* Totaux Section */}
       <div style={{
-        background: 'rgba(52,211,153,0.08)',
-        border: '1px solid rgba(52,211,153,0.2)',
+        background: 'var(--gen-totals-bg)',
+        border: '1px solid var(--gen-totals-border)',
         borderRadius: 8,
         padding: '14px'
       }}>
-        <div style={{ fontSize: '12px', fontWeight: 700, color: '#34D399', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-success-bright)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
           📊 TOTAUX GÉNÉRAUX
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
           <div>
-            <div style={{ color: '#64748b', marginBottom: 4 }}>Total HT</div>
-            <div style={{ color: '#60A5FA', fontWeight: 700, fontSize: '16px' }}>{fmt(totalMHT)} MAD</div>
+            <div style={{ color: 'var(--text-muted)', marginBottom: 4 }}>Total HT</div>
+            <div style={{ color: 'var(--color-info)', fontWeight: 700, fontSize: '16px' }}>{fmt(totalMHT)} MAD</div>
           </div>
           
           {hasProrata && (
             <div>
-              <div style={{ color: '#64748b', marginBottom: 4 }}>TVA Brute</div>
-              <div style={{ color: '#94a3b8', fontWeight: 700, fontSize: '16px' }}>{fmt(totalTVABrute)} MAD</div>
+              <div style={{ color: 'var(--text-muted)', marginBottom: 4 }}>TVA Brute</div>
+              <div style={{ color: 'var(--text-muted)', fontWeight: 700, fontSize: '16px' }}>{fmt(totalTVABrute)} MAD</div>
             </div>
           )}
           
           <div>
-            <div style={{ color: '#64748b', marginBottom: 4 }}>
+            <div style={{ color: 'var(--text-muted)', marginBottom: 4 }}>
               {hasProrata ? 'TVA Récupérable' : 'TVA'}
             </div>
-            <div style={{ color: '#00d4a0', fontWeight: 700, fontSize: '16px' }}>{fmt(totalTVARecup)} MAD</div>
+            <div style={{ color: 'var(--primary-green)', fontWeight: 700, fontSize: '16px' }}>{fmt(totalTVARecup)} MAD</div>
           </div>
           
           <div>
-            <div style={{ color: '#64748b', marginBottom: 4 }}>Total TTC</div>
-            <div style={{ color: '#34D399', fontWeight: 700, fontSize: '18px' }}>{fmt(totalTTC)} MAD</div>
+            <div style={{ color: 'var(--text-muted)', marginBottom: 4 }}>Total TTC</div>
+            <div style={{ color: 'var(--color-success-bright)', fontWeight: 700, fontSize: '18px' }}>{fmt(totalTTC)} MAD</div>
           </div>
 
           {hasProrata && (
             <div>
-              <div style={{ color: '#64748b', marginBottom: 4 }}>TVA Non Récupérable</div>
-              <div style={{ color: '#ef4444', fontWeight: 700, fontSize: '16px' }}>
+              <div style={{ color: 'var(--text-muted)', marginBottom: 4 }}>TVA Non Récupérable</div>
+              <div style={{ color: 'var(--red)', fontWeight: 700, fontSize: '16px' }}>
                 {fmt(totalTVABrute - totalTVARecup)} MAD
               </div>
             </div>
@@ -279,11 +280,11 @@ const XMLDetailsPanel = ({ identification, factures, lang = 'FR' }) => {
       <div style={{
         marginTop: 12,
         padding: '10px 12px',
-        background: 'rgba(251,191,36,0.08)',
-        border: '1px solid rgba(251,191,36,0.2)',
+        background: 'rgba(251,191,36,0.06)',
+        border: '1px solid rgba(251,191,36,0.16)',
         borderRadius: 6,
         fontSize: '11px',
-        color: '#fcd34d',
+        color: 'var(--amber)',
         display: 'flex',
         alignItems: 'center',
         gap: 8

@@ -49,13 +49,14 @@ const NewsTicker = () => {
           position: relative;
           width: 100%;
           height: 72px;
-          background: #0d1728;
+          background: var(--home-card2);
           border-top: 1px solid rgba(0,212,160,0.15);
           border-bottom: 1px solid rgba(0,212,160,0.15);
           display: flex;
           align-items: center;
           overflow: hidden;
           flex-shrink: 0;
+          transition: background-color 0.3s ease;
         }
 
         .ticker-badge {
@@ -98,9 +99,10 @@ const NewsTicker = () => {
           top: 0;
           bottom: 0;
           width: 80px;
-          background: linear-gradient(to right, #0d1728, transparent);
+          background: linear-gradient(to right, var(--home-card2), transparent);
           z-index: 2;
           pointer-events: none;
+          transition: background 0.3s ease;
         }
 
         .ticker-fade-right {
@@ -109,9 +111,10 @@ const NewsTicker = () => {
           top: 0;
           bottom: 0;
           width: 80px;
-          background: linear-gradient(to left, #0d1728, transparent);
+          background: linear-gradient(to left, var(--home-card2), transparent);
           z-index: 2;
           pointer-events: none;
+          transition: background 0.3s ease;
         }
 
         .ticker-track-wrapper {
@@ -157,8 +160,9 @@ const NewsTicker = () => {
         .ticker-text {
           font-size: 14px;
           font-weight: 500;
-          color: rgba(255,255,255,0.8);
+          color: var(--home-text-muted);
           letter-spacing: 0.01em;
+          transition: color 0.3s ease;
         }
 
         .ticker-separator {
@@ -174,23 +178,26 @@ const NewsTicker = () => {
           bottom: 0;
           z-index: 10;
           width: 56px;
-          background: linear-gradient(to right, transparent, #0d1728 40%);
+          background: linear-gradient(to right, transparent, var(--home-card2) 40%);
           display: flex;
           align-items: center;
           justify-content: flex-end;
           padding-right: 16px;
           cursor: pointer;
           border: none;
+          transition: background 0.3s ease;
         }
 
         .ticker-close-icon {
           font-size: 20px;
-          color: rgba(255,255,255,0.25);
-          transition: color 0.2s;
+          color: var(--home-text-muted);
+          opacity: 0.4;
+          transition: all 0.3s ease;
         }
 
         .ticker-close:hover .ticker-close-icon {
-          color: rgba(255,255,255,0.9);
+          color: var(--home-text);
+          opacity: 0.9;
         }
 
         @media (max-width: 768px) {

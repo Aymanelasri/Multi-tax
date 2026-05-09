@@ -29,22 +29,22 @@ const rowToFacture = (row, idx) => ({
 const Tab = ({ label, icon: Icon, active, onClick }) => (
   <button onClick={onClick} style={{
     padding: '12px 16px', border: 'none', cursor: 'pointer',
-    background: active ? 'rgba(0, 212, 160, 0.05)' : 'transparent',
-    color: active ? '#00d4a0' : '#94a3b8',
-    borderBottom: active ? '3px solid #2dd4bf' : '3px solid transparent',
+    background: active ? 'var(--green-tint)' : 'transparent',
+    color: active ? 'var(--primary-green)' : 'var(--text-muted)',
+    borderBottom: active ? '3px solid var(--primary-green)' : '3px solid transparent',
     fontSize: '0.9rem', fontWeight: active ? 700 : 500,
     fontFamily: 'inherit', transition: 'all .15s ease', whiteSpace: 'nowrap',
     display: 'flex', alignItems: 'center', gap: 8, position: 'relative', zIndex: 1,
   }}
   onMouseEnter={(e) => {
     if (!active) {
-      e.currentTarget.style.color = '#cbd5e1';
-      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+      e.currentTarget.style.color = 'var(--border-subtle)';
+      e.currentTarget.style.background = 'rgba(0,0,0,0.03)';
     }
   }}
   onMouseLeave={(e) => {
     if (!active) {
-      e.currentTarget.style.color = '#94a3b8';
+      e.currentTarget.style.color = 'var(--text-muted)';
       e.currentTarget.style.background = 'transparent';
     }
   }}
@@ -561,7 +561,7 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
 
   return (
     <div className="card" style={{ marginBottom: 20 }}>
-      <div className="card-title" style={{ fontSize: '1rem', fontWeight: 700, color: '#f0f4f8', marginBottom: 20 }}>📊 {isFR ? 'Import / Export' : 'Import / Export'}</div>
+      <div className="card-title" style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 20 }}>📊 {isFR ? 'Import / Export' : 'Import / Export'}</div>
 
       <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: 18, gap: 0 }}>
         <Tab label={isFR ? 'Importer' : 'Import'} icon={Download} active={tab === 'import'} onClick={() => setTab('import')} />
@@ -578,41 +578,41 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
             onDrop={(e) => { e.preventDefault(); setDragOver(false); processFile(e.dataTransfer.files[0]); }}
             onClick={() => fileRef.current.click()}
             style={{
-              border: `2px dashed ${dragOver ? '#2dd4bf' : 'rgba(45,212,191,0.3)'}`,
+              border: `2px dashed ${dragOver ? 'var(--green-border)' : 'var(--border-subtle)'}`,
               borderRadius: 12, padding: '40px 24px', textAlign: 'center',
               cursor: 'pointer', transition: 'all .2s ease',
-              background: dragOver ? 'rgba(45, 212, 191, 0.08)' : 'rgba(45, 212, 191, 0.02)',
+              background: dragOver ? 'var(--green-tint)' : 'transparent',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-              <FolderOpen size={40} color="#2dd4bf" strokeWidth={1.5} style={{ display: 'block' }} />
+              <FolderOpen size={40} color="var(--primary-green)" strokeWidth={1.5} style={{ display: 'block' }} />
             </div>
-            <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#2dd4bf', marginBottom: 8, letterSpacing: '0.05em' }}>
+            <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--primary-green)', marginBottom: 8, letterSpacing: '0.05em' }}>
               .xlsx · .xls · .csv
             </div>
-            <div style={{ fontSize: '0.85rem', color: '#94a3b8', lineHeight: 1.6 }}>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
               {isFR ? 'Glisser-déposer vos fichiers ou cliquer pour sélectionner' : 'Drag and drop your files or click to select'}
             </div>
           </div>
           <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" style={{ display: 'none' }} onChange={(e) => { processFile(e.target.files[0]); e.target.value = ''; }} />
 
-          <button
+            <button
             onClick={downloadTemplate}
             style={{
               marginTop: 20, padding: '11px 20px', fontSize: '0.85rem',
-              background: 'transparent', border: '1.5px solid rgba(45,212,191,0.4)',
-              color: '#2dd4bf', borderRadius: 8, cursor: 'pointer',
+              background: 'transparent', border: '1.5px solid var(--green-border)',
+              color: 'var(--primary-green)', borderRadius: 8, cursor: 'pointer',
               fontFamily: 'inherit', transition: 'all 0.2s ease', fontWeight: 600,
             }}
             onMouseEnter={e => {
-              e.currentTarget.style.background = 'rgba(45,212,191,0.1)';
-              e.currentTarget.style.borderColor = 'rgba(45,212,191,0.6)';
-              e.currentTarget.style.color = '#ffffff';
+              e.currentTarget.style.background = 'var(--green-tint)';
+              e.currentTarget.style.borderColor = 'var(--green-border)';
+              e.currentTarget.style.color = 'var(--text-primary)';
             }}
             onMouseLeave={e => {
               e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.borderColor = 'rgba(45,212,191,0.4)';
-              e.currentTarget.style.color = '#2dd4bf';
+              e.currentTarget.style.borderColor = 'var(--green-border)';
+              e.currentTarget.style.color = 'var(--primary-green)';
             }}
           >
             ⬇ {isFR ? 'Télécharger le modèle Excel' : 'Download Excel template'}
@@ -623,8 +623,8 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
       {/* ── Export ── */}
       {tab === 'export' && (
         <div>
-          <div style={{ marginBottom: 14 }}>
-            <label style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b', letterSpacing: '0.07em', textTransform: 'uppercase', display: 'block', marginBottom: 5 }}>
+            <div style={{ marginBottom: 14 }}>
+            <label style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.07em', textTransform: 'uppercase', display: 'block', marginBottom: 5 }}>
               {isFR ? 'Nom du fichier' : 'File name'}
             </label>
             <input 
@@ -632,13 +632,13 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
               onChange={(e) => setModuleName(e.target.value)} 
               placeholder={isFR ? 'ex: fournisseurs-2024' : 'e.g. suppliers-2024'}
               style={{
-                background: '#0d1728', border: '1px solid rgba(255,255,255,0.12)',
-                color: '#f0f4f8', borderRadius: 8, height: 44, padding: '0 14px',
+                background: 'var(--input-bg)', border: '1px solid var(--border-subtle)',
+                color: 'var(--text-primary)', borderRadius: 8, height: 44, padding: '0 14px',
                 fontSize: '0.87rem', width: '100%', outline: 'none', fontFamily: 'inherit',
-                transition: 'border-color 0.2s',
+                transition: 'border-color 0.2s, background-color 0.3s ease',
               }}
-              onFocus={e => e.target.style.borderColor = '#2dd4bf'}
-              onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'}
+              onFocus={e => e.target.style.borderColor = 'var(--primary-green)'}
+              onBlur={e => e.target.style.borderColor = 'var(--border-subtle)'}
             />
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -647,8 +647,8 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
               disabled={factures.length === 0} 
               style={{
                 padding: '11px 18px', borderRadius: 8, fontSize: '0.85rem', fontWeight: 600,
-                background: factures.length === 0 ? 'rgba(45,212,191,0.1)' : 'linear-gradient(135deg,#10b981,#34d399)',
-                border: 'none', color: factures.length === 0 ? '#64748b' : '#000',
+                background: factures.length === 0 ? 'rgba(45,212,191,0.06)' : 'linear-gradient(135deg,var(--primary-green),var(--color-success-bright))',
+                border: 'none', color: factures.length === 0 ? 'var(--text-muted)' : '#000',
                 cursor: factures.length === 0 ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
                 transition: 'all 0.2s ease', opacity: factures.length === 0 ? 0.5 : 1,
               }}
@@ -669,17 +669,17 @@ const ImportExportPanel = ({ factures, identification, onLoadModule }) => {
               onClick={() => exportToExcel('identification')}
               style={{
                 padding: '11px 18px', borderRadius: 8, fontSize: '0.85rem', fontWeight: 600,
-                background: 'rgba(45,212,191,0.1)', border: '1px solid rgba(45,212,191,0.3)',
-                color: '#2dd4bf', cursor: 'pointer', fontFamily: 'inherit',
+                background: 'var(--green-tint)', border: '1px solid var(--green-border)',
+                color: 'var(--primary-green)', cursor: 'pointer', fontFamily: 'inherit',
                 transition: 'all 0.2s ease',
               }}
               onMouseEnter={e => {
-                e.currentTarget.style.background = 'rgba(45,212,191,0.2)';
-                e.currentTarget.style.borderColor = 'rgba(45,212,191,0.5)';
+                e.currentTarget.style.background = 'rgba(0,212,160,0.12)';
+                e.currentTarget.style.borderColor = 'var(--green-border)';
               }}
               onMouseLeave={e => {
-                e.currentTarget.style.background = 'rgba(45,212,191,0.1)';
-                e.currentTarget.style.borderColor = 'rgba(45,212,191,0.3)';
+                e.currentTarget.style.background = 'var(--green-tint)';
+                e.currentTarget.style.borderColor = 'var(--green-border)';
               }}
             >
               🏢 {isFR ? "Exporter l'identification" : 'Export identification'}

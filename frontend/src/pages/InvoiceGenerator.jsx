@@ -37,36 +37,36 @@ const TotalsBar = ({ factures, t }) => {
   const hasProrata = factures.some(f => parseFloat(f.prorata || 100) < 100);
   
   return (
-    <div style={{ background: '#0f2744', borderRadius: 10, padding: '14px 20px', marginBottom: 14, display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'center', border: '1px solid #1e3a5f' }}>
-      <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginRight: 4 }}>{t('totals_label')}</span>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-        <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>{t('label_ht')}</span>
-        <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#60A5FA', fontFamily: 'var(--mono)' }}>{fmt(ht)}</span>
+    <div style={{ background: 'var(--gen-totals-bg)', borderRadius: 10, padding: '14px 20px', marginBottom: 14, display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'center', border: '1px solid var(--gen-totals-border)', transition: 'all 0.3s ease' }}>
+      <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.08em', marginRight: 4, transition: 'color 0.3s ease' }}>{t('totals_label')}</span>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+        <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)', fontWeight: 600, transition: 'color 0.3s ease' }}>{t('label_ht')}</span>
+        <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--color-info)', fontFamily: 'var(--mono)' }}>{fmt(ht)}</span>
       </div>
       {hasProrata && (
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-          <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>TVA brute</span>
-          <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#94a3b8', fontFamily: 'var(--mono)' }}>{fmt(tvaBrute)}</span>
+          <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)', fontWeight: 600, transition: 'color 0.3s ease' }}>TVA brute</span>
+          <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-muted)', fontFamily: 'var(--mono)', transition: 'color 0.3s ease' }}>{fmt(tvaBrute)}</span>
         </div>
       )}
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-        <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>{hasProrata ? 'TVA récup' : t('label_tva_short')}</span>
-        <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#00d4a0', fontFamily: 'var(--mono)' }}>{fmt(tvaRecuperable)}</span>
+        <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)', fontWeight: 600, transition: 'color 0.3s ease' }}>{hasProrata ? 'TVA récup' : t('label_tva_short')}</span>
+        <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--primary-green)', fontFamily: 'var(--mono)' }}>{fmt(tvaRecuperable)}</span>
       </div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-        <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>{t('label_ttc_short')}</span>
-        <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#34D399', fontFamily: 'var(--mono)' }}>{fmt(ttc)}</span>
+        <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)', fontWeight: 600, transition: 'color 0.3s ease' }}>{t('label_ttc_short')}</span>
+        <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--color-success-bright)', fontFamily: 'var(--mono)' }}>{fmt(ttc)}</span>
       </div>
     </div>
   );
 };
 
 const RestoreBanner = ({ onRestore, onDismiss, t }) => (
-  <div style={{ background: '#0f2744', border: '1px solid #1e3a5f', borderRadius: 10, padding: '12px 18px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
-    <span style={{ fontSize: '0.83rem', color: '#e2e8f0' }}><span style={{ color: '#00d4a0' }}>💾</span> {t('draft_saved')} — {t('draft_restore_ask')}</span>
+  <div style={{ background: 'var(--gen-restore-bg)', border: '1px solid var(--gen-restore-border)', borderRadius: 10, padding: '12px 18px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, transition: 'all 0.3s ease' }}>
+    <span style={{ fontSize: '0.83rem', color: 'var(--text-primary)', transition: 'color 0.3s ease' }}><span style={{ color: 'var(--primary-green)' }}>💾</span> {t('draft_saved')} — {t('draft_restore_ask')}</span>
     <div style={{ display: 'flex', gap: 8 }}>
-      <button onClick={onRestore} style={{ padding: '6px 14px', borderRadius: 6, background: 'var(--blue)', color: '#fff', border: 'none', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer' }}>{t('btn_restore')}</button>
-      <button onClick={onDismiss} style={{ padding: '6px 14px', borderRadius: 6, background: 'transparent', color: '#64748b', border: '1px solid #1F2937', fontSize: '0.78rem', cursor: 'pointer' }}>{t('btn_dismiss')}</button>
+      <button onClick={onRestore} style={{ padding: '6px 14px', borderRadius: 6, background: 'var(--blue)', color: '#fff', border: 'none', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s ease' }}>{t('btn_restore')}</button>
+      <button onClick={onDismiss} style={{ padding: '6px 14px', borderRadius: 6, background: 'transparent', color: 'var(--text-dim)', border: '1px solid var(--border)', fontSize: '0.78rem', cursor: 'pointer', transition: 'all 0.3s ease' }}>{t('btn_dismiss')}</button>
     </div>
   </div>
 );
@@ -78,41 +78,43 @@ const SocietesSelectionModal = ({ isOpen, societes, isLoading, onSelect, onSkip,
     <div style={{
       position: 'fixed',
       inset: 0,
-      background: 'rgba(0, 0, 0, 0.7)',
+      background: 'var(--gen-modal-overlay)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       zIndex: 9999,
       padding: '20px',
-      backdropFilter: 'blur(4px)'
+      backdropFilter: 'blur(4px)',
+      transition: 'background 0.3s ease'
     }}>
       <div style={{
-        background: '#0d1728',
-        border: '1px solid rgba(0, 212, 160, 0.2)',
+        background: 'var(--gen-modal-bg)',
+        border: '1px solid var(--gen-modal-border)',
         borderRadius: 16,
         padding: '32px 28px',
         maxWidth: 500,
         width: '100%',
         maxHeight: '90vh',
-        overflow: 'auto'
+        overflow: 'auto',
+        transition: 'all 0.3s ease'
       }}>
-        <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 12, color: '#e2e8f0' }}>
+        <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 12, color: 'var(--text-primary)', transition: 'color 0.3s ease' }}>
           🏢 {t('gen_societes_modal_title') || 'Utiliser une société enregistrée'}
         </div>
-        <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 24, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 24, lineHeight: 1.5, transition: 'color 0.3s ease' }}>
           {t('gen_societes_modal_subtitle') || 'Sélectionnez une de vos sociétés enregistrées pour pré-remplir le champ IF automatiquement.'}
         </div>
 
         {isLoading ? (
-          <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8' }}>
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)', transition: 'color 0.3s ease' }}>
             <div style={{ fontSize: 24, marginBottom: 12 }}>⏳</div>
             <div>Chargement...</div>
           </div>
         ) : societes.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8' }}>
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)', transition: 'color 0.3s ease' }}>
             <div style={{ fontSize: 20, marginBottom: 12 }}>📭</div>
             <div>{t('gen_societes_empty') || 'Aucune société enregistrée'}</div>
-            <div style={{ fontSize: 12, marginTop: 12, color: '#64748b' }}>
+            <div style={{ fontSize: 12, marginTop: 12, color: 'var(--text-dim)', transition: 'color 0.3s ease' }}>
               {t('gen_societes_empty_help') || 'Vous pouvez en ajouter dans la page "Mes Sociétés"'}
             </div>
           </div>
@@ -129,8 +131,8 @@ const SocietesSelectionModal = ({ isOpen, societes, isLoading, onSelect, onSkip,
                   borderRadius: 10,
                   cursor: 'pointer',
                   textAlign: 'left',
-                  transition: 'all 0.2s ease',
-                  color: '#e2e8f0'
+                  transition: 'all 0.3s ease',
+                  color: 'var(--text-primary)'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = 'rgba(0, 212, 160, 0.15)';
@@ -141,12 +143,12 @@ const SocietesSelectionModal = ({ isOpen, societes, isLoading, onSelect, onSkip,
                   e.currentTarget.style.borderColor = 'rgba(0, 212, 160, 0.3)';
                 }}
               >
-                <div style={{ fontWeight: 700, marginBottom: 4, fontSize: 14, color: '#00d4a0' }}>
+                <div style={{ fontWeight: 700, marginBottom: 4, fontSize: 14, color: 'var(--primary-green)' }}>
                   {s.nom}
                 </div>
-                <div style={{ fontSize: 12, color: '#94a3b8', display: 'flex', gap: 16 }}>
-                  <span>IF: <span style={{ color: '#e2e8f0', fontFamily: 'monospace' }}>{s.if_value || s.if}</span></span>
-                  {(s.ice_value || s.ice) && <span>ICE: <span style={{ color: '#e2e8f0', fontFamily: 'monospace' }}>{s.ice_value || s.ice}</span></span>}
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', gap: 16, transition: 'color 0.3s ease' }}>
+                  <span>IF: <span style={{ color: 'var(--text-primary)', fontFamily: 'monospace', transition: 'color 0.3s ease' }}>{s.if_value || s.if}</span></span>
+                  {(s.ice_value || s.ice) && <span>ICE: <span style={{ color: 'var(--text-primary)', fontFamily: 'monospace', transition: 'color 0.3s ease' }}>{s.ice_value || s.ice}</span></span>}
                 </div>
               </button>
             ))}
@@ -159,13 +161,13 @@ const SocietesSelectionModal = ({ isOpen, societes, isLoading, onSelect, onSkip,
             width: '100%',
             padding: '12px 20px',
             background: 'transparent',
-            border: '1px solid rgba(94, 167, 255, 0.3)',
+            border: '1px solid rgba(59,130,246,0.18)',
             borderRadius: 8,
-            color: '#5ea7ff',
+            color: 'var(--color-info)',
             fontWeight: 700,
             fontSize: 14,
             cursor: 'pointer',
-            transition: 'all 0.2s ease'
+            transition: 'all 0.3s ease'
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = 'rgba(94, 167, 255, 0.1)';
@@ -452,35 +454,60 @@ const InvoiceGenerator = () => {
   }, [handleDownloadZIP, duplicateLastFacture, addFacture]);
 
   const xmlContent = generatedXML || liveXML ||
-    `<span style="color:#4B5563;font-style:italic">${t('xml_placeholder')}</span>`;
+    `<span style="color:var(--text-muted);font-style:italic">${t('xml_placeholder')}</span>`;
 
   return (
-    <div className="container" style={{ position: 'relative' }}>
+    <>
+      {/* Premium background grid - same as HomePage */}
+      <div className="grid-bg" style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        zIndex: 0,
+        transition: 'all 0.3s ease',
+        background: document.documentElement.classList.contains('light')
+          ? 'linear-gradient(135deg, rgba(0,212,160,0.20), transparent 32%), radial-gradient(circle at bottom right, rgba(59,130,246,0.16), transparent 35%), radial-gradient(circle at center, rgba(139,92,246,0.08), transparent 40%), linear-gradient(rgba(0,212,160,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,160,0.06) 1px, transparent 1px)'
+          : 'linear-gradient(135deg, rgba(16,185,129,0.05) 0%, rgba(16,185,129,0.02) 50%, transparent 100%), linear-gradient(90deg, rgba(16,185,129,0.03) 1px, transparent 1px), linear-gradient(rgba(16,185,129,0.03) 1px, transparent 1px)',
+        backgroundSize: document.documentElement.classList.contains('light')
+          ? 'auto, auto, auto, 60px 60px, 60px 60px'
+          : '100% 100%, 80px 80px, 80px 80px',
+        backgroundPosition: document.documentElement.classList.contains('light')
+          ? 'top left, bottom right, center, center, center'
+          : 'center'
+      }} />
+      
+      <div className="page-root" style={{ background: 'transparent', minHeight: '100vh', position: 'relative', zIndex: 1, transition: 'background-color 0.3s ease, color 0.3s ease' }}>
+        <div className="container" style={{ position: 'relative' }}>
       <Navigation />
 
       <div style={{ paddingTop: '80px', paddingBottom: '28px' }}>
         <h1 style={{
           fontSize: 'clamp(24px, 3vw, 36px)',
           fontWeight: 800,
-          color: '#ffffff',
+          color: 'var(--text-primary)',
           marginBottom: '10px',
-          letterSpacing: '-0.5px'
+          letterSpacing: '-0.5px',
+          transition: 'color 0.3s ease'
         }}>
-          {t('gen_page_title')} <span style={{ color: '#00d4a0' }}>SIMPL-TVA</span>
+          {t('gen_page_title')} <span style={{ color: 'var(--primary-green)' }}>SIMPL-TVA</span>
         </h1>
         <p style={{
           fontSize: '14px',
-          color: '#94a3b8',
+          color: 'var(--text-muted)',
           lineHeight: '1.6',
           marginBottom: 0,
-          maxWidth: '600px'
+          maxWidth: '600px',
+          transition: 'color 0.3s ease'
         }}>
           {t('gen_page_subtitle')}
         </p>
       </div>
 
       {autosaveBadge && (
-        <div style={{ position: 'fixed', bottom: 70, right: 24, background: '#0f2744', border: '1px solid #1e3a5f', borderRadius: 8, padding: '6px 12px', fontSize: '0.75rem', color: '#34D399', zIndex: 9998, animation: 'fadeIn .2s ease' }}>
+        <div style={{ position: 'fixed', bottom: 70, right: 24, background: 'var(--gen-restore-bg)', border: '1px solid var(--gen-restore-border)', borderRadius: 8, padding: '6px 12px', fontSize: '0.75rem', color: 'var(--primary-green)', zIndex: 9998, animation: 'fadeIn .2s ease', transition: 'all 0.3s ease' }}>
           {t('autosave_badge')}
         </div>
       )}
@@ -545,7 +572,7 @@ const InvoiceGenerator = () => {
                 <Button variant="secondary" onClick={handleDownloadXML}>{t('btn_download_xml')}</Button>
                 <Button variant="accent3" onClick={handleCopyXML}>{t('btn_copy_xml')}</Button>
               </div>
-              <p style={{ fontSize: '11px', color: '#64748b', marginTop: 8 }}>
+                <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: 8, transition: 'color 0.3s ease' }}>
                 {t('shortcut_hint')}
               </p>
             </div>
@@ -561,7 +588,9 @@ const InvoiceGenerator = () => {
       )}
 
       <Toast message={toastMsg} isVisible={showToast} />
+      </div>
     </div>
+    </>
   );
 };
 

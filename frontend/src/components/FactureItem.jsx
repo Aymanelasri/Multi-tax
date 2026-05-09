@@ -11,23 +11,23 @@ const getSocietesKey = (userId) => userId ? `edi_societes_user_${userId}` : 'edi
 const loadSocietes = (userId) => { try { return JSON.parse(localStorage.getItem(getSocietesKey(userId)) || '[]'); } catch { return []; } };
 const saveSocietes = (d, userId) => localStorage.setItem(getSocietesKey(userId), JSON.stringify(d));
 
-const ActionBtn = ({ onClick, title, color = '#94a3b8', children }) => (
+const ActionBtn = ({ onClick, title, color = 'var(--text-muted)', children }) => (
   <button
     onClick={onClick}
     title={title}
     style={{
       width: 32, height: 32, borderRadius: 6, border: 'none',
-      background: 'rgba(255,255,255,0.06)', color,
+      background: 'transparent', color,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       cursor: 'pointer', flexShrink: 0, transition: 'all 0.2s ease',
       padding: 0,
     }}
     onMouseEnter={e => {
-      e.currentTarget.style.background = 'rgba(255,255,255,0.12)';
+      e.currentTarget.style.background = 'var(--green-tint)';
       e.currentTarget.style.transform = 'scale(1.05)';
     }}
     onMouseLeave={e => {
-      e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
+      e.currentTarget.style.background = 'transparent';
       e.currentTarget.style.transform = 'scale(1)';
     }}
   >
@@ -130,11 +130,11 @@ const FactureItem = ({ id, data, onChange, onRemove, onDuplicate, allFactures })
   const tvaDeadlineError = getTvaDeadlineError();
 
   const sectionLabel = {
-    fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-3)',
+    fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-dim)',
     letterSpacing: '0.09em', textTransform: 'uppercase',
     marginBottom: 12, display: 'flex', alignItems: 'center', gap: 7,
   };
-  const sectionBar = { display: 'inline-block', width: 2, height: 10, background: 'var(--green)', borderRadius: 2 };
+  const sectionBar = { display: 'inline-block', width: 2, height: 10, background: 'var(--primary-green)', borderRadius: 2 };
 
   const getStatus = (inv) => {
     const validation = validateInvoice(inv, 0, { annee: '', periode: '', regime: '1' });
@@ -164,7 +164,7 @@ const FactureItem = ({ id, data, onChange, onRemove, onDuplicate, allFactures })
   };
 
   const status = getStatus(data);
-  const statusColor = status === 'complete' ? '#00d4a0' : (status === 'partial' || status === 'warning') ? '#fbbf24' : '#ef4444';
+  const statusColor = status === 'complete' ? 'var(--primary-green)' : (status === 'partial' || status === 'warning') ? 'var(--amber)' : 'var(--red)';
 
   return (
     <div className="facture-item" style={{ padding: 0, overflow: 'hidden' }}>
@@ -183,7 +183,7 @@ const FactureItem = ({ id, data, onChange, onRemove, onDuplicate, allFactures })
           <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
             {/* Badge */}
             <span style={{
-              background: 'rgba(0,212,160,0.12)', color: '#00d4a0',
+              background: 'var(--green-tint)', color: 'var(--primary-green)',
               fontSize: '11px', fontWeight: 700, padding: '3px 8px',
               borderRadius: 20, flexShrink: 0
             }}>
@@ -194,7 +194,7 @@ const FactureItem = ({ id, data, onChange, onRemove, onDuplicate, allFactures })
             <span style={{
               fontSize: '13px',
               fontWeight: 600,
-              color: data.num ? '#ffffff' : '#475569'
+              color: data.num ? 'var(--text-primary)' : 'var(--text-dim)'
             }}>
               {data.num || (lang === 'FR' ? 'Nouvelle facture' : 'New invoice')}
             </span>
@@ -204,7 +204,7 @@ const FactureItem = ({ id, data, onChange, onRemove, onDuplicate, allFactures })
 
             {/* Supplier name */}
             {data.nom && (
-              <span style={{ fontSize: '13px', color: '#94a3b8' }}>
+              <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                 {data.nom}
               </span>
             )}
@@ -216,9 +216,9 @@ const FactureItem = ({ id, data, onChange, onRemove, onDuplicate, allFactures })
               {/* IF pill */}
               {data.if && (
                 <span style={{
-                  background: 'rgba(59,130,246,0.08)',
-                  border: '1px solid rgba(59,130,246,0.2)',
-                  color: '#93c5fd', fontSize: '10px', fontWeight: 600,
+                  background: 'rgba(59,130,246,0.06)',
+                  border: '1px solid rgba(59,130,246,0.12)',
+                  color: 'var(--blue)', fontSize: '10px', fontWeight: 600,
                   padding: '2px 8px', borderRadius: 12
                 }}>
                   IF: {data.if}
@@ -279,9 +279,9 @@ const FactureItem = ({ id, data, onChange, onRemove, onDuplicate, allFactures })
               {/* Payment mode pill */}
               {data.mp && (
                 <span style={{
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  color: '#94a3b8', fontSize: '10px',
+                  background: 'rgba(0,0,0,0)',
+                  border: '1px solid var(--border-subtle)',
+                  color: 'var(--text-muted)', fontSize: '10px',
                   padding: '2px 8px', borderRadius: 12,
                   display: window.innerWidth <= 640 ? 'none' : 'inline'
                 }}>
@@ -299,7 +299,7 @@ const FactureItem = ({ id, data, onChange, onRemove, onDuplicate, allFactures })
             <div style={{
               fontSize: parseFloat(data.ttc || 0) > 0 ? '14px' : '13px',
               fontWeight: parseFloat(data.ttc || 0) > 0 ? 700 : 400,
-              color: parseFloat(data.ttc || 0) > 0 ? '#ffffff' : '#334155',
+              color: parseFloat(data.ttc || 0) > 0 ? 'var(--text-primary)' : 'var(--text-dim)',
               display: 'flex', alignItems: 'center', gap: 4
             }}>
               {parseFloat(data.ttc || 0).toLocaleString('fr-MA', { minimumFractionDigits: 2 })} MAD
@@ -314,7 +314,7 @@ const FactureItem = ({ id, data, onChange, onRemove, onDuplicate, allFactures })
               const tvaRecup = prorata < 100 ? (tvaRaw * prorata / 100).toFixed(2) : tvaRaw.toFixed(2);
               const label = prorata < 100 ? 'TVA récup' : 'TVA';
               return (
-                <div style={{ fontSize: '10px', color: '#475569', marginTop: 2 }}>
+                <div style={{ fontSize: '10px', color: 'var(--text-dim)', marginTop: 2 }}>
                   HT: {mht.toFixed(2)} · {label}: {tvaRecup}
                 </div>
               );
@@ -435,25 +435,25 @@ const FactureItem = ({ id, data, onChange, onRemove, onDuplicate, allFactures })
               <div style={{ position: 'relative' }}>
                 <button
                   onClick={() => setShowSocPicker(p => !p)}
-                  style={{ padding: '5px 12px', fontSize: '0.72rem', background: 'transparent', border: '1px solid rgba(0,212,160,0.3)', color: '#00d4a0', borderRadius: 6, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
+                  style={{ padding: '5px 12px', fontSize: '0.72rem', background: 'transparent', border: '1px solid var(--green-border)', color: 'var(--primary-green)', borderRadius: 6, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
                 >
                   {loadingSocietes ? '⏳' : '🏢'} {t('societes_choose')}
                 </button>
                 {showSocPicker && (
-                  <div style={{ position: 'absolute', right: 0, top: '110%', zIndex: 50, background: '#141d2e', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, minWidth: 240, maxHeight: 220, overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
+                  <div style={{ position: 'absolute', right: 0, top: '110%', zIndex: 50, background: 'var(--gen-modal-bg)', border: '1px solid var(--gen-modal-border)', borderRadius: 10, minWidth: 240, maxHeight: 220, overflowY: 'auto', boxShadow: 'var(--shadow-lg)', transition: 'background-color 0.3s ease, border-color 0.3s ease' }}>
                     {loadingSocietes ? (
-                      <div style={{ padding: '20px 14px', textAlign: 'center', color: '#64748b', fontSize: '0.82rem' }}>Chargement...</div>
+                      <div style={{ padding: '20px 14px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.82rem' }}>Chargement...</div>
                     ) : apiSocietes.length > 0 ? (
                       apiSocietes.map(s => (
                         <button key={s.id} onClick={() => {
                           onChange({ ...data, if: s.if || '', nom: s.nom || '', ice: s.ice || '' });
                           setShowSocPicker(false);
-                        }} style={{ display: 'block', width: '100%', padding: '10px 14px', background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.06)', color: '#f0f4f8', textAlign: 'left', cursor: 'pointer', fontSize: '0.82rem', fontFamily: 'inherit', transition: 'background 0.15s' }}
-                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,212,160,0.08)'}
+                        }} style={{ display: 'block', width: '100%', padding: '10px 14px', background: 'transparent', border: 'none', borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-primary)', textAlign: 'left', cursor: 'pointer', fontSize: '0.82rem', fontFamily: 'inherit', transition: 'background 0.15s' }}
+                          onMouseEnter={e => e.currentTarget.style.background = 'var(--green-tint)'}
                           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                         >
                           <div style={{ fontWeight: 600 }}>{s.nom}</div>
-                          {s.if && <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: 2 }}>IF: {s.if}</div>}
+                          {s.if && <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 2 }}>IF: {s.if}</div>}
                         </button>
                       ))
                     ) : societes.length > 0 ? (
@@ -463,16 +463,16 @@ const FactureItem = ({ id, data, onChange, onRemove, onDuplicate, allFactures })
                           const updated = societes.map(x => x.id === s.id ? { ...x, usageCount: (x.usageCount || 0) + 1, lastUsed: Date.now() } : x);
                           saveSocietes(updated);
                           setShowSocPicker(false);
-                        }} style={{ display: 'block', width: '100%', padding: '10px 14px', background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.06)', color: '#f0f4f8', textAlign: 'left', cursor: 'pointer', fontSize: '0.82rem', fontFamily: 'inherit', transition: 'background 0.15s' }}
-                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,212,160,0.08)'}
+                        }} style={{ display: 'block', width: '100%', padding: '10px 14px', background: 'transparent', border: 'none', borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-primary)', textAlign: 'left', cursor: 'pointer', fontSize: '0.82rem', fontFamily: 'inherit', transition: 'background 0.15s' }}
+                          onMouseEnter={e => e.currentTarget.style.background = 'var(--green-tint)'}
                           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                         >
                           <div style={{ fontWeight: 600 }}>{s.nom}</div>
-                          {s.if && <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: 2 }}>IF: {s.if}</div>}
+                          {s.if && <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 2 }}>IF: {s.if}</div>}
                         </button>
                       ))
                     ) : (
-                      <div style={{ padding: '20px 14px', textAlign: 'center', color: '#64748b', fontSize: '0.82rem' }}>Aucune société</div>
+                      <div style={{ padding: '20px 14px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.82rem' }}>Aucune société</div>
                     )}
                   </div>
                 )}
@@ -559,7 +559,7 @@ const FactureItem = ({ id, data, onChange, onRemove, onDuplicate, allFactures })
                       ℹ Calcul prorata ({prorata}%)
                     </div>
                     <div style={{ color: '#ffffff' }}>
-                      TVA récupérable: <strong style={{ color: '#00d4a0' }}>{tvaRecuperable} MAD</strong>
+                      TVA récupérable: <strong style={{ color: 'var(--primary-green)' }}>{tvaRecuperable} MAD</strong>
                     </div>
                     <div style={{ color: '#94a3b8', marginTop: 2 }}>
                       TVA non récupérable: {tvaPerdue} MAD

@@ -407,6 +407,22 @@ export const translations = {
     historique_stats_total: "Total des fichiers",
     historique_stats_invoices: "Total des factures",
     historique_stats_amount: "Montant total TTC",
+    // Periode validation
+    error_periode_required: "La période est requise",
+    error_periode_integer: "La période doit être un nombre entier positif",
+    error_periode_monthly: "La période doit être entre 1 et 12 pour le régime mensuel",
+    error_periode_quarterly: "La période doit être entre 1 et 4 pour le régime trimestriel",
+    // Contact footer
+    footer_tagline: "Générateur EDI SIMPL-TVA conforme aux standards DGI Maroc.",
+    footer_nav: "Navigation",
+    footer_legal: "Informations légales",
+    footer_mentions: "Mentions légales",
+    footer_privacy: "Confidentialité",
+    footer_terms: "Conditions d'utilisation",
+    footer_copy: "© 2026 EDI-TVA Maroc — Générateur EDI SIMPL-TVA conforme DGI Maroc.",
+    footer_badges: "  Gratuit · Conforme DGI",
+    form_sending: "Envoi en cours...",
+    contact_min_message: "Le message doit contenir au moins 10 caractères",
   },
 
   EN: {
@@ -817,6 +833,22 @@ export const translations = {
     historique_stats_total: "Total files",
     historique_stats_invoices: "Total invoices",
     historique_stats_amount: "Total amount incl. VAT",
+    // Periode validation
+    error_periode_required: "Period is required",
+    error_periode_integer: "Period must be a positive integer",
+    error_periode_monthly: "Period must be between 1 and 12 for monthly regime",
+    error_periode_quarterly: "Period must be between 1 and 4 for quarterly regime",
+    // Contact footer
+    footer_tagline: "EDI SIMPL-TVA generator compliant with DGI Morocco standards.",
+    footer_nav: "Navigation",
+    footer_legal: "Legal information",
+    footer_mentions: "Legal notices",
+    footer_privacy: "Privacy policy",
+    footer_terms: "Terms of use",
+    footer_copy: "© 2026 EDI-TVA Maroc — EDI SIMPL-TVA Generator compliant with DGI Morocco.",
+    footer_badges: "Free · DGI compliant",
+    form_sending: "Sending...",
+    contact_min_message: "Message must be at least 10 characters",
   }
 
   

@@ -151,9 +151,10 @@ export default function DeclarationsPage() {
         <style jsx={true}>{`
           .declarations-layout {
             min-height: 100vh;
-            background: #0a0f1a;
+            background: var(--page-bg);
             padding-top: 56px;
             font-family: 'Sora', system-ui, sans-serif;
+            transition: background-color 0.3s ease;
           }
 
           .declarations-container {
@@ -169,39 +170,47 @@ export default function DeclarationsPage() {
           .page-title {
             font-size: clamp(28px, 4vw, 42px);
             font-weight: 900;
-            color: #ffffff;
+            color: var(--text-primary);
             margin: 0 0 12px 0;
             letter-spacing: -0.5px;
+            transition: color 0.3s ease;
           }
 
           .page-subtitle {
             font-size: 16px;
-            color: #94a3b8;
+            color: var(--text-muted);
             line-height: 1.6;
             margin: 0;
             max-width: 600px;
+            transition: color 0.3s ease;
           }
 
           .declarations-content {
-            background: rgba(20, 29, 46, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
             padding: 40px;
             min-height: 400px;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.3s ease;
+          }
+          
+          :global(:root.light) .declarations-content {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
           }
 
           .loading-state {
             text-align: center;
-            color: #94a3b8;
+            color: var(--text-muted);
+            transition: color 0.3s ease;
           }
 
           .loading-spinner {
             width: 40px;
             height: 40px;
-            border: 3px solid rgba(255, 255, 255, 0.1);
+            border: 3px solid var(--border);
             border-top: 3px solid #00d4a0;
             border-radius: 50%;
             animation: spin 1s linear infinite;
@@ -226,15 +235,17 @@ export default function DeclarationsPage() {
           .empty-title {
             font-size: 24px;
             font-weight: 700;
-            color: #ffffff;
+            color: var(--text-primary);
             margin: 0 0 16px 0;
+            transition: color 0.3s ease;
           }
 
           .empty-message {
             font-size: 16px;
-            color: #94a3b8;
+            color: var(--text-muted);
             line-height: 1.6;
             margin: 0 0 32px 0;
+            transition: color 0.3s ease;
           }
 
           .cta-button {
@@ -246,7 +257,7 @@ export default function DeclarationsPage() {
             font-size: 16px;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
           }
 
           .cta-button:hover {
@@ -262,16 +273,24 @@ export default function DeclarationsPage() {
           }
 
           .declaration-card {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: var(--input-bg);
+            border: 1px solid var(--border-subtle);
             border-radius: 12px;
             padding: 20px;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
+          }
+          
+          :global(:root.light) .declaration-card {
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
           }
 
           .declaration-card:hover {
-            background: rgba(255, 255, 255, 0.04);
-            border-color: rgba(255, 255, 255, 0.12);
+            border-color: rgba(0,212,160,0.25);
+            transform: translateY(-2px);
+          }
+          
+          :global(:root.light) .declaration-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
           }
 
           .card-header {
@@ -279,6 +298,8 @@ export default function DeclarationsPage() {
             justify-content: space-between;
             align-items: center;
             margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
           }
 
           .card-action-badge {
@@ -289,6 +310,7 @@ export default function DeclarationsPage() {
             font-weight: 600;
             background: rgba(0, 212, 160, 0.15);
             color: #00d4a0;
+            transition: all 0.3s ease;
           }
 
           .card-action-badge[data-action="creation"] {
@@ -305,15 +327,24 @@ export default function DeclarationsPage() {
             background: rgba(251, 191, 36, 0.15);
             color: #fbbf24;
           }
+          
+          :global(:root.light) .card-action-badge[data-action="generation"] {
+            color: #d97706;
+          }
 
           .card-action-badge[data-action="export"] {
             background: rgba(139, 92, 246, 0.15);
             color: #a78bfa;
           }
+          
+          :global(:root.light) .card-action-badge[data-action="export"] {
+            color: #8b5cf6;
+          }
 
           .card-date {
             font-size: 12px;
-            color: #64748b;
+            color: var(--text-dim);
+            transition: color 0.3s ease;
           }
 
           .card-body {
@@ -325,29 +356,33 @@ export default function DeclarationsPage() {
           .card-description {
             font-size: 16px;
             font-weight: 600;
-            color: #e2e8f0;
+            color: var(--text-primary);
             margin: 0;
+            transition: color 0.3s ease;
           }
 
           .card-societe {
             font-size: 14px;
-            color: #94a3b8;
+            color: var(--text-muted);
             margin: 0;
+            transition: color 0.3s ease;
           }
 
           .label {
             font-weight: 600;
-            color: #cbd5e1;
+            color: var(--text-primary);
             margin-right: 6px;
+            transition: color 0.3s ease;
           }
 
           .card-data {
             margin-top: 12px;
             padding-top: 12px;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            border-top: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             gap: 6px;
+            transition: border-color 0.3s ease;
           }
 
           .data-item {
@@ -357,13 +392,15 @@ export default function DeclarationsPage() {
           }
 
           .data-key {
-            color: #94a3b8;
+            color: var(--text-muted);
             font-weight: 600;
+            transition: color 0.3s ease;
           }
 
           .data-value {
-            color: #cbd5e1;
+            color: var(--text-primary);
             word-break: break-all;
+            transition: color 0.3s ease;
           }
 
           .error-banner {
