@@ -233,7 +233,6 @@ const InvoiceGenerator = () => {
       identifiantFiscal: ifValue,
     });
     setShowSocietesModal(false);
-    setCurrentStep(2);
     toast(`✓ ${societe.nom || 'Société'} sélectionnée`);
   };
 
