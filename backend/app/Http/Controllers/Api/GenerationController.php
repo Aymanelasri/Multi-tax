@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Generation;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class GenerationController extends Controller
 {
@@ -117,8 +116,8 @@ class GenerationController extends Controller
                 'montant_ttc' => 'required|numeric|min:0',
                 'file_type' => 'required|string|in:XML,ZIP,CSV,XLSX',
                 'file_name' => 'nullable|string',
-                'file_content' => 'nullable|string', // Base64 encoded file content
-                'file' => 'nullable|file|max:10240', // File upload (max 10MB)
+                'file_content' => 'nullable|string',
+                'file' => 'nullable|file|max:10240',
                 'reference' => 'nullable|string',
                 'regime' => 'nullable|string',
                 'annee' => 'nullable|string',
@@ -127,32 +126,21 @@ class GenerationController extends Controller
 
             $fileContent = null;
             $fileName = $validated['file_name'] ?? 'file_' . time();
-            
-            // Handle file upload (FormData)
+
             if ($request->hasFile('file')) {
                 $uploadedFile = $request->file('file');
-                $fileContent = file_get_contents($uploadedFile->getRealPath());
+                $fileContent = base64_encode(file_get_contents($uploadedFile->getRealPath()));
                 $fileName = $uploadedFile->getClientOriginalName();
-            }
-            // Handle base64 content (legacy)
-            elseif (!empty($validated['file_content'])) {
-                $fileContent = base64_decode($validated['file_content']);
-            }
-            else {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Either file or file_content is required'
-                ], 422);
+            } elseif (!empty($validated['file_content'])) {
+                $fileContent = $validated['file_content'];
+            } else {
+                return response()->json(['status' => 'error', 'message' => 'Either file or file_content is required'], 422);
             }
 
-            $filePath = 'generations/' . auth()->id() . '/' . $fileName;
-            
-            // Store file
-            Storage::disk('local')->put($filePath, $fileContent);
-            $fileSize = strlen($fileContent);
+            $fileSize = strlen(base64_decode($fileContent));
 
             $generation = Generation::create([
-                'user_id' => auth()->id() ?? null,
+                'user_id' => auth()->id(),
                 'reference' => $validated['reference'] ?? Generation::generateReference(),
                 'date' => now(),
                 'factures' => $validated['factures'],
@@ -160,8 +148,9 @@ class GenerationController extends Controller
                 'statut' => 'success',
                 'file_type' => $validated['file_type'],
                 'file_name' => $fileName,
-                'file_path' => $filePath,
+                'file_path' => null,
                 'file_size' => $fileSize,
+                'file_content' => $fileContent,
                 'regime' => $validated['regime'] ?? null,
                 'annee' => $validated['annee'] ?? null,
                 'periode' => $validated['periode'] ?? null,
@@ -170,18 +159,10 @@ class GenerationController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Generation saved successfully',
-                'data' => [
-                    'reference' => $generation->reference,
-                    'id' => $generation->id,
-                ]
+                'data' => ['reference' => $generation->reference, 'id' => $generation->id]
             ], 201);
         } catch (\Exception $e) {
-            // Don't block the download if saving fails
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to save generation',
-                'error' => $e->getMessage()
-            ], 500);
+            return response()->json(['status' => 'error', 'message' => 'Failed to save generation', 'error' => $e->getMessage()], 500);
         }
     }
 
@@ -197,26 +178,16 @@ class GenerationController extends Controller
         try {
             $generation = Generation::findOrFail($id);
 
-            // Security check: Ensure the file belongs to the authenticated user
             if ($generation->user_id !== auth()->id()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Forbidden: You do not have permission to download this file'
-                ], 403);
+                return response()->json(['status' => 'error', 'message' => 'Forbidden'], 403);
             }
 
-            // Check if file exists
-            if (!$generation->file_path || !Storage::disk('local')->exists($generation->file_path)) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'File not found on server'
-                ], 404);
+            if (!$generation->file_content) {
+                return response()->json(['status' => 'error', 'message' => 'File not found'], 404);
             }
 
-            // Get file content
-            $fileContent = Storage::disk('local')->get($generation->file_path);
+            $fileContent = base64_decode($generation->file_content);
 
-            // Determine MIME type
             $mimeType = match($generation->file_type) {
                 'XML' => 'application/xml',
                 'ZIP' => 'application/zip',
@@ -225,23 +196,15 @@ class GenerationController extends Controller
                 default => 'application/octet-stream',
             };
 
-            // Return file as download
             return response($fileContent, 200)
                 ->header('Content-Type', $mimeType)
                 ->header('Content-Disposition', 'attachment; filename="' . $generation->file_name . '"')
                 ->header('Content-Length', strlen($fileContent));
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Generation not found'
-            ], 404);
+            return response()->json(['status' => 'error', 'message' => 'Generation not found'], 404);
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to download file',
-                'error' => $e->getMessage()
-            ], 500);
+            return response()->json(['status' => 'error', 'message' => 'Failed to download file', 'error' => $e->getMessage()], 500);
         }
     }
 }

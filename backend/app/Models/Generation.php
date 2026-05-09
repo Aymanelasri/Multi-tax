@@ -20,6 +20,10 @@ class Generation extends Model
         'file_name',
         'file_path',
         'file_size',
+        'file_content',
+        'regime',
+        'annee',
+        'periode',
     ];
 
     protected $casts = [
