@@ -702,6 +702,20 @@ class AdminController extends Controller
         $total = count($groupedData);
         $currentPage = $request->input('page', 1);
         $offset = ($currentPage - 1) * $perPage;
+
+        // If per_page is very large (export mode), return all data
+        if ($perPage >= 9999) {
+            return response()->json([
+                'data' => $groupedData,
+                'current_page' => 1,
+                'last_page' => 1,
+                'per_page' => $total,
+                'total' => $total,
+                'from' => 1,
+                'to' => $total,
+            ]);
+        }
+
         $paginatedData = array_slice($groupedData, $offset, $perPage);
 
         return response()->json([
@@ -723,16 +737,16 @@ class AdminController extends Controller
         $year = $request->input('year', date('Y'));
 
         // Get monthly factures count from generations table
-        $monthlyFactures = Generation::selectRaw('MONTH(created_at) as month, SUM(factures) as factures')
+        $monthlyFactures = Generation::selectRaw('EXTRACT(MONTH FROM created_at) as month, SUM(factures) as factures')
             ->whereYear('created_at', $year)
-            ->groupBy('month')
+            ->groupBy(DB::raw('EXTRACT(MONTH FROM created_at)'))
             ->get()
             ->keyBy('month');
 
         // Get monthly generations count from generations table
-        $monthlyGenerations = Generation::selectRaw('MONTH(created_at) as month, COUNT(*) as declarations')
+        $monthlyGenerations = Generation::selectRaw('EXTRACT(MONTH FROM created_at) as month, COUNT(*) as declarations')
             ->whereYear('created_at', $year)
-            ->groupBy('month')
+            ->groupBy(DB::raw('EXTRACT(MONTH FROM created_at)'))
             ->get()
             ->keyBy('month');
 
@@ -754,11 +768,11 @@ class AdminController extends Controller
      */
     public function availableYears(Request $request)
     {
-        $generationYears = Generation::selectRaw('DISTINCT YEAR(created_at) as year')
+        $generationYears = Generation::selectRaw('DISTINCT EXTRACT(YEAR FROM created_at) as year')
             ->orderBy('year', 'desc')
             ->pluck('year');
 
-        $declarationYears = Declaration::selectRaw('DISTINCT YEAR(created_at) as year')
+        $declarationYears = Declaration::selectRaw('DISTINCT EXTRACT(YEAR FROM created_at) as year')
             ->orderBy('year', 'desc')
             ->pluck('year');
 

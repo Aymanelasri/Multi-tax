@@ -5,7 +5,7 @@ const ThemeContext = createContext();
 const getThemeKey = (userId) => userId ? `theme_${userId}` : null;
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState('dark');
+  const [theme, setTheme] = useState('light');
   const [userId, setUserId] = useState(null);
 
   // Apply theme to DOM
@@ -25,13 +25,13 @@ export const ThemeProvider = ({ children }) => {
     setUserId(uid);
     const key = getThemeKey(uid);
     const saved = key ? localStorage.getItem(key) : null;
-    setTheme(saved === 'light' ? 'light' : 'dark');
+    setTheme(saved === 'dark' ? 'dark' : 'light');
   };
 
   // Called by AuthContext on logout — reset to dark without touching user prefs
   const resetTheme = () => {
     setUserId(null);
-    setTheme('dark');
+    setTheme('light');
   };
 
   const toggleTheme = () => {

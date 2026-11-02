@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import * as XLSX from 'xlsx-js-style'
 import { useAdminLanguage } from '../../context/AdminLanguageContext'
 import { getToken } from '../../services/auth'
 import api from '../../lib/api'
@@ -199,9 +200,7 @@ export default function AdminDashboard() {
   const [editLoading, setEditLoading] = useState(false)
   const [usersWithSocietes, setUsersWithSocietes] = useState([])
   const [societesLoading, setSocietesLoading] = useState(false)
-  const [societesSearchTerm, setSocietesSearchTerm] = useState('')
   const [societesSortBy, setSocietesSortBy] = useState('most')
-  const [expandedManagerId, setExpandedManagerId] = useState(null)
   const [selectedUserSocietes, setSelectedUserSocietes] = useState(null)
   const [showSocietesModal, setShowSocietesModal] = useState(false)
   const [showAddUserForm, setShowAddUserForm] = useState(false)
@@ -209,7 +208,6 @@ export default function AdminDashboard() {
   const [addUserLoading, setAddUserLoading] = useState(false)
   const [showUserProfileModal, setShowUserProfileModal] = useState(false)
   const [selectedUserProfile, setSelectedUserProfile] = useState(null)
-  const [societesSubTab, setSocietesSubTab] = useState('with-companies')
   const [societesUserSearch, setSocietesUserSearch] = useState('')
   const [facturesData, setFacturesData] = useState([])
   const [facturesLoading, setFacturesLoading] = useState(false)
@@ -217,10 +215,8 @@ export default function AdminDashboard() {
   const [facturesFilterYear, setFacturesFilterYear] = useState('all')
   const [facturesFilterMonth, setFacturesFilterMonth] = useState('all')
   const [facturesFilterRegime, setFacturesFilterRegime] = useState('all')
-  const [facturesSortBy, setFacturesSortBy] = useState('date')
   const [facturesCurrentPage, setFacturesCurrentPage] = useState(1)
   const [facturesLastPage, setFacturesLastPage] = useState(1)
-  const [facturesTotalCount, setFacturesTotalCount] = useState(0)
   const [expandedUserId, setExpandedUserId] = useState(null)
   const pageSize = 10
 
@@ -242,8 +238,8 @@ export default function AdminDashboard() {
 
   // Load theme from localStorage
   useEffect(() => {
-    const savedTheme = localStorage.getItem('adminTheme') || 'light'
-    setTheme(savedTheme)
+    const savedTheme = localStorage.getItem('adminTheme')
+    if (savedTheme) setTheme(savedTheme)
   }, [])
 
   // Save theme to localStorage
@@ -449,7 +445,7 @@ export default function AdminDashboard() {
     }
 
     if (activeTab === 'societes') fetchSocietes()
-  }, [activeTab, isAuthenticated, language])
+  }, [activeTab, isAuthenticated, language, t])
 
   // Fetch Factures with pagination
   useEffect(() => {
@@ -469,7 +465,6 @@ export default function AdminDashboard() {
         const response = await api.get(`/admin/factures?${params}`)
         setFacturesData(response.data.data || [])
         setFacturesLastPage(response.data.last_page || 1)
-        setFacturesTotalCount(response.data.total || 0)
       } catch (error) {
         showToast('Erreur lors du chargement des factures', 'error')
       } finally {
@@ -591,17 +586,6 @@ export default function AdminDashboard() {
 
   const totalPages = Math.ceil(filteredUsers.length / pageSize)
   const paginatedUsers = filteredUsers.slice((currentPage - 1) * pageSize, currentPage * pageSize)
-
-  const getActivityColor = (type) => {
-    const colors = {
-      new_user: currentTheme.accentGreen,
-      pending: currentTheme.accentAmber,
-      declaration: currentTheme.accentBlue,
-      rejected: '#ef4444',
-      approved: currentTheme.accentGreen
-    }
-    return colors[type] || currentTheme.textMuted
-  }
 
   // Render content based on active tab
   const renderContent = () => {
@@ -876,13 +860,13 @@ export default function AdminDashboard() {
               </div>
             ) : (
               <div>
-                <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 20, overflow: 'hidden', backdropFilter: 'blur(12px)' }}>
+                <div style={{ background: theme === 'light' ? '#ffffff' : 'rgba(255, 255, 255, 0.03)', border: `1px solid ${currentTheme.border}`, borderRadius: 20, overflow: 'hidden', backdropFilter: 'blur(12px)' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
-                      <tr style={{ background: `linear-gradient(90deg, rgba(0,212,160,0.06), rgba(0,153,255,0.06))`, borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                        <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8' }}>{t('user_label')}</th>
-                        {!isMobile && <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8' }}>{t('email_label')}</th>}
-                        <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8' }}>{t('status_label')}</th>
+                      <tr style={{ background: theme === 'light' ? 'rgba(0,212,160,0.06)' : `linear-gradient(90deg, rgba(0,212,160,0.06), rgba(0,153,255,0.06))`, borderBottom: `1px solid ${currentTheme.border}` }}>
+                        <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('user_label')}</th>
+                        {!isMobile && <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('email_label')}</th>}
+                        <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('status_label')}</th>
                         {!isMobile && <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('registered_label')}</th>}
                         <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('actions_label')}</th>
                       </tr>
@@ -1224,7 +1208,7 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                     {expandedMessage === msg.id && (
-                      <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(0,212,160,0.3)', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: 16, backdropFilter: 'blur(12px)' }}>
+                      <div style={{ background: theme === 'light' ? '#f8fafc' : 'rgba(255, 255, 255, 0.03)', border: `1px solid ${currentTheme.border}`, borderTop: 'none', borderRadius: '0 0 12px 12px', padding: 16 }}>
                         <div style={{ marginBottom: 16, color: currentTheme.textPrimary, fontSize: 13, lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{msg.message}</div>
                         {msg.status === 'unread' && (
                           <button onClick={() => handleMarkMessageAsRead(msg.id)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #00d4a0, #00b884)', color: currentTheme.bgMain, fontWeight: 600, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>{t('mark_as_read')}</button>
@@ -1350,12 +1334,12 @@ export default function AdminDashboard() {
                 <div style={{ fontSize: 18, fontWeight: 800, color: currentTheme.textPrimary, marginBottom: 6 }}>{t('no_users_found')}</div>
               </div>
             ) : (
-              <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 20, overflow: 'hidden', backdropFilter: 'blur(12px)' }}>
+              <div style={{ background: theme === 'light' ? '#ffffff' : 'rgba(255, 255, 255, 0.03)', border: `1px solid ${currentTheme.border}`, borderRadius: 20, overflow: 'hidden', backdropFilter: 'blur(12px)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
-                    <tr style={{ background: `linear-gradient(90deg, rgba(0,212,160,0.06), rgba(0,153,255,0.06))`, borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                      <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8' }}>{t('user_label')}</th>
-                      <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8' }}>{t('companies_label')}</th>
+                    <tr style={{ background: theme === 'light' ? 'rgba(0,212,160,0.06)' : `linear-gradient(90deg, rgba(0,212,160,0.06), rgba(0,153,255,0.06))`, borderBottom: `1px solid ${currentTheme.border}` }}>
+                      <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('user_label')}</th>
+                      <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('companies_label')}</th>
                       <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{language === 'FR' ? 'Créé' : 'Created'}</th>
                       <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('actions_label')}</th>
                     </tr>
@@ -1532,15 +1516,15 @@ export default function AdminDashboard() {
               </div>
             ) : (
               <div>
-                <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 20, overflow: isMobile ? 'auto' : 'hidden', backdropFilter: 'blur(12px)' }}>
+                <div style={{ background: theme === 'light' ? '#ffffff' : 'rgba(255, 255, 255, 0.03)', border: `1px solid ${currentTheme.border}`, borderRadius: 20, overflow: isMobile ? 'auto' : 'hidden', backdropFilter: 'blur(12px)' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: isMobile ? '800px' : 'auto' }}>
                     <thead>
-                      <tr style={{ background: `linear-gradient(90deg, rgba(0,212,160,0.06), rgba(0,153,255,0.06))`, borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                        <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8', width: 40 }}></th>
-                        <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8' }}>{t('user')}</th>
-                        <th style={{ padding: '12px 14px', textAlign: 'center', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8' }}>{t('declarations')}</th>
-                        <th style={{ padding: '12px 14px', textAlign: 'center', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8' }}>{t('nb_invoices')}</th>
-                        <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8' }}>{t('last_date')}</th>
+                      <tr style={{ background: theme === 'light' ? 'rgba(0,212,160,0.06)' : `linear-gradient(90deg, rgba(0,212,160,0.06), rgba(0,153,255,0.06))`, borderBottom: `1px solid ${currentTheme.border}` }}>
+                        <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: currentTheme.textMuted, width: 40 }}></th>
+                        <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('user')}</th>
+                        <th style={{ padding: '12px 14px', textAlign: 'center', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('declarations')}</th>
+                        <th style={{ padding: '12px 14px', textAlign: 'center', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('nb_invoices')}</th>
+                        <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: currentTheme.textMuted }}>{t('last_date')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1557,7 +1541,7 @@ export default function AdminDashboard() {
                             }}
                             onMouseEnter={(e) => {
                               if (expandedUserId !== user.user_id) {
-                                e.currentTarget.style.background = 'rgba(255,255,255,0.02)'
+                                e.currentTarget.style.background = theme === 'light' ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)'
                               }
                             }}
                             onMouseLeave={(e) => {
@@ -1678,27 +1662,88 @@ export default function AdminDashboard() {
                 {/* Export Button */}
                 <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
                   <button
-                    onClick={() => {
-                      const csv = [
-                        ['Utilisateur', 'Email', 'N° Déclaration', 'Régime', 'Nb Factures', 'Date'],
-                        ...facturesData.flatMap(user => 
-                          user.declarations.map(d => [
-                            user.user_name,
-                            user.user_email,
-                            d.numero_declaration,
-                            d.regime,
-                            d.nb_factures,
-                            new Date(d.created_at).toLocaleDateString('fr-FR')
-                          ])
-                        )
-                      ].map(row => row.join(',')).join('\n')
-                      
-                      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-                      const link = document.createElement('a')
-                      link.href = URL.createObjectURL(blob)
-                      link.download = `factures_${new Date().toISOString().split('T')[0]}.csv`
-                      link.click()
-                      showToast('Export réussi', 'success')
+                                                            onClick={async () => {
+                      try {
+                        const params = new URLSearchParams({
+                          page: 1,
+                          per_page: 99999,
+                          search: facturesSearchTerm,
+                          year: facturesFilterYear,
+                          month: facturesFilterMonth,
+                          regime: facturesFilterRegime
+                        })
+
+                        const response = await api.get(`/admin/factures?${params}`)
+                        const allData = response.data?.data || []
+
+                        const rows = [
+                          ['Utilisateur', 'Email', 'N° déclaration', 'Régime', 'Période', 'Nb factures', 'Date']
+                        ]
+
+                        allData.forEach((user) => {
+                          const declarations = Array.isArray(user.declarations) ? user.declarations : []
+
+                          declarations.forEach((d) => {
+                            rows.push([
+                              user.user_name || '',
+                              user.user_email || '',
+                              d.numero_declaration || '',
+                              d.regime || '',
+                              d.periode || '',
+                              d.nb_factures ?? '',
+                              d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : ''
+                            ])
+                          })
+                        })
+
+                        const sheet = XLSX.utils.aoa_to_sheet(rows)
+                        const border = {
+                          top: { style: 'thin', color: { rgb: 'E2E8F0' } },
+                          bottom: { style: 'thin', color: { rgb: 'E2E8F0' } },
+                          left: { style: 'thin', color: { rgb: 'E2E8F0' } },
+                          right: { style: 'thin', color: { rgb: 'E2E8F0' } }
+                        }
+
+                        sheet['!cols'] = [24, 28, 20, 16, 18, 14, 18].map((width) => ({ wch: width }))
+                        sheet['!rows'] = Array.from({ length: rows.length }, (_, index) => ({ hpx: index === 0 ? 26 : 22 }))
+
+                        const columnCount = rows[0]?.length || 0
+                        for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
+                          for (let colIndex = 0; colIndex < columnCount; colIndex += 1) {
+                            const cellRef = XLSX.utils.encode_cell({ r: rowIndex, c: colIndex })
+                            const cell = sheet[cellRef]
+
+                            if (!cell) continue
+
+                            const isHeader = rowIndex === 0
+                            cell.s = {
+                              fill: {
+                                fgColor: { rgb: isHeader ? '1E293B' : rowIndex % 2 === 0 ? 'FFFFFF' : 'F8FAFC' }
+                              },
+                              font: {
+                                bold: isHeader,
+                                color: { rgb: isHeader ? 'FFFFFF' : '1F2937' },
+                                sz: isHeader ? 11 : 10
+                              },
+                              alignment: {
+                                horizontal: isHeader ? 'center' : 'left',
+                                vertical: 'center',
+                                wrapText: true
+                              },
+                              border
+                            }
+                          }
+                        }
+
+                        const workbook = XLSX.utils.book_new()
+                        XLSX.utils.book_append_sheet(workbook, sheet, 'Factures')
+                        XLSX.writeFile(workbook, `factures_${new Date().toISOString().split('T')[0]}.xlsx`)
+
+                        showToast('Export réussi', 'success')
+                      } catch (e) {
+                        console.error('Erreur lors de l\'export Excel', e)
+                        showToast('Erreur lors de l\'export', 'error')
+                      }
                     }}
                     style={{
                       padding: '12px 24px',
@@ -1907,8 +1952,7 @@ export default function AdminDashboard() {
                         fontSize: 14,
                         fontWeight: 600,
                         fontFamily: 'inherit',
-                        transition: 'all 0.2s ease',
-                        padding: '12px 16px'
+                        transition: 'all 0.2s ease'
                       }}
                       onMouseEnter={(e) => {
                         e.target.style.transform = 'translateY(-2px)'

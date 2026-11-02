@@ -172,7 +172,7 @@ export default function VerifyEmailPage() {
         </div>
       </div>
 
-      <style jsx={true}>{styles}</style>
+      <style>{styles}</style>
     </div>
   )
 }

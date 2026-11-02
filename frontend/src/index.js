@@ -6,8 +6,6 @@ import { LanguageProvider } from './context/LanguageContext';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import './styles/globals.css';
-import './styles/layout.css';
-import './styles/components.css';
 import './styles/App.css';
 import './styles/mobile-invoice.css';
 

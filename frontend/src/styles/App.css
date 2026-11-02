@@ -1260,5 +1260,3 @@ input.invalid:focus { box-shadow: 0 0 0 3px rgba(239,68,68,0.12) !important; }
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: none; }
 }
-
-
