@@ -5,16 +5,13 @@ return [
     'allowed_methods' => ['*'],
     // Allow all localhost origins during development
     'allowed_origins' => [
-        'https://taxtva20.netlify.app',
-
+        'https://multi-tax-gold.vercel.app',
+        'https://multi-tax-gold.vercel.app/admin',
         'http://localhost:3000',
-        'http://localhost:3001',
         'http://127.0.0.1:3000',
-        'http://127.0.0.1:3001',
-        
     ],
     'allowed_origins_patterns' => [
-        '#^https://.*\\.netlify\\.app$#',  // All Netlify preview deployments
+        '#^https://.*\.vercel\.app$#',
     ],
     'allowed_headers' => ['*'],
     'exposed_headers' => [],
