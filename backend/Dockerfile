@@ -21,6 +21,11 @@ RUN composer install --no-dev --optimize-autoloader
 
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
+RUN apt-get install -y apache2 libapache2-mod-php
+RUN a2enmod rewrite headers
+
+COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf
+
 EXPOSE 8080
 
-CMD sh -c "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"
+CMD sh -c "php artisan migrate --force && apache2-foreground"
