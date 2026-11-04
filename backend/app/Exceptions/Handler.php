@@ -123,7 +123,9 @@ class Handler extends ExceptionHandler
             return response()->json([
                 'status' => 'error',
                 'code' => 500,
-                'message' => 'Server error. Please try again later.'
+                'message' => config('app.debug') ? $e->getMessage() : 'Server error. Please try again later.',
+                'file' => config('app.debug') ? $e->getFile() : null,
+                'line' => config('app.debug') ? $e->getLine() : null,
             ], 500);
         }
 
