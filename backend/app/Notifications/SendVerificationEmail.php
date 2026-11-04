@@ -2,15 +2,12 @@
 
 namespace App\Notifications;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Mail;
 
-class SendVerificationEmail extends Notification implements ShouldQueue
+class SendVerificationEmail extends Notification
 {
-    use Queueable;
 
     public $verification_token;
     public $email;

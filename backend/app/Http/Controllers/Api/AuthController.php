@@ -57,8 +57,15 @@ class AuthController extends Controller
             $tempUser->name = $fullName;
             $tempUser->verification_token = $verificationToken;
 
-            // Send the verification email
-            (new SendVerificationEmail())->send($tempUser);
+            // Send the verification email (non-blocking)
+            try {
+                (new SendVerificationEmail())->send($tempUser);
+            } catch (\Exception $mailException) {
+                Log::error('Verification email failed: ' . $mailException->getMessage(), [
+                    'email' => $validated['email'],
+                ]);
+                // Continue registration even if email fails
+            }
 
             return response()->json([
                 'status' => 'success',
@@ -202,7 +209,11 @@ class AuthController extends Controller
             $tempUser->name = $registrationData['name'];
             $tempUser->verification_token = $verificationToken;
 
-            (new SendVerificationEmail())->send($tempUser);
+            try {
+                (new SendVerificationEmail())->send($tempUser);
+            } catch (\Exception $mailException) {
+                Log::error('Resend email failed: ' . $mailException->getMessage());
+            }
 
             // Refresh the cache expiry
             Cache::put($cacheKey, $registrationData, now()->addDay());
