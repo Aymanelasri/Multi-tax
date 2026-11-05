@@ -59,29 +59,19 @@ class SendVerificationEmail extends Notification
 
         // Send the email using the blade template
         try {
-            $response = \Illuminate\Support\Facades\Http::withHeaders([
-                'Authorization' => 'Bearer ' . config('mail.mailers.smtp.password'),
-                'Content-Type' => 'application/json',
-            ])->post('https://api.resend.com/emails', [
-                'from' => config('mail.from.address'),
-                'to' => [$email],
-                'subject' => 'Verify Your Email Address - ' . config('app.name'),
-                'html' => view('emails.verify-email', [
-                    'name' => $name,
-                    'verificationUrl' => $verificationUrl,
-                    'token' => $token,
-                    'frontendUrl' => config('app.frontend_url'),
-                ])->render(),
-            ]);
-
-            if ($response->successful()) {
-                \Illuminate\Support\Facades\Log::info('✅ Email sent successfully to: ' . $email);
-            } else {
-                \Illuminate\Support\Facades\Log::error('❌ Resend API failed: ' . $response->body());
-            }
+            \Illuminate\Support\Facades\Mail::send('emails.verify-email', [
+                'name' => $name,
+                'verificationUrl' => $verificationUrl,
+                'token' => $token,
+                'frontendUrl' => config('app.frontend_url'),
+            ], function ($message) use ($email, $name) {
+                $message->to($email)
+                    ->subject('Verify Your Email Address - ' . config('app.name'));
+            });
+            \Illuminate\Support\Facades\Log::info('✅ Email sent successfully to: ' . $email);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('❌ Mail failed: ' . $e->getMessage());
-            // Don't throw - registration continues
+            \Illuminate\Support\Facades\Log::error('❌ Mail::send failed: ' . $e->getMessage() . ' | Class: ' . get_class($e));
+            // Don't throw - log only, registration continues
         }
     }
 
