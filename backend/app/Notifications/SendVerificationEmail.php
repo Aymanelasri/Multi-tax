@@ -71,7 +71,7 @@ class SendVerificationEmail extends Notification
             \Illuminate\Support\Facades\Log::info('✅ Email sent successfully to: ' . $email);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('❌ Mail::send failed: ' . $e->getMessage() . ' | Class: ' . get_class($e));
-            throw $e;
+            // Don't throw - log only, registration continues
         }
     }
 
