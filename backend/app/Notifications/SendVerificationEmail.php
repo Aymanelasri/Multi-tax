@@ -58,15 +58,21 @@ class SendVerificationEmail extends Notification
         ]);
 
         // Send the email using the blade template
-        \Illuminate\Support\Facades\Mail::send('emails.verify-email', [
-            'name' => $name,
-            'verificationUrl' => $verificationUrl,
-            'token' => $token,
-            'frontendUrl' => config('app.frontend_url'),
-        ], function ($message) use ($email, $name) {
-            $message->to($email)
-                ->subject('Verify Your Email Address - ' . config('app.name'));
-        });
+        try {
+            \Illuminate\Support\Facades\Mail::send('emails.verify-email', [
+                'name' => $name,
+                'verificationUrl' => $verificationUrl,
+                'token' => $token,
+                'frontendUrl' => config('app.frontend_url'),
+            ], function ($message) use ($email, $name) {
+                $message->to($email)
+                    ->subject('Verify Your Email Address - ' . config('app.name'));
+            });
+            \Illuminate\Support\Facades\Log::info('✅ Email sent successfully to: ' . $email);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('❌ Mail::send failed: ' . $e->getMessage() . ' | Class: ' . get_class($e));
+            throw $e;
+        }
     }
 
     /**
