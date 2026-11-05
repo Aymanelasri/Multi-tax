@@ -73,13 +73,15 @@ export const AuthProvider = ({ children }) => {
         return { success: true, user: userData }
       }
     } catch (error) {
-      if (error.message.includes('email_not_verified')) {
+      const errorMessage = (error?.message || '').toLowerCase()
+
+      if (errorMessage.includes('email not verified') || errorMessage.includes('email_not_verified')) {
         return { success: false, error: 'email_not_verified' }
       }
-      if (error.message.includes('pending_approval')) {
+      if (errorMessage.includes('pending approval') || errorMessage.includes('pending_approval')) {
         return { success: false, error: 'pending_approval' }
       }
-      if (error.message.includes('rejected')) {
+      if (errorMessage.includes('rejected') || errorMessage.includes('rejected')) {
         return { success: false, error: 'rejected' }
       }
       return { success: false, error: 'invalid_credentials' }

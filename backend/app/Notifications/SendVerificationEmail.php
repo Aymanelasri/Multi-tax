@@ -45,8 +45,10 @@ class SendVerificationEmail extends Notification
             return;
         }
 
-        // Build the verification URL - use token-based verification
-        $verificationUrl = config('app.frontend_url') . '/verify-email?token=' . $token;
+        $frontendUrl = config('app.frontend_url') ?? config('app.url') ?? 'http://localhost:3000';
+        $verificationUrl = $frontendUrl . '/verify-email?token=' . $token;
+        $mailgunSecret = config('services.mailgun.secret');
+        $mailgunDomain = config('services.mailgun.domain');
 
         // Log the verification URL for debugging
         \Illuminate\Support\Facades\Log::info('📧 Sending verification email', [
@@ -54,29 +56,38 @@ class SendVerificationEmail extends Notification
             'name' => $name,
             'token' => $token,
             'verificationUrl' => $verificationUrl,
-            'frontend_url' => config('app.frontend_url'),
+            'frontend_url' => $frontendUrl,
         ]);
 
         // Send the email using the blade template
         try {
-            $mg = \Mailgun\Mailgun::create(config('services.mailgun.secret'));
+            if (empty($mailgunSecret) || empty($mailgunDomain)) {
+                \Illuminate\Support\Facades\Log::warning('❌ Mailgun not configured; skipping verification email.', [
+                    'email' => $email,
+                ]);
+                return;
+            }
+
+            $mg = \Mailgun\Mailgun::create($mailgunSecret);
             $mg->messages()->send(
-                config('services.mailgun.domain'),
+                $mailgunDomain,
                 [
-                    'from' => 'SIMPL-TVA <postmaster@' . config('services.mailgun.domain') . '>',
+                    'from' => 'SIMPL-TVA <postmaster@' . $mailgunDomain . '>',
                     'to' => $name . ' <' . $email . '>',
                     'subject' => 'Verify Your Email Address - ' . config('app.name'),
                     'html' => view('emails.verify-email', [
                         'name' => $name,
                         'verificationUrl' => $verificationUrl,
                         'token' => $token,
-                        'frontendUrl' => config('app.frontend_url'),
+                        'frontendUrl' => $frontendUrl,
                     ])->render(),
                 ]
             );
             \Illuminate\Support\Facades\Log::info('✅ Email sent successfully to: ' . $email);
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('❌ Mailgun failed: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('❌ Mailgun failed: ' . $e->getMessage(), [
+                'exception' => $e,
+            ]);
             // Don't throw - registration continues
         }
     }

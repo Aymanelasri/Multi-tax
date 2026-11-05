@@ -20,18 +20,40 @@ class AuthController extends Controller
     {
         try {
             $validated = $request->validate([
-                'firstname' => 'required|string|max:255',
-                'lastname' => 'required|string|max:255',
+                'name' => 'nullable|string|max:255',
+                'firstname' => 'nullable|string|max:255',
+                'lastname' => 'nullable|string|max:255',
                 'email' => 'required|email|unique:users,email',
                 'phone' => 'nullable|string|max:20',
                 'password' => ['required', 'confirmed', Password::min(6)],
             ]);
 
+            $fullName = trim((string) ($validated['name'] ?? ''));
+            if ($fullName === '') {
+                $firstName = trim((string) ($validated['firstname'] ?? ''));
+                $lastName = trim((string) ($validated['lastname'] ?? ''));
+                $fullName = trim($firstName . ' ' . $lastName);
+            }
+
+            if ($fullName === '') {
+                throw ValidationException::withMessages([
+                    'name' => ['The name field is required.'],
+                ]);
+            }
+
             // Generate a unique verification token
             $verificationToken = Str::random(64);
 
-            // Combine first and last name
-            $fullName = trim($validated['firstname'] . ' ' . $validated['lastname']);
+            // Persist a pending user immediately so the account exists before email verification.
+            $user = User::create([
+                'name' => $fullName,
+                'email' => $validated['email'],
+                'phone' => $validated['phone'] ?? null,
+                'password' => Hash::make($validated['password']),
+                'status' => 'pending',
+                'role' => 'user',
+                'email_verified_at' => null,
+            ]);
 
             // Store registration data in cache for 24 hours
             // Cache key format: registration_pending:{token}
@@ -42,7 +64,7 @@ class AuthController extends Controller
                 'name' => $fullName,
                 'email' => $validated['email'],
                 'phone' => $validated['phone'] ?? null,
-                'password' => Hash::make($validated['password']),
+                'password' => $user->password,
                 'verification_token' => $verificationToken,
             ];
 
@@ -60,7 +82,7 @@ class AuthController extends Controller
             // Send the verification email (non-blocking)
             try {
                 (new SendVerificationEmail())->send($tempUser);
-            } catch (\Exception $mailException) {
+            } catch (\Throwable $mailException) {
                 Log::error('Verification email failed: ' . $mailException->getMessage(), [
                     'email' => $validated['email'],
                 ]);
@@ -71,9 +93,12 @@ class AuthController extends Controller
                 'status' => 'success',
                 'code' => 201,
                 'message' => 'Registration successful! Please check your email to verify your account. The link will expire in 24 hours.',
-                'data' => [
-                    'email' => $validated['email'],
-                    'name' => $fullName,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'status' => $user->status,
+                    'role' => $user->role,
                 ],
             ], 201);
         } catch (ValidationException $e) {
@@ -84,7 +109,7 @@ class AuthController extends Controller
                 'message' => 'Validation failed',
                 'errors' => $e->errors(),
             ], 422);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Registration error: ' . $e->getMessage(), [
                 'exception' => $e,
                 'file' => $e->getFile(),
@@ -106,53 +131,83 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $validated = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
+        try {
+            $validated = $request->validate([
+                'email' => 'required|email',
+                'password' => 'required|string',
+            ]);
 
-        $user = User::where('email', $validated['email'])->first();
+            $user = User::where('email', $validated['email'])->first();
 
-        // SECURITY: Check credentials
-        if (!$user || !Hash::check($validated['password'], $user->password)) {
-            return response()->json([
-                'status' => 'error',
-                'code' => 401,
-                'message' => 'Invalid email or password'
-            ], 401);
-        }
+            // SECURITY: Check credentials
+            if (!$user || !Hash::check($validated['password'], $user->password)) {
+                return response()->json([
+                    'status' => 'error',
+                    'code' => 401,
+                    'message' => 'Invalid email or password'
+                ], 401);
+            }
 
-        // SECURITY: Check if user is rejected
-        if ($user->status === 'rejected') {
-            return response()->json([
-                'status' => 'error',
-                'code' => 403,
-                'message' => 'Your account has been rejected. Please contact support.'
-            ], 403);
-        }
-
-        // SECURITY: Check email verification (production only)
-        if (config('app.env') === 'production') {
-            if (!$user->email_verified_at) {
+            // SECURITY: Check if user is pending before allowing login
+            if ($user->status === 'pending') {
                 return response()->json([
                     'status' => 'error',
                     'code' => 403,
-                    'message' => 'Email not verified. Please check your inbox.'
+                    'message' => 'Your account is pending approval. An administrator will review your request.'
                 ], 403);
             }
+
+            // SECURITY: Check if user is rejected
+            if ($user->status === 'rejected') {
+                return response()->json([
+                    'status' => 'error',
+                    'code' => 403,
+                    'message' => 'Your account has been rejected. Please contact support.'
+                ], 403);
+            }
+
+            // SECURITY: Check email verification (production only)
+            if (config('app.env') === 'production') {
+                if (!$user->email_verified_at) {
+                    return response()->json([
+                        'status' => 'error',
+                        'code' => 403,
+                        'message' => 'Email not verified. Please check your inbox.'
+                    ], 403);
+                }
+            }
+
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            return response()->json([
+                'status' => 'success',
+                'code' => 200,
+                'message' => 'Login successful',
+                'token' => $token,
+                'user' => $user,
+            ], 200);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => 'error',
+                'code' => 422,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Throwable $e) {
+            Log::error('Login error: ' . $e->getMessage(), [
+                'exception' => $e,
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'code' => 500,
+                'message' => 'Login failed due to a server error.',
+                'debug' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
         }
-
-        // Allow login for pending and approved users
-        // Frontend will handle access restrictions based on user.status
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'status' => 'success',
-            'code' => 200,
-            'message' => 'Login successful',
-            'token' => $token,
-            'user' => $user,
-        ], 200);
     }
 
     /**
@@ -211,7 +266,7 @@ class AuthController extends Controller
 
             try {
                 (new SendVerificationEmail())->send($tempUser);
-            } catch (\Exception $mailException) {
+            } catch (\Throwable $mailException) {
                 Log::error('Resend email failed: ' . $mailException->getMessage());
             }
 
@@ -224,7 +279,7 @@ class AuthController extends Controller
                 'code' => 200,
                 'message' => 'Verification email resent successfully. Please check your inbox.',
             ], 200);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Resend verification error: ' . $e->getMessage(), [
                 'exception' => $e,
             ]);
@@ -266,27 +321,24 @@ class AuthController extends Controller
                 ], 400);
             }
 
-            // Check if email is already registered (safety check)
-            if (User::where('email', $registrationData['email'])->exists()) {
-                // Clear the cache key
-                Cache::forget($cacheKey);
-                return response()->json([
-                    'status' => 'error',
-                    'code' => 409,
-                    'message' => 'Email already registered. Please log in instead.'
-                ], 409);
-            }
+            // If the user already exists, simply mark the email as verified and continue.
+            $user = User::where('email', $registrationData['email'])->first();
 
-            // Create the user in the database
-            $user = User::create([
-                'name' => $registrationData['name'],
-                'email' => $registrationData['email'],
-                'phone' => $registrationData['phone'],
-                'password' => $registrationData['password'],
-                'status' => 'pending',
-                'role' => 'user',
-                'email_verified_at' => now(),
-            ]);
+            if (!$user) {
+                $user = User::create([
+                    'name' => $registrationData['name'],
+                    'email' => $registrationData['email'],
+                    'phone' => $registrationData['phone'],
+                    'password' => $registrationData['password'],
+                    'status' => 'pending',
+                    'role' => 'user',
+                    'email_verified_at' => now(),
+                ]);
+            } else {
+                if (empty($user->email_verified_at)) {
+                    $user->update(['email_verified_at' => now()]);
+                }
+            }
 
             // Clear the cache key
             Cache::forget($cacheKey);
@@ -308,7 +360,7 @@ class AuthController extends Controller
                     'email_verified_at' => $user->email_verified_at,
                 ],
             ], 200);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Email verification error: ' . $e->getMessage(), [
                 'exception' => $e,
                 'file' => $e->getFile(),
