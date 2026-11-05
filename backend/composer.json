@@ -10,6 +10,7 @@
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
+        "mailgun/mailgun-php": "^4.5",
         "resend/resend-laravel": "^1.7"
     },
     "require-dev": {

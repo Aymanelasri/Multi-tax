@@ -59,19 +59,25 @@ class SendVerificationEmail extends Notification
 
         // Send the email using the blade template
         try {
-            \Illuminate\Support\Facades\Mail::send('emails.verify-email', [
-                'name' => $name,
-                'verificationUrl' => $verificationUrl,
-                'token' => $token,
-                'frontendUrl' => config('app.frontend_url'),
-            ], function ($message) use ($email, $name) {
-                $message->to($email)
-                    ->subject('Verify Your Email Address - ' . config('app.name'));
-            });
+            $mg = \Mailgun\Mailgun::create(config('services.mailgun.secret'));
+            $mg->messages()->send(
+                config('services.mailgun.domain'),
+                [
+                    'from' => 'SIMPL-TVA <postmaster@' . config('services.mailgun.domain') . '>',
+                    'to' => $name . ' <' . $email . '>',
+                    'subject' => 'Verify Your Email Address - ' . config('app.name'),
+                    'html' => view('emails.verify-email', [
+                        'name' => $name,
+                        'verificationUrl' => $verificationUrl,
+                        'token' => $token,
+                        'frontendUrl' => config('app.frontend_url'),
+                    ])->render(),
+                ]
+            );
             \Illuminate\Support\Facades\Log::info('✅ Email sent successfully to: ' . $email);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('❌ Mail::send failed: ' . $e->getMessage() . ' | Class: ' . get_class($e));
-            // Don't throw - log only, registration continues
+            \Illuminate\Support\Facades\Log::error('❌ Mailgun failed: ' . $e->getMessage());
+            // Don't throw - registration continues
         }
     }
 
